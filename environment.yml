@@ -1,0 +1,19 @@
+name: pfp_env3
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7
+  - configobj
+  - python-dateutil
+  - matplotlib
+  - netcdf4
+  - numpy
+  - pandas
+  - pyqt
+  - pytz
+  - scipy
+  - statsmodels
+  - timezonefinder=3.4.0
+  - xlwt
+  - xlrd
+  - xlsxwriter
