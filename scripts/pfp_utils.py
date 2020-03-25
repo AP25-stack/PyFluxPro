@@ -13,6 +13,7 @@ import time
 # third party modules
 import dateutil
 import netCDF4
+import cftime
 import numpy
 import pytz
 import xlrd
@@ -2069,7 +2070,10 @@ def get_datetimefromnctime(ds,time,time_units):
     """
     ts = int(ds.globalattributes["time_step"])
     nRecs = int(ds.globalattributes["nc_nrecs"])
-    dt = netCDF4.num2date(time,time_units)
+    if cftime.__version__>="1.1.0":
+        dt = cftime.num2date(time,time_units,only_use_cftime_datetimes=False, only_use_python_datetimes=True)
+    else:
+        dt = netCDF4.num2date(time,time_units)
     ds.series[str("DateTime")] = {}
     ds.series["DateTime"]["Data"] = dt
     ds.series["DateTime"]["Flag"] = numpy.zeros(nRecs)
