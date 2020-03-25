@@ -2,7 +2,7 @@ name: pfp_env3
 channels:
   - conda-forge
 dependencies:
-  - python=3.7
+  - python=3
   - configobj
   - python-dateutil
   - matplotlib
@@ -13,7 +13,7 @@ dependencies:
   - pytz
   - scipy
   - statsmodels
-  - timezonefinder=3.4.0
+  - timezonefinder
   - xlwt
   - xlrd
   - xlsxwriter
