@@ -379,7 +379,7 @@ def plot_fingerprint(cf):
             ed = mdt.date2num(ldt[-1])
             # only plot the fingerprint if there is data to plot
             if numpy.ma.count(data) != 0:
-                plt.imshow(data_daily,extent=[0,24,sd,ed],aspect='auto',origin='lower')
+                plt.imshow(data_daily,extent=[0,24,sd,ed],aspect='auto',origin='lower',interpolation="none")
                 ax.yaxis_date()
                 cb = plt.colorbar(orientation='horizontal',fraction=0.02,pad=0.075)
                 if numpy.ma.min(data) == numpy.ma.max(data):
