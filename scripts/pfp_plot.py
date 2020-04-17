@@ -2,8 +2,6 @@ import datetime
 import logging
 import math
 import os
-import sys
-import time
 # 3rd party
 import matplotlib
 import matplotlib.dates as mdt
@@ -23,11 +21,11 @@ logger = logging.getLogger("pfp_log")
 
 def get_diurnalstats(DecHour,Data,dt):
     nInts = 24*int((60/dt)+0.5)
-    Hr = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
-    Av = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
-    Sd = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
-    Mx = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
-    Mn = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
+    Hr = numpy.array([c.missing_value]*nInts,dtype=numpy.float)
+    Av = numpy.array([c.missing_value]*nInts,dtype=numpy.float)
+    Sd = numpy.array([c.missing_value]*nInts,dtype=numpy.float)
+    Mx = numpy.array([c.missing_value]*nInts,dtype=numpy.float)
+    Mn = numpy.array([c.missing_value]*nInts,dtype=numpy.float)
     for i in range(nInts):
         Hr[i] = float(i)*dt/60.
         li = numpy.where((abs(DecHour-Hr[i])<c.eps)&(abs(Data-float(c.missing_value))>c.eps))
@@ -87,30 +85,30 @@ def get_yarray(ds,ThisOne):
         yarray = numpy.ma.zeros(numpy.size(yarray))
     return yarray,nRecs,nNotM,nMskd
 
-def get_yaxislimitsfromcf(cf,nFig,maxkey,minkey,nSer,YArray):
-    if maxkey in list(cf['Plots'][str(nFig)].keys()):                               # Y axis minima specified
-        maxlist = ast.literal_eval(cf['Plots'][str(nFig)][maxkey])     # Evaluate the minima list
-        if str(maxlist[nSer])=='Auto':             # This entry is 'Auto' ...
-            YAxMax = numpy.ma.max(YArray)                        # ... so take the array minimum value
+def get_yaxislimitsfromcf(cf, nFig, maxkey, minkey, nSer, YArray):
+    if maxkey in list(cf['Plots'][str(nFig)].keys()):
+        maxlist = pfp_cfg.cfg_string_to_list(cf['Plots'][str(nFig)][maxkey])
+        if str(maxlist[nSer]) == 'Auto':
+            YAxMax = numpy.ma.max(YArray)
         else:
-            YAxMax = float(maxlist[nSer])         # Evaluate the entry for this series
+            YAxMax = float(maxlist[nSer])
     else:
-        YAxMax = numpy.ma.max(YArray)                            # Y axis minima not given, use auto
-    if minkey in list(cf['Plots'][str(nFig)].keys()):                               # Y axis minima specified
-        minlist = ast.literal_eval(cf['Plots'][str(nFig)][minkey])     # Evaluate the minima list
-        if str(minlist[nSer])=='Auto':             # This entry is 'Auto' ...
-            YAxMin = numpy.ma.min(YArray)                        # ... so take the array minimum value
+        YAxMax = numpy.ma.max(YArray)
+    if minkey in list(cf['Plots'][str(nFig)].keys()):
+        minlist = pfp_cfg.cfg_string_to_list(cf['Plots'][str(nFig)][minkey])
+        if str(minlist[nSer]) == 'Auto':
+            YAxMin = numpy.ma.min(YArray)
         else:
-            YAxMin = float(minlist[nSer])         # Evaluate the entry for this series
+            YAxMin = float(minlist[nSer])
     else:
-        YAxMin = numpy.ma.min(YArray)                            # Y axis minima not given, use auto
+        YAxMin = numpy.ma.min(YArray)
     if (abs(YAxMax-YAxMin) < c.eps):
         YAxDelta = 0.001*YAxMax
         if YAxDelta == 0:
             YAxDelta = 1
         YAxMax = YAxMax + YAxDelta
         YAxMin = YAxMin - YAxDelta
-    return YAxMax,YAxMin
+    return YAxMax, YAxMin
 
 def plot_fcvsustar(ds):
     """
@@ -120,7 +118,6 @@ def plot_fcvsustar(ds):
      each year.
     """
     site_name = ds.globalattributes["site_name"]
-    nrecs = int(ds.globalattributes["nc_nrecs"])
     ts = int(ds.globalattributes["time_step"])
     ldt = pfp_utils.GetVariable(ds, "DateTime")
     nbins = 20
@@ -172,7 +169,6 @@ def plot_fcvsustar(ds):
         plt.draw()
     # plot 4 seasons for each year
     logger.info(" Doing seasonal Fc versus u* plots")
-    seasons = {"summer":[12, 1, 2], "autumn":[3, 4, 5], "winter":[6, 7, 8], "spring":[9, 10, 11]}
     nrows = 2
     ncols = 2
     for year in range(start_year, end_year+1):
@@ -379,7 +375,8 @@ def plot_fingerprint(cf):
             ed = mdt.date2num(ldt[-1])
             # only plot the fingerprint if there is data to plot
             if numpy.ma.count(data) != 0:
-                plt.imshow(data_daily,extent=[0,24,sd,ed],aspect='auto',origin='lower')
+                plt.imshow(data_daily, extent=[0, 24, sd, ed], interpolation='none',
+                           aspect='auto', origin='lower')
                 ax.yaxis_date()
                 cb = plt.colorbar(orientation='horizontal',fraction=0.02,pad=0.075)
                 if numpy.ma.min(data) == numpy.ma.max(data):
@@ -468,7 +465,6 @@ def plottimeseries(cf, nFig, dsa, dsb):
     ts = int(dsa.globalattributes['time_step'])
     ldt = dsa.series["DateTime"]["Data"]
     Month = ldt[0].month
-    Hdh = [dt.hour+(dt.minute+dt.second/float(60))/float(60) for dt in ldt]
     p = plot_setup(cf,nFig)
     logger.info(' Plotting series: '+str(p['SeriesList']))
     L1XArray = dsa.series['DateTime']['Data']
@@ -504,7 +500,6 @@ def plottimeseries(cf, nFig, dsa, dsb):
     plt.figtext(0.5,0.95,SiteName+': '+p['PlotDescription'],ha='center',size=16)
     for ThisOne, n in zip(p['SeriesList'],list(range(p['nGraphs']))):
         if ThisOne in list(dsa.series.keys()):
-            aflag = dsa.series[ThisOne]['Flag']
             p['Units'] = dsa.series[ThisOne]['Attr']['units']
             p['YAxOrg'] = p['ts_YAxOrg'] + n*p['yaxOrgOffset']
             L1YArray,p['nRecs'],p['nNotM'],p['nMskd'] = get_yarray(dsa, ThisOne)
@@ -1065,37 +1060,38 @@ def plot_onetimeseries_left(fig,n,ThisOne,xarray,yarray,p):
     plt.figtext(txtXLoc,txtYLoc,TextStr,color='b',horizontalalignment='left')
     if n > 0: plt.setp(ts_ax_left.get_xticklabels(),visible=False)
 
-def plot_onetimeseries_right(fig,n,ThisOne,xarray,yarray,p):
+def plot_onetimeseries_right(fig, n, ThisOne, xarray, yarray, p):
     if p["ts_ax_left"][n] is not None:
         ts_ax_right = p["ts_ax_left"][n].twinx()
     else:
-        rect = [p['ts_XAxOrg'],p['YAxOrg'],p['ts_XAxLen'],p['ts_YAxLen']]
+        rect = [p['ts_XAxOrg'], p['YAxOrg'], p['ts_XAxLen'], p['ts_YAxLen']]
         if p["ts_ax_left"][0] is not None:
             # a left axis was defined for the first graph, use it
-            ts_ax_right = fig.add_axes(rect,sharex=p["ts_ax_left"][0])
+            ts_ax_right = fig.add_axes(rect, sharex=p["ts_ax_left"][0])
         else:
             # a right axis was defined for the first graph, use it
-            ts_ax_right = fig.add_axes(rect,sharex=p["ts_ax_right"][0])
+            ts_ax_right = fig.add_axes(rect, sharex=p["ts_ax_right"][0])
         #ts_ax_right.hold(False)
         ts_ax_right.yaxis.tick_right()
-        TextStr = ThisOne+'('+p['Units']+')'
-        txtXLoc = p['ts_XAxOrg']+0.01
-        txtYLoc = p['YAxOrg']+p['ts_YAxLen']-0.025
-        plt.figtext(txtXLoc,txtYLoc,TextStr,color='b',horizontalalignment='left')
-    colour = 'r'
+        TextStr = ThisOne + '(' + p['Units'] + ')'
+        txtXLoc = p['ts_XAxOrg'] + 0.01
+        txtYLoc = p['YAxOrg'] + p['ts_YAxLen'] - 0.025
+        plt.figtext(txtXLoc, txtYLoc, TextStr, color='b', horizontalalignment='left')
     p["ts_ax_right"][n] = ts_ax_right
-    ts_ax_right.plot(xarray,yarray,'r-')
-    ts_ax_right.set_xlim(p['XAxMin'],p['XAxMax'])
-    ts_ax_right.set_ylim(p['RYAxMin'],p['RYAxMax'])
-    if n==0:
-        ts_ax_right.set_xlabel('Date',visible=True)
+    ts_ax_right.plot(xarray, yarray, 'r-')
+    ts_ax_right.set_xlim(p['XAxMin'], p['XAxMax'])
+    ts_ax_right.set_ylim(p['RYAxMin'], p['RYAxMax'])
+    if n == 0:
+        ts_ax_right.set_xlabel('Date', visible=True)
     else:
-        ts_ax_right.set_xlabel('',visible=False)
-    TextStr = str(p['nNotM'])+' '+str(p['nMskd'])
-    txtXLoc = p['ts_XAxOrg']+p['ts_XAxLen']-0.01
-    txtYLoc = p['YAxOrg']+p['ts_YAxLen']-0.025
-    plt.figtext(txtXLoc,txtYLoc,TextStr,color='r',horizontalalignment='right')
-    if n > 0: plt.setp(ts_ax_right.get_xticklabels(),visible=False)
+        ts_ax_right.set_xlabel('', visible=False)
+    TextStr = str(p['nNotM']) + ' ' + str(p['nMskd'])
+    txtXLoc = p['ts_XAxOrg'] + p['ts_XAxLen'] - 0.01
+    txtYLoc = p['YAxOrg'] + p['ts_YAxLen'] - 0.025
+    plt.figtext(txtXLoc, txtYLoc, TextStr, color='r', horizontalalignment='right')
+    if n > 0:
+        plt.setp(ts_ax_right.get_xticklabels(), visible=False)
+    return
 
 def plotxy(cf, title, plt_cf, dsa, dsb):
     SiteName = dsa.globalattributes['site_name']

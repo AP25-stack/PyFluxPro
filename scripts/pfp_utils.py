@@ -1,6 +1,7 @@
 # the following line needed for unicode character in convert_anglestring
 # -*- coding: latin-1 -*-
 # standard modules
+import cftime
 import copy
 import datetime
 import logging
@@ -2056,26 +2057,34 @@ def get_datetime(cf, ds):
             result = getattr(pfp_func,function_name)(ds, "DateTime", *function_args)
     return
 
-def get_datetimefromnctime(ds,time,time_units):
+def get_datetimefromnctime(ds, time, time_units):
     """
     Purpose:
      Create a series of datetime objects from the time read from a netCDF file.
     Usage:
-     pfp_utils.get_datetimefromnctime(ds,time,time_units)
+     pfp_utils.get_datetimefromnctime(ds, time, time_units)
     Side effects:
      Creates a Python datetime series in the data structure
     Author: PRI
     Date: September 2014
+    Modified:
+     25/3/2020 (PRI) - check cftime version and use cftime.num2date() or netCDF4.num2date()
+                       as appropriate
     """
     ts = int(ds.globalattributes["time_step"])
     nRecs = int(ds.globalattributes["nc_nrecs"])
-    dt = netCDF4.num2date(time,time_units)
+    if cftime.__version__ >= "1.1.0":
+        dt = cftime.num2date(time, time_units,only_use_cftime_datetimes=False,
+                             only_use_python_datetimes=True)
+    else:
+        dt = netCDF4.num2date(time, time_units)
     ds.series[str("DateTime")] = {}
     ds.series["DateTime"]["Data"] = dt
     ds.series["DateTime"]["Flag"] = numpy.zeros(nRecs)
     ds.series["DateTime"]["Attr"] = {}
     ds.series["DateTime"]["Attr"]["long_name"] = "Datetime in local timezone"
     ds.series["DateTime"]["Attr"]["units"] = "None"
+    return
 
 def get_datetime_from_excel_date(values, xl_datemode):
     values = numpy.array(values)

@@ -18,7 +18,7 @@ else:
     matplotlib.use("QT5Agg")
 from PyQt5 import QtWidgets
 # PFP modules
-sys.path.append('scripts')
+sys.path.append('/home/peter/PyFluxPro3/scripts')
 import cfg
 import pfp_compliance
 import pfp_gui
