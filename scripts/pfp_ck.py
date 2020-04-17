@@ -414,13 +414,22 @@ def do_dependencycheck(cf, ds, section, series, code=23, mode="quiet"):
     # our work here is done
     return
 
-def do_diurnalcheck(cf, ds, section, series,code=5):
+def do_diurnalcheck(cf, ds, section, series, code=5):
     """
     Purpose:
-     Do the diurnal QC check.
+     Do the diurnal QC check on the series for which it has been requested.
+     The diurnal QC check works as follows:
+      - get the diurnal statistics (average and standard deviation) for each month
+        - the diurnal statistics are calculated from the
+          data at each time step through out the day
+        - there are 48 (24) diurnal values each day for
+          a time step of 30 (60) minutes
+      - mask any points that lie outside the average +/- NumSd*standard deviation
+        where NumSd is specified by the user in the control file
     Usage:
+    Side effects:
     Author: PRI
-    Date: Back in the day
+    Date: Back in the day, tidied up in April 2020 during the COVID-19 lockdown
     """
     if 'DiurnalCheck' not in list(cf[section][series].keys()):
         return
@@ -455,6 +464,7 @@ def do_diurnalcheck(cf, ds, section, series,code=5):
             ds.series[series]['Data'][index] = numpy.float64(c.missing_value)
             ds.series[series]['Flag'][index] = numpy.int32(code)
             ds.series[series]['Attr']['diurnalcheck_numsd'] = cf[section][series]['DiurnalCheck']['numsd']
+    return
 
 def do_EC155check(cf,ds):
     """

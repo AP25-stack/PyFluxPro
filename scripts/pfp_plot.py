@@ -380,7 +380,7 @@ def plot_fingerprint(cf):
             ed = mdt.date2num(ldt[-1])
             # only plot the fingerprint if there is data to plot
             if numpy.ma.count(data) != 0:
-                plt.imshow(data_daily,extent=[0,24,sd,ed],aspect='auto',origin='lower')
+                plt.imshow(data_daily,extent=[0,24,sd,ed],aspect='auto',origin='lower',interpolation="none")
                 ax.yaxis_date()
                 cb = plt.colorbar(orientation='horizontal',fraction=0.02,pad=0.075)
                 if numpy.ma.min(data) == numpy.ma.max(data):
@@ -856,6 +856,7 @@ def plot_quickcheck(cf):
     file_name = site_name.replace(" ", "") + "_" + level + "_QC_SEB_30minutes.png"
     figure_name = os.path.join("plots", file_name)
     plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily)
+    mypause(0.5)
     # plot the daily ratios
     cmap = plt.cm.get_cmap("RdYlBu")
     logger.info(" Doing the daily ratios plot")
@@ -874,6 +875,7 @@ def plot_quickcheck(cf):
     figure_name = os.path.join("plots", file_name)
     fig.savefig(figure_name, format="png")
     plt.draw()
+    mypause(0.5)
     # plot the daily average radiation
     nFig = nFig + 1
     fig = plt.figure(nFig, figsize=(9, 6))
@@ -890,6 +892,7 @@ def plot_quickcheck(cf):
     figure_name = os.path.join("plots", file_name)
     fig.savefig(figure_name, format="png")
     plt.draw()
+    mypause(0.5)
     # plot the daily average fluxes
     nFig = nFig + 1
     fig = plt.figure(nFig, figsize=(9, 6))
@@ -906,6 +909,7 @@ def plot_quickcheck(cf):
     figure_name = os.path.join("plots", file_name)
     fig.savefig(figure_name, format="png")
     plt.draw()
+    mypause(0.5)
     # plot the daily average meteorology
     nFig = nFig + 1
     fig = plt.figure(nFig, figsize=(9, 6))
@@ -922,6 +926,7 @@ def plot_quickcheck(cf):
     figure_name = os.path.join("plots", file_name)
     fig.savefig(figure_name, format="png")
     plt.draw()
+    mypause(0.5)
     # plot the daily average soil data
     nFig = nFig + 1
     fig = plt.figure(nFig, figsize=(9, 6))
@@ -938,6 +943,7 @@ def plot_quickcheck(cf):
     figure_name = os.path.join("plots", file_name)
     fig.savefig(figure_name, format="png")
     plt.draw()
+    mypause(0.5)
     # *** end of section for time series of daily averages
     # *** start of section for diurnal plots by month ***
     # month labels
@@ -1009,6 +1015,7 @@ def plot_quickcheck(cf):
         fig.savefig(figure_name, format="png")
         # draw the plot on the screen
         plt.draw()
+        mypause(0.5)
     plt.ioff()
     return
 
