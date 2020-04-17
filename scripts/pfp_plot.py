@@ -865,6 +865,7 @@ def plot_quickcheck(cf):
     fig = plt.figure(nFig, figsize=(9, 6))
     fig.canvas.set_window_title("Daily Average Ratios")
     plt.figtext(0.5, 0.95, plot_title, horizontalalignment="center", size=16)
+    plt.figtext(0.5, 0.90, "Day time data points only", horizontalalignment="center", size=14)
     tsplot1_list = ["SEB", "EF", "BR", "WUE", "Sws", "Precip"]
     nplots = len(tsplot1_list)
     for nrow, label in enumerate(tsplot1_list):
@@ -898,6 +899,7 @@ def plot_quickcheck(cf):
     fig = plt.figure(nFig, figsize=(9, 6))
     fig.canvas.set_window_title("Daily Average Fluxes")
     plt.figtext(0.5, 0.95, plot_title, horizontalalignment="center", size=16)
+    plt.figtext(0.5, 0.90, "Day time data points only", horizontalalignment="center", size=14)
     tsplot3_list = ["Fsd", "Fa", "Fe", "Fh", "Fc"]
     nplots = len(tsplot3_list)
     for nrow, label in enumerate(tsplot3_list):
