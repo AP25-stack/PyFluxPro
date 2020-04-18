@@ -435,16 +435,17 @@ def do_diurnalcheck(cf, ds, section, series, code=5):
         return
     if 'numsd' not in list(cf[section][series]["DiurnalCheck"].keys()):
         return
-    dt = ds.series["DateTime"]["Data"]
-    Hdh = numpy.array([d.hour+d.minute/float(60) for d in dt])
     ts = float(ds.globalattributes["time_step"])
     n = int((60./ts) + 0.5)             #Number of timesteps per hour
     nInts = int((1440.0/ts)+0.5)        #Number of timesteps per day
     Av = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
     Sd = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
     NSd = numpy.array(parse_rangecheck_limit(cf[section][series]["DiurnalCheck"]["numsd"]))
+    ldt = pfp_utils.GetVariable(ds, "DateTime")
+    month = numpy.array([d.month for d in ldt["Data"]])
+    Hdh = numpy.array([d.hour+d.minute/float(60) for d in dt])
     for m in range(1,13):
-        mindex = numpy.where(ds.series["Month"]["Data"]==m)[0]
+        mindex = numpy.where(month == m)[0]
         if len(mindex)!=0:
             lHdh = Hdh[mindex]
             l2ds = ds.series[series]["Data"][mindex]
@@ -882,6 +883,9 @@ def do_rangecheck(cf, ds, section, series, code=2):
         msg = "RangeCheck: key not found in control file for "+series+", skipping ..."
         logger.warning(msg)
         return
+    # get the month from the datetime series
+    ldt = pfp_utils.GetVariable(ds, "DateTime")
+    month = numpy.array([d.month for d in ldt["Data"]])
     # get the upper and lower limits
     upper = cf[section][series]['RangeCheck']['upper']
     upr = numpy.array(parse_rangecheck_limit(upper))
@@ -889,8 +893,8 @@ def do_rangecheck(cf, ds, section, series, code=2):
         msg = " Need 12 'upper' values, got "+str(len(upr))+" for "+series
         logger.error(msg)
         return
-    valid_upper = numpy.min(upr)
-    upr = upr[ds.series['Month']['Data']-1]
+    valid_upper = numpy.max(upr)
+    upr = upr[month - 1]
     lower = cf[section][series]['RangeCheck']['lower']
     lwr = numpy.array(parse_rangecheck_limit(lower))
     if len(lwr) != 12:
@@ -898,7 +902,7 @@ def do_rangecheck(cf, ds, section, series, code=2):
         logger.error(msg)
         return
     valid_lower = numpy.min(lwr)
-    lwr = lwr[ds.series['Month']['Data']-1]
+    lwr = lwr[month - 1]
     # get the data, flag and attributes
     data, flag, attr = pfp_utils.GetSeriesasMA(ds, series)
     # convert the data from a masked array to an ndarray so the range check works

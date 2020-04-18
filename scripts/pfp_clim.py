@@ -153,7 +153,6 @@ def do_diurnalstats(Month, Hdh, data, xlSheet, format_string='',ts=30):
         xlSheet.write(1,xlCol+3,'Mx')
         xlSheet.write(1,xlCol+4,'Mn')
         for j in range(len(Hr)):
-            #xlSheet.write(j+2,xlCol,Num[j])
             xlSheet.write(j+2,xlCol,int(Num[j]))
             xlSheet.write(j+2,xlCol+1,Av[j],d_xf)
             xlSheet.write(j+2,xlCol+2,Sd[j],d_xf)
