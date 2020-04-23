@@ -826,14 +826,9 @@ def do_li7500acheck(cf,ds):
             pass
 
 def do_linear(cf,ds):
-    level = ds.globalattributes['nc_level']
     for ThisOne in list(cf['Variables'].keys()):
         if pfp_utils.haskey(cf,ThisOne,'Linear'):
             pfp_ts.ApplyLinear(cf,ds,ThisOne)
-        if pfp_utils.haskey(cf,ThisOne,'Drift'):
-            pfp_ts.ApplyLinearDrift(cf,ds,ThisOne)
-        if pfp_utils.haskey(cf,ThisOne,'LocalDrift'):
-            pfp_ts.ApplyLinearDriftLocal(cf,ds,ThisOne)
 
 def parse_rangecheck_limit(s):
     """

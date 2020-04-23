@@ -80,6 +80,9 @@ class pfp_main_ui(QtWidgets.QWidget):
         # Utilities menu
         self.menuUtilities = QtWidgets.QMenu(self.menubar)
         self.menuUtilities.setTitle("Utilities")
+        # Utilities/u* threshold submenu
+        self.menuUtilitiesUstar = QtWidgets.QMenu(self.menuFile)
+        self.menuUtilitiesUstar.setTitle("u* threshold")
         # Help menu
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setTitle("Help")
@@ -101,12 +104,12 @@ class pfp_main_ui(QtWidgets.QWidget):
         # File/Convert submenu
         self.actionFileConvertnc2biomet = QtWidgets.QAction(self)
         self.actionFileConvertnc2biomet.setText("nc to Biomet")
-        self.actionFileConvertnc2ecostress = QtWidgets.QAction(self)
-        self.actionFileConvertnc2ecostress.setText("nc to ECOSTRESS")
+        #self.actionFileConvertnc2ecostress = QtWidgets.QAction(self)
+        #self.actionFileConvertnc2ecostress.setText("nc to ECOSTRESS")
         self.actionFileConvertnc2xls = QtWidgets.QAction(self)
         self.actionFileConvertnc2xls.setText("nc to Excel")
-        self.actionFileConvertnc2fluxnet = QtWidgets.QAction(self)
-        self.actionFileConvertnc2fluxnet.setText("nc to FluxNet")
+        #self.actionFileConvertnc2fluxnet = QtWidgets.QAction(self)
+        #self.actionFileConvertnc2fluxnet.setText("nc to FluxNet")
         self.actionFileConvertnc2reddyproc = QtWidgets.QAction(self)
         self.actionFileConvertnc2reddyproc.setText("nc to REddyProc")
         self.actionFileConvertncupdate = QtWidgets.QAction(self)
@@ -132,18 +135,18 @@ class pfp_main_ui(QtWidgets.QWidget):
         # Utilities menu
         self.actionUtilitiesClimatology = QtWidgets.QAction(self)
         self.actionUtilitiesClimatology.setText("Climatology")
-        self.actionUtilitiesUstarCPD = QtWidgets.QAction(self)
-        self.actionUtilitiesUstarCPD.setText("u* threshold (CPD)")
+        self.actionUtilitiesUstarCPD1 = QtWidgets.QAction(self)
+        self.actionUtilitiesUstarCPD1.setText("CPD (McHugh)")
         self.actionUtilitiesUstarCPD2 = QtWidgets.QAction(self)
-        self.actionUtilitiesUstarCPD2.setText("u* threshold (CPD2)")
+        self.actionUtilitiesUstarCPD2.setText("CPD (Barr)")
         self.actionUtilitiesUstarMPT = QtWidgets.QAction(self)
-        self.actionUtilitiesUstarMPT.setText("u* threshold (MPT)")
+        self.actionUtilitiesUstarMPT.setText("MPT")
         # add the actions to the menus
         # File/Convert submenu
         self.menuFileConvert.addAction(self.actionFileConvertnc2xls)
         self.menuFileConvert.addAction(self.actionFileConvertnc2biomet)
-        self.menuFileConvert.addAction(self.actionFileConvertnc2ecostress)
-        self.menuFileConvert.addAction(self.actionFileConvertnc2fluxnet)
+        #self.menuFileConvert.addAction(self.actionFileConvertnc2ecostress)
+        #self.menuFileConvert.addAction(self.actionFileConvertnc2fluxnet)
         self.menuFileConvert.addAction(self.actionFileConvertnc2reddyproc)
         self.menuFileConvert.addAction(self.actionFileConvertncupdate)
         # File menu
@@ -166,11 +169,13 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.menuPlot.addAction(self.actionPlotTimeSeries)
         self.menuPlot.addSeparator()
         self.menuPlot.addAction(self.actionPlotClosePlots)
+        # Utilities/u* threshold submenu
+        self.menuUtilitiesUstar.addAction(self.actionUtilitiesUstarCPD1)
+        self.menuUtilitiesUstar.addAction(self.actionUtilitiesUstarCPD2)
+        self.menuUtilitiesUstar.addAction(self.actionUtilitiesUstarMPT)
         # Utilities menu
         self.menuUtilities.addAction(self.actionUtilitiesClimatology)
-        self.menuUtilities.addAction(self.actionUtilitiesUstarCPD)
-        self.menuUtilities.addAction(self.actionUtilitiesUstarCPD2)
-        self.menuUtilities.addAction(self.actionUtilitiesUstarMPT)
+        self.menuUtilities.addAction(self.menuUtilitiesUstar.menuAction())
         # add individual menus to menu bar
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
@@ -208,11 +213,9 @@ class pfp_main_ui(QtWidgets.QWidget):
 
         # Connect signals to slots
         # File menu actions
-        self.actionFileConvertnc2biomet.triggered.connect(pfp_top_level.do_file_convert_nc2biomet)
-        self.actionFileConvertnc2ecostress.triggered.connect(pfp_top_level.do_file_convert_nc2ecostress)
+        self.actionFileConvertnc2biomet.triggered.connect(lambda:pfp_top_level.do_file_convert_nc2biomet(None, mode="standard"))
         self.actionFileConvertnc2xls.triggered.connect(pfp_top_level.do_file_convert_nc2xls)
-        self.actionFileConvertnc2fluxnet.triggered.connect(pfp_top_level.do_file_convert_nc2fluxnet)
-        self.actionFileConvertnc2reddyproc.triggered.connect(pfp_top_level.do_file_convert_nc2reddyproc)
+        self.actionFileConvertnc2reddyproc.triggered.connect(lambda:pfp_top_level.do_file_convert_nc2reddyproc(None, mode="standard"))
         self.actionFileConvertncupdate.triggered.connect(pfp_top_level.do_file_convert_ncupdate)
         self.actionFileOpen.triggered.connect(self.open_controlfile)
         self.actionFileSave.triggered.connect(self.save_controlfile)
@@ -231,7 +234,7 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.actionPlotClosePlots.triggered.connect(pfp_top_level.do_plot_closeplots)
         # Utilities menu actions
         self.actionUtilitiesClimatology.triggered.connect(lambda:pfp_top_level.do_utilities_climatology(mode="standard"))
-        self.actionUtilitiesUstarCPD.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_cpd(mode="standard"))
+        self.actionUtilitiesUstarCPD1.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_cpd1(mode="standard"))
         self.actionUtilitiesUstarCPD2.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_cpd2(mode="standard"))
         self.actionUtilitiesUstarMPT.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_mpt(mode="standard"))
         # add the L4 GUI
@@ -309,6 +312,14 @@ class pfp_main_ui(QtWidgets.QWidget):
             self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
         elif self.cfg["level"] in ["nc2csv_ecostress"]:
             self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2csv_ecostress(self)
+            self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
+            self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
+        elif self.cfg["level"] in ["nc2csv_fluxnet"]:
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2csv_fluxnet(self)
+            self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
+            self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
+        elif self.cfg["level"] in ["nc2csv_reddyproc"]:
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2csv_reddyproc(self)
             self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
             self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
         elif self.cfg["level"] in ["batch"]:
@@ -585,10 +596,14 @@ class pfp_main_ui(QtWidgets.QWidget):
             pfp_top_level.do_run_l5(self, cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "L6":
             pfp_top_level.do_run_l6(self, cfg)
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_biomet":
+            pfp_top_level.do_file_convert_nc2biomet(cfg, mode="custom")
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_ecostress":
             pfp_top_level.do_file_convert_nc2ecostress(cfg)
-        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_biomet":
-            pfp_top_level.do_file_convert_nc2biomet(cfg)
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_fluxnet":
+            pfp_top_level.do_file_convert_nc2fluxnet(cfg)
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_reddyproc":
+            pfp_top_level.do_file_convert_nc2reddyproc(cfg, mode="custom")
         else:
             logger.error("Level not implemented yet ...")
 

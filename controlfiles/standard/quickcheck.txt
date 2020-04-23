@@ -1,47 +1,41 @@
-[General]
-    PlotWidth_landscape = 10.9
-    PlotHeight_landscape = 7.5
-    PlotWidth_portrait = 7.5
-    PlotHeight_portrait = 10.9
-
 [Variables]
     [[Month]]
-        AltVarName = "Month" 
+        AltVar = Month 
     [[Hour]]
-        AltVarName = "Hour"
+        AltVar = Hour
     [[Minute]]
-        AltVarName = "Minute"
+        AltVar = Minute
     [[Fsd]]
-        AltVarName = "Fsd" 
+        AltVar = Fsd 
     [[Fsu]]
-        AltVarName = "Fsu"
+        AltVar = Fsu
     [[Flu]]
-        AltVarName = "Flu"
+        AltVar = Flu
     [[Fld]]
-        AltVarName = "Fld"
+        AltVar = Fld
     [[Fn]]
-        AltVarName = "Fn"
+        AltVar = Fn
     [[Fg]]
-        AltVarName = "Fg"
+        AltVar = Fg
     [[Fe]]
-        AltVarName = "Fe"
+        AltVar = Fe
     [[Fh]]
-        AltVarName = "Fh"
+        AltVar = Fh
     [[Fc]]
-        AltVarName = "Fc"
+        AltVar = Fc
     [[ustar]]
-        AltVarName = "ustar"
+        AltVar = ustar
     [[Ta]]
-        AltVarName = "Ta"
+        AltVar = Ta
     [[H2O]]
-        AltVarName = "Ah"
+        AltVar = Ah
     [[CO2]]
-        AltVarName = "Cc"
+        AltVar = Cc
     [[Precip]]
-        AltVarName = "Precip"
+        AltVar = Precip
     [[Ws]]
-        AltVarName = "Ws"
+        AltVar = Ws
     [[Sws]]
-        AltVarName = "Sws"
+        AltVar = Sws
     [[Ts]]
-        AltVarName = "Ts"
+        AltVar = Ts

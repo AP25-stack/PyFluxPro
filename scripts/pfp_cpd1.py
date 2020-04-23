@@ -1,26 +1,17 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
-import ast
 import datetime
 import logging
 import os
-import pdb
-import sys
-import traceback
-import warnings
 # 3rd party modules
-from configobj import ConfigObj
 import matplotlib.pyplot as plt
-import matplotlib.mlab as mlab
-import netCDF4
 import numpy as np
 import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 from scipy import stats
 import statsmodels.formula.api as sm
-import xlrd
 # PFP modules
 import constants as c
 import pfp_io
@@ -127,7 +118,7 @@ def fit(temp_df):
 
 #------------------------------------------------------------------------------
 # Coordinate steps in CPD process
-def cpd_main(cf):
+def cpd1_main(cf):
     """
     This script fetches data from an OzFluxQC .nc file and applies change point detection
     algorithms to the nocturnal C flux data to provide a best estimate for the u*threshold,
@@ -308,14 +299,13 @@ def CPD_run(cf):
     var_list = list(cf["Variables"].keys())
     names = {}
     for item in var_list:
-        if "AltVarName" in list(cf["Variables"][item].keys()):
-            names[item] = cf["Variables"][item]["AltVarName"]
+        if "name" in list(cf["Variables"][item].keys()):
+            names[item] = cf["Variables"][item]["name"]
         else:
             names[item] = item
     # read the netcdf file
     logger.info(' Reading netCDF file '+file_in)
     ds = pfp_io.nc_read_series(file_in)
-    nrecs = int(ds.globalattributes["nc_nrecs"])
     ts = int(ds.globalattributes["time_step"])
     # get the datetime
     dt = ds.series["DateTime"]["Data"]
@@ -590,7 +580,7 @@ def sort(df, flux_period, years_index, i):
     Tclass_index=np.tile(np.concatenate([np.int32(np.ones(bin_size//4)*(i+1)) for i in range(4)]),
                          len(seasons_index)//bin_size)
 
-    bin_index=np.tile(np.int32(np.arange(bin_size//4)//(bin_size//200)),len(seasons_df)//(bin_size//4))
+    bin_index=np.tile(np.int32(np.arange(bin_size//4)/(bin_size//200)),len(seasons_df)//(bin_size//4))
 
     # Zip together hierarchical index and add to df
     arrays = [years_index, seasons_index, Tclass_index]
@@ -656,6 +646,3 @@ def stats_calc(df,stats_df):
 
     return stats_df
 #------------------------------------------------------------------------------
-
-if __name__=='__main__':
-    test = main()

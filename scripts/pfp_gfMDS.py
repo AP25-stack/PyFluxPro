@@ -59,7 +59,7 @@ def GapFillUsingMDS(ds, l5_info, called_by):
     # now loop over the series to be gap filled using MDS
     # open a log file for the MDS C code output
     log_file_path = os.path.join("mds", "log", "mds.log")
-    mdslogfile = open(log_file_path, "wb")
+    mdslogfile = open(log_file_path, "w")
     for fig_num, mds_label in enumerate(l5im["outputs"].keys()):
         logger.info(" Doing MDS gap filling for %s", l5im["outputs"][mds_label]["target"])
         l5im["outputs"][mds_label]["out_base_path"] = out_base_path

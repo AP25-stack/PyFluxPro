@@ -188,16 +188,16 @@ def get_rangecheck_limit(cf,label,upr_def=1E10,lwr_def=-1E10):
     for section in ['Variables']:
         if label in list(cf[section].keys()):
             if 'RangeCheck' in list(cf[section][label].keys()):
-                upper = float(cf[section][label]['RangeCheck']['Upper'])
-                lower = float(cf[section][label]['RangeCheck']['Lower'])
+                upper = float(cf[section][label]['RangeCheck']['upper'])
+                lower = float(cf[section][label]['RangeCheck']['lower'])
     return upper,lower
 
 def get_formatstring(cf,label,fmt_def=''):
     fmt_str = fmt_def
     for section in ['Variables']:
         if label in list(cf[section].keys()):
-            if 'Format' in list(cf[section][label].keys()):
-                fmt_str = str(cf[section][label]['Format'])
+            if 'format' in list(cf[section][label].keys()):
+                fmt_str = str(cf[section][label]['format'])
     return fmt_str
 
 def climatology(cf):
