@@ -441,9 +441,9 @@ def do_diurnalcheck(cf, ds, section, series, code=5):
     Av = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
     Sd = numpy.array([c.missing_value]*nInts,dtype=numpy.float64)
     NSd = numpy.array(parse_rangecheck_limit(cf[section][series]["DiurnalCheck"]["numsd"]))
-    ldt = pfp_utils.GetVariable(ds, "DateTime")
-    month = numpy.array([d.month for d in ldt["Data"]])
-    Hdh = numpy.array([d.hour+d.minute/float(60) for d in dt])
+    ldt = ds.series['DateTime']['Data']
+    month = numpy.array([d.month for d in ldt])
+    Hdh = numpy.array([d.hour+d.minute/float(60) for d in ldt])
     for m in range(1,13):
         mindex = numpy.where(month == m)[0]
         if len(mindex)!=0:
@@ -462,7 +462,7 @@ def do_diurnalcheck(cf, ds, section, series, code=5):
             hindex = numpy.array(n*lHdh,int)
             index = numpy.where(((l2ds!=float(c.missing_value))&(l2ds<Lwr[hindex]))|
                                 ((l2ds!=float(c.missing_value))&(l2ds>Upr[hindex])))[0] + mindex[0]
-            ds.series[series]['Data'][index] = numpy.float64(c.missing_value)
+            ds.series[series]['Data'][index] = numpy.float(c.missing_value)
             ds.series[series]['Flag'][index] = numpy.int32(code)
             ds.series[series]['Attr']['diurnalcheck_numsd'] = cf[section][series]['DiurnalCheck']['numsd']
     return
