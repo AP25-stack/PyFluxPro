@@ -350,7 +350,8 @@ def l6qc(main_gui, cf, ds5):
     # check to see if we have any imports
     pfp_gf.ImportSeries(cf, ds6)
     # check units of Fc
-    Fc_list = [label for label in list(ds6.series.keys()) if label[0:2] == "Fc"]
+    Fc_units_list = ["mg/m2/s", "mgCO2/m2/s", "umol/m2/s"]
+    Fc_list = [label for label in list(ds.series.keys()) if ("Fc" in label) and (ds.series[label]["Attr"]["units"] in Fc_units_list)]
     pfp_utils.CheckUnits(ds6, Fc_list, "umol/m2/s", convert_units=True)
     # get ER from the observed Fc
     pfp_rp.GetERFromFc(cf, ds6)
