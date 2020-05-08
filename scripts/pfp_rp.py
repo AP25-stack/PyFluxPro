@@ -65,7 +65,7 @@ def CalculateNEE(cf, ds, l6_info):
     """
     if "NetEcosystemExchange" not in l6_info:
         return
-    # make the L6 "description" attrubute for the target variable
+    # make the L6 "description" attribute for the target variable
     descr_level = "description_" + ds.globalattributes["nc_level"]
     # get the Fsd threshold
     Fsd_threshold = float(pfp_utils.get_keyvaluefromcf(cf, ["Options"], "Fsd_threshold", default=10))
@@ -1854,7 +1854,7 @@ def PartitionNEE(ds, l6_info):
     """
     if "GrossPrimaryProductivity" not in l6_info:
         return
-    # make the L6 "description" attrubute for the target variable
+    # make the L6 "description" attribute for the target variable
     descr_level = "description_" + ds.globalattributes["nc_level"]
     # calculate GPP from NEE and ER
     for label in list(l6_info["GrossPrimaryProductivity"].keys()):
@@ -1935,8 +1935,6 @@ def rpMergeSeries_createdict(cf, ds, l6_info, label, called_by):
     # output series name
     l6_info[called_by]["standard"][label]["output"] = label
     # source
-    #opt = pfp_utils.get_keyvaluefromcf(cf, ["EcosystemRespiration", label, "MergeSeries"], "source", default="ER,ER_SOLO_all")
-    #sources = pfp_cfg.cfg_string_to_list(opt)
     sources = pfp_utils.GetMergeSeriesKeys(cf, label, section="EcosystemRespiration")
     l6_info[called_by]["standard"][label]["source"] = sources
     # create an empty series in ds if the output series doesn't exist yet

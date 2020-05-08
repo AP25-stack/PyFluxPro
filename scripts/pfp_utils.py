@@ -448,8 +448,8 @@ def convert_units_co2(ds, variable, new_units):
         # update the variable attributes to the new units
         variable["Attr"]["units"] = new_units
     elif old_units in ["mg/m3", "mgCO2/m3"] and new_units == "umol/mol":
-        # convert the data
         ldt = GetVariable(ds, "DateTime")
+        # convert the data
         Month = numpy.array([d.month for d in ldt["Data"]])
         Ta = GetVariable(ds, "Ta")
         ps = GetVariable(ds, "ps")
@@ -1586,7 +1586,7 @@ def GetcbTicksFromCF(cf,ThisOne):
         logger.warning(msg)
     return Ticks
 
-def GetRangesFromCF(cf,ThisOne,mode="verbose"):
+def GetRangesFromCF(cf,ThisOne, mode="verbose"):
     '''
     Get lower and upper range limits from the control file.
     '''
@@ -1595,14 +1595,14 @@ def GetRangesFromCF(cf,ThisOne,mode="verbose"):
             lower = float(cf['Variables'][ThisOne]['lower'])
         else:
             if mode.lower()!="quiet":
-                msg = "GetRangesFromCF: Lower key not in control file for "+str(ThisOne)
+                msg = "GetRangesFromCF: lower key not in control file for "+str(ThisOne)
                 logger.info(msg)
             lower = None
         if 'upper' in list(cf['Variables'][ThisOne].keys()):
             upper = float(cf['Variables'][ThisOne]['upper'])
         else:
             if mode.lower()!="quiet":
-                msg = "GetRangesFromCF: Upper key not in control file for "+str(ThisOne)
+                msg = "GetRangesFromCF: upper key not in control file for "+str(ThisOne)
                 logger.info(msg)
             upper = None
     else:

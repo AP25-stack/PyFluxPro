@@ -8,6 +8,7 @@ import time
 import numpy
 import dateutil.parser
 # pfp modules
+import pfp_cfg
 import pfp_rp
 import pfp_ts
 import pfp_utils
@@ -17,7 +18,7 @@ logger = logging.getLogger("pfp_log")
 def ApplyQCChecks(variable):
     """
     Purpose:
-     Apply the QC checks speified in the control file object to a single variable
+     Apply the QC checks specified in the control file object to a single variable
     Usage:
      pfp_ck.ApplyQCChecks(variable)
      where variable is a variable dictionary as returned by pfp_utils.GetVariable()
@@ -562,6 +563,8 @@ def do_EPQCFlagCheck(cf, ds, section, series, code=9):
     reject_list = cf[section][series]["EPQCFlagCheck"]["reject"].split(",")
     nRecs = int(ds.globalattributes["nc_nrecs"])
     flag = numpy.zeros(nRecs, dtype=numpy.int32)
+    source_list = pfp_cfg.cfg_string_to_list(cf[section][series]['EPQCFlagCheck']["source"])
+    reject_list = pfp_cfg.cfg_string_to_list(cf[section][series]['EPQCFlagCheck']["reject"])
     variable = pfp_utils.GetVariable(ds, series)
     for source in source_list:
         epflag = pfp_utils.GetVariable(ds, source)
@@ -833,7 +836,7 @@ def do_linear(cf,ds):
 def parse_rangecheck_limit(s):
     """
     Purpose:
-     Parse the RangeCheck Upper or Lower value string.
+     Parse the RangeCheck upper or lower value string.
      Valid string formats are;
       '100'
       '[100]*12'
