@@ -19,21 +19,21 @@ level = L5
 [Fluxes]
     [[Fe]]
         [[[MergeSeries]]]
-            Source = Fe,Fe_MDS
+            source = Fe,Fe_MDS
         [[[GapFillUsingMDS]]]
             [[[[Fe_MDS]]]]
                 drivers = ['Fsd','Ta','VPD']
                 tolerances = [(20, 50), 2.5, 0.5]
     [[Fh]]
         [[[MergeSeries]]]
-            Source = Fh,Fh_MDS
+            source = Fh,Fh_MDS
         [[[GapFillUsingMDS]]]
             [[[[Fh_MDS]]]]
                 drivers = ['Fsd','Ta','VPD']
                 tolerances = [(20, 50), 2.5, 0.5]
     [[Fc]]
         [[[MergeSeries]]]
-            Source = Fc,Fc_MDS
+            source = Fc,Fc_MDS
         [[[GapFillUsingMDS]]]
             [[[[Fc_MDS]]]]
                 drivers = ['Fsd','Ta','VPD']
