@@ -1342,7 +1342,6 @@ def netcdf_concatenate_create_ds_out(data, info):
     # get the time step
     # get the file names in data
     file_names = list(data.keys())
-    print("Global Attributes: ", file_names[0])
     ts = int(data[file_names[0]].globalattributes["time_step"])
     tsd = datetime.timedelta(minutes=ts)
     # get a continuous time variable

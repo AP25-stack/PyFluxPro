@@ -166,8 +166,11 @@ for n, era5_name in enumerate(era5_files):
     # get the time and convert to Python datetime object
     era5_time = era5_file.variables["time"][:]
     time_units = getattr(era5_file.variables["time"],"units")
-    #dt_era5 = netCDF4.num2date(era5_time,time_units)
-    dt_era5 = cftime.num2pydate(era5_time,time_units)
+    try:
+        #dt_era5 = netCDF4.num2date(era5_time,time_units)
+        dt_era5 = cftime.num2pydate(era5_time,time_units)
+    except
+        dt_era5 = cftime.num2date(era5_time,time_units)
     start_date_era5 = dt_era5[0]
     end_date_era5 = dt_era5[-1]
     hour_utc = numpy.array([dt.hour for dt in dt_era5])
