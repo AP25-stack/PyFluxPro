@@ -169,7 +169,7 @@ for n, era5_name in enumerate(era5_files):
     try:
         #dt_era5 = netCDF4.num2date(era5_time,time_units)
         dt_era5 = cftime.num2pydate(era5_time,time_units)
-    except
+    except:
         dt_era5 = cftime.num2date(era5_time,time_units)
     start_date_era5 = dt_era5[0]
     end_date_era5 = dt_era5[-1]
