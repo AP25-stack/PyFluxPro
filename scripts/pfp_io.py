@@ -1342,6 +1342,7 @@ def netcdf_concatenate_create_ds_out(data, info):
     # get the time step
     # get the file names in data
     file_names = list(data.keys())
+    print("Global Attributes: ", file_names[0])
     ts = int(data[file_names[0]].globalattributes["time_step"])
     tsd = datetime.timedelta(minutes=ts)
     # get a continuous time variable
@@ -1463,7 +1464,7 @@ def netcdf_concatenate_truncate(ds_in, info):
     """
     inc = info["NetCDFConcatenate"]
     if inc["Truncate"] != "Yes":
-        return
+        return ds_in
     # copy the input data structure
     ds_out = copy.deepcopy(ds_in)
     # get the datetime
@@ -1650,7 +1651,7 @@ def nc_read_var(ncFile,ThisOne):
     """
     # check the number of dimensions
     nDims = len(ncFile.variables[ThisOne].shape)
-    if nDims not in [1,3]:
+    if nDims not in [1,3,4]:
         msg = "nc_read_var: unrecognised number of dimensions ("+str(nDims)
         msg = msg+") for netCDF variable "+ ThisOne
         raise Exception(msg)
@@ -1677,6 +1678,29 @@ def nc_read_var(ncFile,ThisOne):
     elif nDims==3:
         # 3 dimensions
         data = ncFile.variables[ThisOne][:,0,0]
+        # netCDF4 returns a masked array if the "missing_variable" attribute has been set
+        # for the variable, here we trap this and force the array in ds.series to be ndarray
+        # may not be needed after adding ncFile.set_auto_mask(False) in nc_read_series().
+        if numpy.ma.isMA(data): data,dummy = pfp_utils.MAtoSeries(data)
+        # check for a QC flag
+        if ThisOne+'_QCFlag' in list(ncFile.variables.keys()):
+            # load it from the netCDF file
+            flag = ncFile.variables[ThisOne+'_QCFlag'][:,0,0]
+        else:
+            # create an empty flag series if it does not exist
+            nRecs = numpy.size(data)
+            flag = numpy.zeros(nRecs,dtype=numpy.int32)
+        # trap non-finite values and set them to c.missing_value
+        if not numpy.isfinite(data).all():
+            idx = numpy.where(numpy.isfinite(data) == False)[0]
+            data[idx] = numpy.float64(c.missing_value)
+            idx = numpy.where((numpy.isfinite(data) == False) & (flag == 0))[0]
+            flag[idx] = numpy.int32(8)
+    elif nDims==4:
+        # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+        data0 = ncFile.variables[ThisOne][:,0,0,0]
+        data1 = ncFile.variables[ThisOne][:,1,0,0]
+        data = numpy.ma.where(data0==c.missing_value,data1.data0)
         # netCDF4 returns a masked array if the "missing_variable" attribute has been set
         # for the variable, here we trap this and force the array in ds.series to be ndarray
         # may not be needed after adding ncFile.set_auto_mask(False) in nc_read_series().
