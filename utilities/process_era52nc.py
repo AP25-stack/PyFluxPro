@@ -112,6 +112,10 @@ site_info = read_site_master(xl_file_path, xl_sheet_name)
 site_list = list(site_info.keys())
 # and a list of the ERA5 files to be processed
 era5_list = sorted(glob.glob(era5_path))
+if len(era5_list) == 0:
+    msg = 'no files found in ERA5 directory'
+    logger.warning(msg)
+    sys.exit()
 if out_process == 'append':
     era5_files = era5_list[-1:]
 else:
@@ -767,4 +771,6 @@ for site_name in site_list:
     #info["NetCDFConcatenate"] = {"OK": True}
     info = pfp_compliance.ParseConcatenateControlFile(cf_concat)
     pfp_io.NetCDFConcatenate(info)
+    msg = "Finish concatenating monthly files for "+site_name
+    logger.info(msg)
     
