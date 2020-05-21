@@ -1,5 +1,9 @@
 version_name = "PyFluxPro"
-version_number = "V1.0.1"
+version_number = "V3.0.1"
+# V3.0.1 - 21st May 2020
+#          converted PFP2.7 to python3
+#          using 2to3 and manual (esp. integer division)
+#          conversion
 # V1.0.1 - 5th August 2019
 #        - remove redundant SOLO code at L6
 #        - implement L1 to L4 batch processing

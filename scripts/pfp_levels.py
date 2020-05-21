@@ -236,7 +236,7 @@ def l4qc(main_gui, cf, ds3):
     if not ds4:
         return ds4
     # set some attributes for this level
-    pfp_utils.UpdateGlobalAttributes(pfp_ts.CombineSeriescf, ds4, "L4")
+    pfp_utils.UpdateGlobalAttributes(cf, ds4, "L4")
     # check to see if we have any imports
     pfp_gf.ImportSeries(cf, ds4)
     # re-apply the quality control checks (range, diurnal and rules)
@@ -351,7 +351,7 @@ def l6qc(main_gui, cf, ds5):
     pfp_gf.ImportSeries(cf, ds6)
     # check units of Fc
     Fc_units_list = ["mg/m2/s", "mgCO2/m2/s", "umol/m2/s"]
-    Fc_list = [l for l in list(ds6.series.keys()) if ("Fc" in l) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
+    Fc_list = [l for l in list(ds6.series.keys()) if ("Fc" in l[0:2]) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
     pfp_utils.CheckUnits(ds6, Fc_list, "umol/m2/s", convert_units=True)
     # get ER from the observed Fc
     pfp_rp.GetERFromFc(cf, ds6)
