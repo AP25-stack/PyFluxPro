@@ -41,7 +41,7 @@ def AhfromRH(ds, Ah_out, RH_in, Ta_in):
     Ah_data = pfp_mf.absolutehumidityfromRH(Ta_data,RH_data)
     Ah_attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity calculated from "+RH_in+" and "+Ta_in,
                                               height=RH_attr["height"],
-                                              units="g/m3")
+                                              units="g/m^3")
     flag = numpy.where(numpy.ma.getmaskarray(Ah_data)==True,ones,zeros)
     pfp_utils.CreateSeries(ds,Ah_out,Ah_data,flag,Ah_attr)
     return 1
@@ -79,7 +79,7 @@ def AhfromMR(ds, Ah_out, MR_in, Ta_in, ps_in):
     long_name = "Absolute humidity calculated from "+MR_in+", "+Ta_in+" and "+ps_in
     Ah_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,
                                               height=MR_attr["height"],
-                                              units="g/m3")
+                                              units="g/m^3")
     flag = numpy.where(numpy.ma.getmaskarray(Ah_data)==True,ones,zeros)
     pfp_utils.CreateSeries(ds,Ah_out,Ah_data,flag,Ah_attr)
     return 1
@@ -104,7 +104,7 @@ def ConvertK2C(ds, T_out, T_in):
         logger.warning(" ***")
         return 0
     var_in = pfp_utils.GetVariable(ds, T_in)
-    var_out = pfp_utils.convert_units_func(ds, var_in, "C", mode="quiet")
+    var_out = pfp_utils.convert_units_func(ds, var_in, "degC", mode="quiet")
     var_out["Label"] = T_out
     pfp_utils.CreateVariable(ds, var_out)
     return 1
@@ -149,7 +149,7 @@ def ConvertRHtoPercent(ds, RH_out, RH_in):
     Date: August 2019
     """
     var_in = pfp_utils.GetVariable(ds, RH_in)
-    var_out = pfp_utils.convert_units_func(ds, var_in, "%", mode="quiet")
+    var_out = pfp_utils.convert_units_func(ds, var_in, "percent", mode="quiet")
     var_out["Label"] = RH_out
     pfp_utils.CreateVariable(ds, var_out)
     return
@@ -164,7 +164,7 @@ def ConvertPercent2m3pm3(ds, Sws_out, Sws_in):
     Date: April 2020
     """
     var_in = pfp_utils.GetVariable(ds, Sws_in)
-    var_out = pfp_utils.convert_units_func(ds, var_in, "m3/m3", mode="quiet")
+    var_out = pfp_utils.convert_units_func(ds, var_in, "m^3/m^3", mode="quiet")
     var_out["Label"] = Sws_out
     pfp_utils.CreateVariable(ds, var_out)
     return

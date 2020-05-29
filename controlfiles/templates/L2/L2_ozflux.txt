@@ -3,6 +3,7 @@ level = L2
     file_path = Right click to browse
     in_filename = Right click to browse (*.nc)
     out_filename = Right click to browse (*.nc)
+    plot_path = Right click to browse
 [Options]
     irga_type = Li-7500
     SONIC_Check = Yes

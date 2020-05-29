@@ -439,10 +439,10 @@ def write_csv_reddyproc(cf):
     # this could be done better, pete!
     for series in series_list:
         if series=="NEE":
-            if data[series]["Attr"]["units"] in ["mg/m2/s","mgCO2/m2/s"]:
+            if data[series]["Attr"]["units"] in ["mg/m^2/s","mgCO2/m2/s"]:
                 data[series]["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
                 data[series]["Attr"]["units"] = "umolm-2s-1"
-            elif data[series]["Attr"]["units"]=='umol/m2/s':
+            elif data[series]["Attr"]["units"]=='umol/m^2/s':
                 data[series]["Attr"]["units"] = "umolm-2s-1"
             else:
                 msg = " REddyProc output: unrecognised units for "+series+", returning ..."
@@ -455,7 +455,7 @@ def write_csv_reddyproc(cf):
         if series=="rH" and data[series]["Attr"]["units"] in ["fraction","frac"]:
             idx = numpy.where(data[series]["Data"]!=c.missing_value)[0]
             data[series]["Data"][idx] = float(100)*data[series]["Data"][idx]
-            data[series]["Attr"]["units"] = "%"
+            data[series]["Attr"]["units"] = "percent"
         if series=="VPD" and data[series]["Attr"]["units"]=="kPa":
             idx = numpy.where(data[series]["Data"]!=c.missing_value)[0]
             data[series]["Data"][idx] = float(10)*data[series]["Data"][idx]
@@ -735,7 +735,7 @@ def write_csv_ecostress(cf):
     data["GPP"]["Data"] = pfp_mf.Fc_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
     data["GPP"]["Attr"]["units"] = "gC/m2/s"
     # SWC
-    data["SWC"]["Attr"]["units"] = "m3/m3"
+    data["SWC"]["Attr"]["units"] = "m^3/m^3"
     # add the QC flags for Fh, Fe, Fg, GPP, Ta, T2, VPD, Fn
     # for Fh, Fe, Fg, Fn, Ta, T2 and VPD QC flag is:
     #  a) 0 for observation
@@ -962,11 +962,9 @@ def ExcelToDataStructures(xl_data, l1_info):
         for xl_label in xl_labels:
             nc_label = l1ire["xl_sheets"][xl_sheet][xl_label]
             col = headers.index(xl_label)
-            logger.info(str(nc_label) +' '+ str(xl_label) +' '+ str(xl_sheet) +' '+ str(col))
             values = numpy.array(active_sheet.col_values(col)[fdr:ldr])
             types = numpy.array(active_sheet.col_types(col)[fdr:ldr])
             mode = scipy.stats.mode(types, nan_policy='propagate')
-            logger.info(str(xl_label) +' '+ str(mode[0][0]) +' '+ str((mode[1][0])))
             if mode[0][0] == 3 and 100*mode[1][0]/nrecs > 75:
                 # time stamp (Excel cell type = 3)
                 msg = " Got time stamp " + xl_label + " from sheet " + xl_sheet
@@ -1010,7 +1008,8 @@ def write_csv_fluxnet(cf):
         Ah,f,a = pfp_utils.GetSeriesasMA(ds,'Ah')
         Ta,f,a = pfp_utils.GetSeriesasMA(ds,'Ta')
         RH = pfp_mf.RHfromabsolutehumidity(Ah, Ta)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Relative humidity',units='%',standard_name='relative_humidity')
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity", units="percent",
+                                                 standard_name='relative_humidity')
         flag = numpy.where(numpy.ma.getmaskarray(RH)==True,ones,zeros)
         pfp_utils.CreateSeries(ds,"RH",RH,flag,attr)
     ts = int(ds.globalattributes["time_step"])
@@ -1116,16 +1115,16 @@ def write_csv_fluxnet(cf):
         data[series]["fmt"] = strfmt
     #adjust units if required
     for series in series_list:
-        if series=="FC" and data[series]["Attr"]["units"]=='mg/m2/s':
+        if series=="FC" and data[series]["Attr"]["units"]=='mg/m^2/s':
             data[series]["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
-            data[series]["Attr"]["units"] = "umol/m2/s"
-        if series=="CO2" and data[series]["Attr"]["units"]=='mg/m3':
+            data[series]["Attr"]["units"] = "umol/m^2/s"
+        if series=="CO2" and data[series]["Attr"]["units"]=='mg/m^3':
             CO2 = data["CO2"]["Data"]
             TA = data["TA"]["Data"]
             PA = data["PA"]["Data"]
             data[series]["Data"] = pfp_mf.co2_ppmfrommgCO2pm3(CO2,TA,PA)
             data[series]["Attr"]["units"] = "umol/mol"
-        if series=="H2O" and data[series]["Attr"]["units"]=='g/m3':
+        if series=="H2O" and data[series]["Attr"]["units"]=='g/m^3':
             H2O = data["H2O"]["Data"]
             TA = data["TA"]["Data"]
             PA = data["PA"]["Data"]
@@ -1133,7 +1132,7 @@ def write_csv_fluxnet(cf):
             data[series]["Attr"]["units"] = "mmol/mol"
         if series=="RH" and data[series]["Attr"]["units"] in ["fraction","frac"]:
             data[series]["Data"] = float(100)*data[series]["Data"]
-            data[series]["Attr"]["units"] = "%"
+            data[series]["Attr"]["units"] = "percent"
     # write the general information to csv file
     for item in cf["General"]:
         writer.writerow([item,str(cf['General'][item])])
@@ -1310,7 +1309,7 @@ def NetCDFConcatenate(info):
     pfp_ts.CalculateMeteorologicalVariables(ds_out, info)
     # check units of Fc and convert if necessary
     Fc_list = ["Fc", "Fc_single", "Fc_profile", "Fc_storage"]
-    pfp_utils.CheckUnits(ds_out, Fc_list, "umol/m2/s", convert_units=True)
+    pfp_utils.CheckUnits(ds_out, Fc_list, "umol/m^2/s", convert_units=True)
     # check missing data and QC flags are consistent
     pfp_utils.CheckQCFlags(ds_out)
     # update the coverage statistics

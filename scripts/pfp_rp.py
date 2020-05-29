@@ -272,13 +272,13 @@ def ERUsingLasslop(ds, l6_info):
     # get ER, GPP and NEE using Lasslop
     D0 = LL_results["D0"]
     rb = LL_results["rb_tts"]
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "Base respiration at Tref from Lloyd-Taylor method used in Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
     pfp_utils.CreateSeries(ds,"rb_LL",rb,flag,attr)
     E0 = LL_results["E0_tts"]
-    units = "C"
+    units = "degC"
     long_name = "Activation energy from Lloyd-Taylor method used in Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -299,7 +299,7 @@ def ERUsingLasslop(ds, l6_info):
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
     pfp_utils.CreateSeries(ds,"alpha_LL",alpha,flag,attr)
     beta = LL_results["beta_tts"]
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "Maximum CO2 uptake at light saturation"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -311,7 +311,7 @@ def ERUsingLasslop(ds, l6_info):
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
     pfp_utils.CreateSeries(ds,"k_LL",k,flag,attr)
     GPP_LL = pfp_rpLL.GPP_RHLRC_D(Fsd,D,alpha,beta,k,D0)
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "GPP modelled by Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -319,7 +319,7 @@ def ERUsingLasslop(ds, l6_info):
     # NEE
     data = {"Fsd":Fsd,"T":T,"D":D}
     NEE_LL = pfp_rpLL.NEE_RHLRC_D([Fsd,D,T],alpha,beta,k,D0,rb,E0)
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "NEE modelled by Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -349,7 +349,7 @@ def ERUsingLloydTaylor(cf, ds, l6_info):
         return
     logger.info("Estimating ER using Lloyd-Taylor")
     long_name = "Ecosystem respiration modelled by Lloyd-Taylor"
-    ER_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name, units="umol/m2/s")
+    ER_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name, units="umol/m^2/s")
     ts = int(ds.globalattributes["time_step"])
     site_name = ds.globalattributes["site_name"]
     ldt = ds.series["DateTime"]["Data"]

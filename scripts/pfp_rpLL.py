@@ -323,13 +323,13 @@ def plot_LLparams(LT_results,LL_results):
 def plot_LTparams_ER(ldt,ER,ER_LT,LT_results):
     fig, axs = plt.subplots(3,1,sharex=True,figsize=(24,6))
     axs[0].plot(LT_results["mid_date"],LT_results["rb"],'bo')
-    axs[0].set_ylabel("rb (umol/m2/s)")
+    axs[0].set_ylabel("rb (umol/m^2/s)")
     axs[1].plot(LT_results["mid_date"],LT_results["E0"],'bo')
     axs[1].set_ylabel("E0 (C)")
     axs[2].plot(ldt,ER,'bo')
     axs[2].plot(ldt,ER_LT,'r--')
     axs[2].axhline(y=0,linewidth=4,color="r")
-    axs[2].set_ylabel("ER (umol/m2/s)")
+    axs[2].set_ylabel("ER (umol/m^2/s)")
     plt.tight_layout()
     plt.draw()
 

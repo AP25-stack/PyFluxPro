@@ -22,20 +22,20 @@ Mv = 0.01802   # molecular weight of water vapour, kg/mol
 mu = Md/Mv     # ratio of dry air molecular weight to water vapour molecular weight
 PT100_alpha = 3.9080E-3
 PT100_beta = -5.8019E-7
-rho_water = 1000.0 # density of water, kg/m3
-R = 8.314      # universal gas constant, Pam3/molK
+rho_water = 1000.0 # density of water, kg/m^3
+R = 8.314      # universal gas constant, J/mol.K
 Rd = 287.04    # gas constant for dry air, J/kg/K
 Rv = 461.5     # gas constant for water vapour, J/kg/K
 Pi = 3.14159   # Pi
-sb = 5.6704E-8 # Stefan-Boltzman constant, W/m2/K4
-Tref = 15.0    # reference temperature in the Lloyd-Taylor respiration equation, C
-T0   = -46.02  # zero temp[erature in the Lloyd-Taylor respiration equation, C
+sb = 5.6704E-8 # Stefan-Boltzman constant, W/m^2/K^4
+Tref = 15.0    # reference temperature in the Lloyd-Taylor respiration equation, degC
+T0   = -46.02  # zero temp[erature in the Lloyd-Taylor respiration equation, degC
 lwVert = 0.115       # vertical path length of CSAT3, m
 lwHor = 0.058      # horizontal path length of CSAT3, m
 lTv = 0.115      # path length of sonic virtual temperature, m
-dIRGA = 0.0095 # path diameter of LI7500 IRGA
-lIRGA = 0.127  # path length of LI7500 IRGA
-Tb = 1800      # 30-min period, in seconds
+dIRGA = 0.0095 # path diameter of LI7500 IRGA, m
+lIRGA = 0.127  # path length of LI7500 IRGA, m
+Tb = 1800      # 30-min period, seconds
 C2K = 273.15   # convert degrees celsius to kelvin
 # dictionary of site names and time zones
 tz_dict = {"adelaideriver":"Australia/Darwin",
@@ -71,16 +71,16 @@ tz_dict = {"adelaideriver":"Australia/Darwin",
            "whroo":"Australia/Melbourne",
            "wombat":"Australia/Melbourne",
            "yanco_jaxa":"Australia/Sydney"}
-units_synonyms = {"Fsd":["W/m2","W+1m-2"],
-                  "Fsu":["W/m2","W+1m-2"],
-                  "Fld":["W/m2","W+1m-2"],
-                  "Flu":["W/m2","W+1m-2"],
-                  "Fn":["W/m2","W+1m-2"],
-                  "Fg":["W/m2","W+1m-2"],
+units_synonyms = {"Fsd":["W/m^2","W+1m-2"],
+                  "Fsu":["W/m^2","W+1m-2"],
+                  "Fld":["W/m^2","W+1m-2"],
+                  "Flu":["W/m^2","W+1m-2"],
+                  "Fn":["W/m^2","W+1m-2"],
+                  "Fg":["W/m^2","W+1m-2"],
                   "Precip":["mm"],
                   "ps":["kPa"],
                   "RH":["%","percent"],
-                  "Sws":["frac","m3/m3","m+3m-3"],
+                  "Sws":["frac","m^3/m^3","m+3m-3"],
                   "Ta":["C","degC"],
                   "Ts":["C","degC"],
                   "Wd":["degT","deg","degrees"],

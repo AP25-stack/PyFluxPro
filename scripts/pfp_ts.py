@@ -24,7 +24,7 @@ def albedo(cf,ds):
         Filter albedo measurements to:
             high solar angle specified by periods between 10.00 and 14.00, inclusive
             and
-            full sunlight in which Fsd > 290 W/m2
+            full sunlight in which Fsd > 290 W/m^2
 
         Usage pfp_ts.albedo(ds)
         ds: data structure
@@ -179,7 +179,7 @@ def CalculateAvailableEnergy(ds,Fa_out='Fa',Fn_in='Fn',Fg_in='Fg'):
     idx = numpy.where((numpy.ma.getmaskarray(Fn)==True)|(numpy.ma.getmaskarray(Fg)==True))[0]
     Fa_calc_flag[idx] = numpy.int32(1)
     if Fa_out not in list(ds.series.keys()):
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Available energy using '+Fn_in+','+Fg_in,units='W/m2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Available energy using '+Fn_in+','+Fg_in,units='W/m^2')
         pfp_utils.CreateSeries(ds,Fa_out,Fa_calc,Fa_calc_flag,attr)
     else:
         Fa_exist,flag,attr = pfp_utils.GetSeriesasMA(ds,Fa_out)
@@ -214,11 +214,11 @@ def CalculateFluxes(cf, ds):
 
     logger.info(" Calculating fluxes from covariances")
     if "wT" in list(ds.series.keys()):
-        ok_units = ["mC/s", "Cm/s"]
+        ok_units = ["m.degC/s", "degC.m/s"]
         wT = pfp_utils.GetVariable(ds, "wT")
         if wT["Attr"]["units"] in ok_units:
             Fhv = RhoCp["Data"]*wT["Data"]
-            attr = {"group_name": "flux", "long_name": "Virtual heat flux", "units": "W/m2",
+            attr = {"group_name": "flux", "long_name": "Virtual heat flux", "units": "W/m^2",
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
@@ -231,9 +231,9 @@ def CalculateFluxes(cf, ds):
         logger.error("  CalculateFluxes: wT not found, Fhv not calculated")
     if "wA" in list(ds.series.keys()):
         wA = pfp_utils.GetVariable(ds, "wA")
-        if wA["Attr"]["units"] == "g/m2/s":
+        if wA["Attr"]["units"] == "g/m^2/s":
             Fe = Lv["Data"]*wA["Data"]/float(1000)
-            attr = {"group_name": "flux", "long_name": "Latent heat flux", "units": "W/m2",
+            attr = {"group_name": "flux", "long_name": "Latent heat flux", "units": "W/m^2",
                     "standard_name": "surface_upward_latent_heat_flux",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
@@ -246,9 +246,9 @@ def CalculateFluxes(cf, ds):
         logger.error("  CalculateFluxes: wA not found, Fe not calculated")
     if "wC" in list(ds.series.keys()):
         wC = pfp_utils.GetVariable(ds, "wC")
-        if wC["Attr"]["units"] == "mg/m2/s":
+        if wC["Attr"]["units"] == "mg/m^2/s":
             Fc = wC["Data"]
-            attr = {"group_name": "flux", "long_name": "CO2 flux", "units": "mg/m2/s",
+            attr = {"group_name": "flux", "long_name": "CO2 flux", "units": "mg/m^2/s",
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
@@ -266,7 +266,7 @@ def CalculateFluxes(cf, ds):
             vs = uw["Data"]*uw["Data"] + vw["Data"]*vw["Data"]
             Fm = rhom["Data"]*numpy.ma.sqrt(vs)
             us = numpy.ma.sqrt(numpy.ma.sqrt(vs))
-            attr = {"group_name": "flux", "long_name": "Momentum flux", "units": "kg/m/s2",
+            attr = {"group_name": "flux", "long_name": "Momentum flux", "units": "kg/m/s^2",
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
@@ -305,7 +305,7 @@ def CalculateLongwave(ds,Fl_out,Fl_in,Tbody_in):
     Fl_raw,f,a = pfp_utils.GetSeriesasMA(ds,Fl_in)
     Tbody,f,a = pfp_utils.GetSeriesasMA(ds,Tbody_in)
     Fl = Fl_raw + c.sb*(Tbody + 273.15)**4
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Calculated longwave radiation using '+Fl_in+','+Tbody_in,units='W/m2')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Calculated longwave radiation using '+Fl_in+','+Tbody_in,units='W/m^2')
     flag = numpy.where(numpy.ma.getmaskarray(Fl)==True,ones,zeros)
     pfp_utils.CreateSeries(ds,Fl_out,Fl,flag,attr)
 
@@ -410,7 +410,8 @@ def AbsoluteHumidityFromRH(ds):
             Ah_attr[descr_level] = "Merged with Ah calculated from RH"
         pfp_utils.CreateSeries(ds,"Ah",Ah,Ah_flag,Ah_attr)
     else:
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity',units='g/m3',standard_name='mass_concentration_of_water_vapor_in_air')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity', units='g/m^3',
+                                                 standard_name='mass_concentration_of_water_vapor_in_air')
         attr[descr_level] = "Absoulte humidity calculated from Ta and RH"
         attr["group_name"] = "meteorology"
         pfp_utils.CreateSeries(ds, "Ah", Ah_new, Ah_new_flag, attr)
@@ -437,7 +438,8 @@ def AbsoluteHumidityFromq(ds):
             Ah_attr[descr_level] = "Merged with Ah calculated from q"
         pfp_utils.CreateSeries(ds,"Ah",Ah,Ah_flag,Ah_attr)
     else:
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity',units='g/m3',standard_name='mass_concentration_of_water_vapor_in_air')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity',units='g/m^3',
+                                                 standard_name='mass_concentration_of_water_vapor_in_air')
         attr[descr_level] = "Absoulte humidity calculated from Ta, ps and q"
         attr["group_name"] = "meteorology"
         pfp_utils.CreateSeries(ds,"Ah",Ah_new,Ah_new_flag,attr)
@@ -463,7 +465,8 @@ def RelativeHumidityFromq(ds):
             RH_attr[descr_level] = "Merged with RH calculated from q"
         pfp_utils.CreateSeries(ds,"RH",RH,RH_flag,RH_attr)
     else:
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Relative humidity',units='%',standard_name='relative_humidity')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Relative humidity', units="percent",
+                                                 standard_name='relative_humidity')
         attr[descr_level] = "Relative humidity calculated from SH, Ta and ps"
         attr["group_name"] = "meteorology"
         pfp_utils.CreateSeries(ds, "RH", RH_new, RH_new_flag, attr)
@@ -488,7 +491,8 @@ def RelativeHumidityFromAh(ds):
             RH_attr[descr_level] = "Merged with RH calculated from Ah"
         pfp_utils.CreateSeries(ds,"RH",RH,RH_flag,RH_attr)
     else:
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Relative humidity',units='%',standard_name='relative_humidity')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Relative humidity', units="percent",
+                                                 standard_name='relative_humidity')
         attr[descr_level] = "Relative humidity calculated from Ah and Ta"
         attr["group_name"] = "meteorology"
         pfp_utils.CreateSeries(ds,"RH",RH_new,RH_new_flag,attr)
@@ -660,74 +664,84 @@ def CalculateMeteorologicalVariables(ds, info, Ta_name='Ta', Tv_name='Tv_SONIC_A
     SHD = qsat - q                                # specific humidity deficit
     h2o = pfp_mf.h2o_mmolpmolfromgpm3(Ah,Ta,ps)
     # write the meteorological series to the data structure
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Vapour pressure',units='kPa',standard_name='water_vapor_partial_pressure_in_air')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Vapour pressure', units='kPa',
+                                             standard_name='water_vapor_partial_pressure_in_air')
     attr["group_name"] = "meteorology"
     attr[descr_level] = "Vapour pressure calculated from Ah, Ta and ps"
     flag = numpy.where(numpy.ma.getmaskarray(vp) == True, ones, zeros)
     pfp_utils.CreateSeries(ds, 'VP', vp, flag, attr)
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Saturation vapour pressure',units='kPa')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Saturation vapour pressure', units='kPa')
     flag = numpy.where(numpy.ma.getmaskarray(vpsat) == True, ones, zeros)
     pfp_utils.CreateSeries(ds, 'VPsat', vpsat, flag, attr)
     iris["not_output"].append("VPsat")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Density of dry air',units='kg/m3')
-    flag = numpy.where(numpy.ma.getmaskarray(rhod)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'rhod',rhod,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Density of dry air', units='kg/m^3')
+    flag = numpy.where(numpy.ma.getmaskarray(rhod) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'rhod', rhod, flag, attr)
     iris["not_output"].append("rhod")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Density of moist air',units='kg/m3',standard_name='air_density')
-    flag = numpy.where(numpy.ma.getmaskarray(rhom)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'rhom',rhom,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Density of moist air', units='kg/m^3',
+                                             standard_name='air_density')
+    flag = numpy.where(numpy.ma.getmaskarray(rhom) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'rhom', rhom, flag, attr)
     iris["not_output"].append("rhom")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Partial density of water vapour',units='kg/m3')
-    flag = numpy.where(numpy.ma.getmaskarray(rhow)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'rhow',rhow,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Partial density of water vapour',
+                                             units='kg/m^3')
+    flag = numpy.where(numpy.ma.getmaskarray(rhow) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'rhow', rhow, flag, attr)
     iris["not_output"].append("rhow")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Latent heat of vapourisation',units='J/kg')
-    flag = numpy.where(numpy.ma.getmaskarray(Lv)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'Lv',Lv,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Latent heat of vapourisation',
+                                             units='J/kg')
+    flag = numpy.where(numpy.ma.getmaskarray(Lv) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'Lv', Lv, flag, attr)
     iris["not_output"].append("Lv")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of dry air',units='J/kg-K')
-    flag = numpy.where(numpy.ma.getmaskarray(Cpd)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'Cpd',Cpd,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of dry air',
+                                             units='J/kg.K')
+    flag = numpy.where(numpy.ma.getmaskarray(Cpd) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'Cpd', Cpd, flag, attr)
     iris["not_output"].append("Cpd")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of water vapour',units='J/kg-K')
-    flag = numpy.where(numpy.ma.getmaskarray(Cpw)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'Cpw',Cpw,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of water vapour',
+                                             units='J/kg.K')
+    flag = numpy.where(numpy.ma.getmaskarray(Cpw) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'Cpw', Cpw, flag, attr)
     iris["not_output"].append("Cpw")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of moist air',units='J/kg-K')
-    flag = numpy.where(numpy.ma.getmaskarray(Cpm)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'Cpm',Cpm,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of moist air',
+                                             units='J/kg.K')
+    flag = numpy.where(numpy.ma.getmaskarray(Cpm) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'Cpm', Cpm, flag, attr)
     iris["not_output"].append("Cpm")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Product of air density and specific heat capacity',units='J/m3-K')
-    flag = numpy.where(numpy.ma.getmaskarray(RhoCp)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'RhoCp',RhoCp,flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Product of air density and specific heat capacity',
+                                             units='J/m^3.K')
+    flag = numpy.where(numpy.ma.getmaskarray(RhoCp) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds,'RhoCp', RhoCp, flag, attr)
     iris["not_output"].append("RhoCp")
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Vapour pressure deficit',units='kPa',standard_name='water_vapor_saturation_deficit_in_air')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Vapour pressure deficit', units='kPa',
+                                             standard_name='water_vapor_saturation_deficit_in_air')
     attr["group_name"] = "meteorology"
     attr[descr_level] = "Vapour pressure deficit calculated from Ah, Ta and ps"
-    flag = numpy.where(numpy.ma.getmaskarray(VPD)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'VPD',VPD,flag,attr)
+    flag = numpy.where(numpy.ma.getmaskarray(VPD) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'VPD', VPD, flag, attr)
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific humidity deficit',units='kg/kg')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific humidity deficit', units='kg/kg')
     attr["group_name"] = "meteorology"
     attr[descr_level] = "Specific humidity deficit calculated from SH, Ta and ps"
-    flag = numpy.where(numpy.ma.getmaskarray(SHD)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'SHD',SHD,flag,attr)
+    flag = numpy.where(numpy.ma.getmaskarray(SHD) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'SHD', SHD, flag, attr)
 
-    attr = pfp_utils.MakeAttributeDictionary(long_name='H2O concentration', units='mmol/mol', standard_name='mole_concentration_of_water_vapor_in_air')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='H2O concentration', units='mmol/mol',
+                                             standard_name='mole_concentration_of_water_vapor_in_air')
     attr["group_name"] = "meteorology"
     attr[descr_level] = "Water vapour mixing ratio calculated from Ah, Ta and ps"
-    flag = numpy.where(numpy.ma.getmaskarray(h2o)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,'H2O',h2o,flag,attr)
+    flag = numpy.where(numpy.ma.getmaskarray(h2o) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, 'H2O', h2o, flag, attr)
 
 def CalculateMoninObukhovLength(ds):
     """
@@ -804,7 +818,7 @@ def CalculateNetRadiation(cf,ds,Fn_out='Fn_4cmpt',Fsd_in='Fsd',Fsu_in='Fsu',Fld_
         Fn_calc = (Fsd - Fsu) + (Fld - Flu)
         if Fn_out not in list(ds.series.keys()):
             attr = pfp_utils.MakeAttributeDictionary(long_name='Calculated net radiation using '+Fsd_in+','+Fsu_in+','+Fld_in+','+Flu_in,
-                                 standard_name='surface_net_downwawrd_radiative_flux',units='W/m2')
+                                 standard_name='surface_net_downwawrd_radiative_flux',units='W/m^2')
             flag = numpy.where(numpy.ma.getmaskarray(Fn_calc)==True,ones,zeros)
             pfp_utils.CreateSeries(ds,Fn_out,Fn_calc,flag,attr)
         else:
@@ -819,7 +833,7 @@ def CalculateNetRadiation(cf,ds,Fn_out='Fn_4cmpt',Fsd_in='Fsd',Fsu_in='Fsu',Fld_
         Fn = numpy.array([c.missing_value]*nRecs,dtype=numpy.float64)
         flag = numpy.ones(nRecs,dtype=numpy.int32)
         attr = pfp_utils.MakeAttributeDictionary(long_name='Calculated net radiation (one or more components missing)',
-                             standard_name='surface_net_downwawrd_radiative_flux',units='W/m2')
+                             standard_name='surface_net_downwawrd_radiative_flux',units='W/m^2')
         pfp_utils.CreateSeries(ds,Fn_out,Fn,flag,attr)
 
 def CheckCovarianceUnits(ds):
@@ -829,30 +843,30 @@ def CheckCovarianceUnits(ds):
     Author: PRI
     Date: September 2015
     """
-    logger.info(' Checking covariance units')
-    co2_list = ["UxC","UyC","UzC"]
-    h2o_list = ["UxA","UyA","UzA","UxH","UyH","UzH"]
+    logger.info(" Checking covariance units")
+    co2_list = ["UxC", "UyC", "UzC"]
+    h2o_list = ["UxA", "UyA", "UzA", "UxH", "UyH", "UzH"]
     for item in co2_list:
         if item not in list(ds.series.keys()): continue
-        data,flag,attr = pfp_utils.GetSeriesasMA(ds,item)
+        data, flag, attr = pfp_utils.GetSeriesasMA(ds, item)
         if "umol" in attr["units"]:
-            Ta,f,a = pfp_utils.GetSeriesasMA(ds,"Ta")
-            ps,f,a = pfp_utils.GetSeriesasMA(ds,"ps")
-            data = pfp_mf.co2_mgCO2pm3fromppm(data,Ta,ps)
-            attr["units"] = "mg/m2/s"
-            pfp_utils.CreateSeries(ds,item,data,flag,attr)
+            Ta, f, a = pfp_utils.GetSeriesasMA(ds, "Ta")
+            ps, f, a = pfp_utils.GetSeriesasMA(ds, "ps")
+            data = pfp_mf.co2_mgCO2pm3fromppm(data, Ta, ps)
+            attr["units"] = "mg/m^2/s"
+            pfp_utils.CreateSeries(ds, item, data, flag, attr)
     for item in h2o_list:
         if item not in list(ds.series.keys()): continue
-        data,flag,attr = pfp_utils.GetSeriesasMA(ds,item)
+        data, flag, attr = pfp_utils.GetSeriesasMA(ds, item)
         if "mmol" in attr["units"]:
-            Ta,f,a = pfp_utils.GetSeriesasMA(ds,"Ta")
-            ps,f,a = pfp_utils.GetSeriesasMA(ds,"ps")
-            data = pfp_mf.h2o_gpm3frommmolpmol(data,Ta,ps)
-            attr["units"] = "g/m2/s"
+            Ta, f, a = pfp_utils.GetSeriesasMA(ds, "Ta")
+            ps, f, a = pfp_utils.GetSeriesasMA(ds, "ps")
+            data = pfp_mf.h2o_gpm3frommmolpmol(data, Ta, ps)
+            attr["units"] = "g/m^2/s"
             if "H" in item: item = item.replace("H","A")
-            pfp_utils.CreateSeries(ds,item,data,flag,attr)
+            pfp_utils.CreateSeries(ds, item, data, flag, attr)
 
-def CombineSeries(cf, ds, label, convert_units=False, save_originals=False):
+def CombineSeries(cf, ds, label, convert_units=False, save_originals=False, mode="quiet"):
     """
     Purpose:
      Combine two variables by merging or element-wise averaging.
@@ -872,9 +886,10 @@ def CombineSeries(cf, ds, label, convert_units=False, save_originals=False):
     Date: October 2019
     """
     if label not in cf["Variables"]:
-        msg = " CombineSeries: Variable " + label + " not found in control file"
-        msg += ", skipping ..."
-        logger.warning(msg)
+        if mode != "quiet":
+            msg = " CombineSeries: Variable " + label + " not found in control file"
+            msg += ", skipping ..."
+            logger.warning(msg)
         return
     if "MergeSeries" in cf["Variables"][label]:
         MergeSeries(cf, ds, label, convert_units=convert_units, save_originals=save_originals)
@@ -987,12 +1002,12 @@ def CoordRotation2D(cf, ds):
         ww = UzUz["Data"]      # unrotated  w variance
     # store the rotated quantities in the data structure
     attr = pfp_utils.MakeAttributeDictionary(long_name="Horizontal rotation angle",
-                                             units="deg", height=Uz["Attr"]["height"])
+                                             units="degrees", height=Uz["Attr"]["height"])
     flag = numpy.where(numpy.ma.getmaskarray(eta) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "eta", "Data": eta, "Flag": flag, "Attr": attr})
 
     attr = pfp_utils.MakeAttributeDictionary(long_name="Vertical rotation angle",
-                                             units="deg", height=Uz["Attr"]["height"])
+                                             units="degrees", height=Uz["Attr"]["height"])
     flag = numpy.where(numpy.ma.getmaskarray(theta) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "theta", "Data": theta, "Flag": flag, "Attr": attr})
 
@@ -1078,22 +1093,22 @@ def CalculateComponentsFromWsWd(ds):
     pfp_utils.CreateVariable(ds, u)
     pfp_utils.CreateVariable(ds, v)
 
-def CalculateFcStorageSinglePoint(cf, ds, Fc_out="Fc_single", CO2_in="CO2"):
+def CalculateFco2StorageSinglePoint(cf, ds, Fco2_out="Fco2_single", CO2_in="CO2"):
     """
     Calculate CO2 flux storage term in the air column beneath the CO2 instrument.  This
     routine assumes the air column between the sensor and the surface is well mixed.
 
-    Usage pfp_ts.CalculateFcStorageSinglePoint(cf, ds, Fc_out='Fc_single', CO2_in='CO2')
+    Usage pfp_ts.CalculateFco2StorageSinglePoint(cf, ds, Fco2_out='Fco2_single', CO2_in='CO2')
     cf: control file object
     ds: data structure
-    Fc_out: series label of the CO2 flux storage term
+    Fco2_out: series label of the CO2 flux storage term
     CO2_in: series label of the CO2 concentration
 
     Parameters loaded from control file:
         zms: measurement height from surface, m
     """
-    if Fc_out not in list(ds.series.keys()):
-        logger.info(" Calculating Fc storage (single height)")
+    if Fco2_out not in list(ds.series.keys()):
+        logger.info(" Calculating Fco2 storage (single height)")
         nRecs = int(ds.globalattributes["nc_nrecs"])
         zeros = numpy.zeros(nRecs, dtype=numpy.int32)
         ones = numpy.ones(nRecs, dtype=numpy.int32)
@@ -1102,18 +1117,10 @@ def CalculateFcStorageSinglePoint(cf, ds, Fc_out="Fc_single", CO2_in="CO2"):
         descr = "description_" + level
         # create an empty output variable
         ldt = pfp_utils.GetVariable(ds, "DateTime")
-        Fc_single = pfp_utils.CreateEmptyVariable(Fc_out, nRecs, datetime=ldt["Data"])
+        Fco2_single = pfp_utils.CreateEmptyVariable(Fco2_out, nRecs, datetime=ldt["Data"])
         # get the input data
-        if CO2_in not in list(ds.series.keys()):
-            if "Cc" in list(ds.series.keys()):
-                CO2_in = "Cc"
-            else:
-                msg = "  Neither CO2 nor Cc not in data structure, storage not calculated"
-                logger.error(msg)
-                pfp_utils.CreateVariable(ds, Fc_single)
-                return
         CO2 = pfp_utils.GetVariable(ds, CO2_in)
-        Fc = pfp_utils.GetVariable(ds, "Fc")
+        Fco2 = pfp_utils.GetVariable(ds, "Fco2")
         Ta = pfp_utils.GetVariable(ds, "Ta")
         ps = pfp_utils.GetVariable(ds, "ps")
         # try to get a value for zms, the instrument height above ground
@@ -1124,9 +1131,9 @@ def CalculateFcStorageSinglePoint(cf, ds, Fc_out="Fc_single", CO2_in="CO2"):
                 got_zms = True
             except:
                 pass
-        if "height" in Fc["Attr"] and not got_zms:
+        if "height" in Fco2["Attr"] and not got_zms:
             try:
-                zms = float(pfp_utils.strip_non_numeric(Fc["Attr"]["height"]))
+                zms = float(pfp_utils.strip_non_numeric(Fco2["Attr"]["height"]))
                 got_zms = True
             except:
                 pass
@@ -1150,56 +1157,58 @@ def CalculateFcStorageSinglePoint(cf, ds, Fc_out="Fc_single", CO2_in="CO2"):
                 pass
         if got_zms:
             # check the CO2 concentration units
-            # if the units are mg/m3, convert CO2 concentration to umol/mol before taking the difference
+            # if the units are mg/m^3, convert CO2 concentration to umol/mol before taking the difference
             pfp_utils.convert_units_co2(ds, CO2, "umol/mol")
             # calculate the change in CO2 concentration between time steps
             # CO2 concentration assumed to be in umol/mol
             dc = numpy.ma.ediff1d(CO2["Data"], to_begin=0)
-            # convert the CO2 concentration difference from umol/mol to umol/m3
+            # convert the CO2 concentration difference from umol/mol to umol/m^3
             dc = pfp_mf.co2_umolpm3fromppm(dc, Ta["Data"], ps["Data"])
             # calculate the time step in seconds
             epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
             seconds = numpy.array([(dt-epoch).total_seconds() for dt in ldt["Data"]])
             dt = numpy.ediff1d(seconds, to_begin=float(ts)*60)
             # calculate the CO2 flux based on storage below the measurement height
-            Fc_single["Data"] = zms*dc/dt
+            Fco2_single["Data"] = zms*dc/dt
             # do the attributes
-            Fc_single["Attr"] = {}
+            Fco2_single["Attr"] = {}
             for attr in ["height", "instrument", "serial_number"]:
                 if attr in CO2["Attr"]:
-                    Fc_single["Attr"][attr] = CO2["Attr"][attr]
-            Fc_single["Attr"]["units"] = "umol/m2/s"
-            Fc_single["Attr"]["standard_name"] = "not defined"
-            Fc_single["Attr"]["long_name"] = "CO2 flux (storage term)"
-            Fc_single["Attr"]["group_name"] = "flux"
-            Fc_single["Attr"][descr] = "Fc storage component calcuated using single point \
-                                        CO2 measurement"
+                    Fco2_single["Attr"][attr] = CO2["Attr"][attr]
+            Fco2_single["Attr"]["units"] = "umol/m^2/s"
+            Fco2_single["Attr"]["standard_name"] = "not defined"
+            Fco2_single["Attr"]["long_name"] = "CO2 flux (storage term)"
+            Fco2_single["Attr"]["group_name"] = "flux"
+            Fco2_single["Attr"][descr] = "Fco2 storage component calcuated using single point \
+                                          CO2 measurement"
             # put the storage flux in the data structure
-            mask = numpy.ma.getmaskarray(Fc_single["Data"])
-            Fc_single["Flag"] = numpy.where(mask == True, ones, zeros)
+            mask = numpy.ma.getmaskarray(Fco2_single["Data"])
+            Fco2_single["Flag"] = numpy.where(mask == True, ones, zeros)
             # match the units of Fc_single to the units of Fc
-            pfp_utils.convert_units_co2(ds, Fc_single, Fc["Attr"]["units"])
+            pfp_utils.convert_units_co2(ds, Fco2_single, Fco2["Attr"]["units"])
         else:
             msg = "  Measurement height not found, storage not calculated"
             logger.error(msg)
-        pfp_utils.CreateVariable(ds, Fc_single)
+        pfp_utils.CreateVariable(ds, Fco2_single)
     else:
-        msg = "  " + Fc_out + " found in data structure, not calculated"
+        msg = "  " + Fco2_out + " found in data structure, not calculated"
         logger.info(msg)
     return
 
-def CorrectFcForStorage(cf,ds,Fc_out='Fc',Fc_in='Fc',Fc_storage_in='Fc_single'):
+def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2", Fco2_storage_in="Fco2_single"):
     """
     Correct CO2 flux for storage in the air column beneath the CO2 instrument.
 
-    Usage pfp_ts.CorrectFcForStorage(cf,ds,Fc_out,Fc_in,Fc_storage_in)
+    Usage pfp_ts.CorrectFco2ForStorage(cf, ds,Fco2_out, Fco2_in, Fco2_storage_in)
     cf: control file object
     ds: data structure
-    Fc_out: series label of the corrected CO2 flux
-    Fc_in: series label of the input CO2 flux
-    Fc_storage: series label of the CO2 flux storage term
+    Fco2_out: series label of the corrected CO2 flux
+    Fco2_in: series label of the input CO2 flux
+    Fco2_storage: series label of the CO2 flux storage term
 
     """
+    level = ds.globalattributes["nc_level"]
+    descr = "description_" + level
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
@@ -1207,84 +1216,117 @@ def CorrectFcForStorage(cf,ds,Fc_out='Fc',Fc_in='Fc',Fc_storage_in='Fc_single'):
     # individual variables
     apply_storage = {}
     for label in list(cf["Variables"].keys()):
-        if "ApplyFcStorage" in cf["Variables"][label]:
-            source = str(cf["Variables"][label]["ApplyFcStorage"]["source"])
+        if "ApplyFco2Storage" in cf["Variables"][label]:
+            source = str(cf["Variables"][label]["ApplyFco2Storage"]["source"])
             apply_storage[label] = source
     # if no individual series have been specified, do the default
     if len(list(apply_storage.keys())) == 0:
         # check to see if correction for storage has been requested in [Options]
-        if not pfp_utils.get_optionskeyaslogical(cf, "ApplyFcStorage"):
+        if not pfp_utils.get_optionskeyaslogical(cf, "ApplyFco2Storage"):
             return
         # check to see if we have the required data series
-        if (Fc_in not in list(ds.series.keys())) or (Fc_storage_in not in list(ds.series.keys())):
-            msg = "CorrectFcForStorage: Fc or Fc_storage not found, skipping ..."
+        if ((Fco2_in not in list(ds.series.keys())) or
+            (Fco2_storage_in not in list(ds.series.keys()))):
+            msg = "CorrectFco2ForStorage: Fco2 or Fco2_storage not found, skipping ..."
             logger.warning(msg)
             return
-        # check to see if we have an Fc_profile series
-        if "Fc_profile" in list(ds.series.keys()):
-            Fc_storage_in = "Fc_profile"
-        elif "Fc_storage" in list(ds.series.keys()):
-            Fc_storage_in = "Fc_storage"
-        logger.info(" ***!!! Applying Fc storage term !!!***")
-        Fc_raw,Fc_flag,Fc_attr = pfp_utils.GetSeriesasMA(ds,Fc_in)
-        Fc_storage,Fc_storage_flag,Fc_storage_attr = pfp_utils.GetSeriesasMA(ds,Fc_storage_in)
-        if Fc_attr["units"]!=Fc_storage_attr["units"]:
-            logger.error("CorrectFcForStorage: units of Fc do not match those of storage term, storage not applied")
+        # check to see if we have an Fco2_profile series
+        if "Fco2_profile" in list(ds.series.keys()):
+            Fco2_storage_in = "Fco2_profile"
+        elif "Fco2_storage" in list(ds.series.keys()):
+            Fco2_storage_in = "Fco2_storage"
+        else:
+            msg = " Using single point Fco2 storage"
+            logger.info(msg)
+        # apply the storage term
+        msg = " ***!!! Applying Fco2 storage term !!!***"
+        logger.info(msg)
+        Fco2_uncorrected = pfp_utils.GetVariable(ds, Fco2_in)
+        Fco2_storage = pfp_utils.GetVariable(ds, Fco2_storage_in)
+        if Fco2_uncorrected["Attr"]["units"] != Fco2_storage["Attr"]["units"]:
+            msg = "CorrectFco2ForStorage: units of Fco2 do not match those of storage term"
+            msg += ", storage not applied"
+            logger.error(msg)
             return
-        Fc = Fc_raw + Fc_storage
-        if pfp_utils.get_optionskeyaslogical(cf, "RelaxFcStorage"):
-            idx=numpy.where(numpy.ma.getmaskarray(Fc)==True)[0]
-            Fc[idx]=Fc_raw[idx]
-            logger.info(" Replaced corrected Fc with "+str(len(idx))+" raw values")
-        Fc_attr["long_name"] = Fc_attr["long_name"] + ", uncorrected"
-        pfp_utils.CreateSeries(ds,"Fc_raw",Fc_raw,Fc_flag,Fc_attr)
-        Fc_attr["long_name"] = Fc_attr["long_name"].replace(", uncorrected",", corrected for storage using supplied storage term")
-        flag = numpy.where(numpy.ma.getmaskarray(Fc)==True,ones,zeros)
-        pfp_utils.CreateSeries(ds,Fc_out,Fc,flag,Fc_attr)
+        # get a copy of the uncorrected data
+        Fco2_corrected = copy.deepcopy(Fco2_uncorrected)
+        # add the storage term
+        Fco2_corrected["Data"] = Fco2_uncorrected["Data"] + Fco2_storage["Data"]
+        # if requested, replace missing storage corrected with uncorrected data
+        if pfp_utils.get_optionskeyaslogical(cf, "RelaxFco2Storage"):
+            # if so, replace missing corrected Fco2 with uncorrected Fco2
+            mask = numpy.ma.getmaskarray(Fco2_uncorrected["Data"])
+            idx = numpy.where(mask == True)[0]
+            Fco2_corrected["Data"][idx] = Fco2_uncorrected["Data"][idx]
+            msg = " Replaced corrected Fco2 with " + str(len(idx)) + " uncorrected values"
+            logger.info(msg)
+        # write the uncorrected CO2 flux to the data structure
+        Fco2_uncorrected["Attr"][descr] = Fco2_uncorrected["Attr"]["long_name"]
+        Fco2_uncorrected["Attr"][descr] += ", not corrected for storage"
+        Fco2_uncorrected["Label"] = "Fco2_uncorrected"
+        pfp_utils.CreateVariable(ds, Fco2_uncorrected)
+        # write the corrected CO2 flux to the data structure
+        Fco2_corrected["Attr"][descr] = Fco2_corrected["Attr"]["long_name"]
+        Fco2_corrected["Attr"][descr] += ", corrected for storage using supplied storage term"
+        Fco2_corrected["Label"] = "Fco2"
+        mask = numpy.ma.getmaskarray(Fco2_corrected["Data"])
+        flag = numpy.where(mask == True, ones, zeros)
+        Fco2_corrected["Flag"] = flag
+        pfp_utils.CreateVariable(ds, Fco2_corrected)
     else:
-        # loop over the series for which apply Fc storage was requested
+        # loop over the series for which apply Fco2 storage was requested
         for label in list(apply_storage.keys()):
             # check to make sure the requested series is in the data structure
             if label not in list(ds.series.keys()):
                 # skip if it isn't
-                msg = " Requested series "+label+" not found in data structure"
+                msg = " Requested series " + label + " not found in data structure"
                 logger.error(msg)
                 continue
             # get the storage flux label
             source = apply_storage[label]
             if source not in list(ds.series.keys()):
-                msg = " Requested series "+source+" not found in data structure"
+                msg = " Requested series " + source + " not found in data structure"
                 logger.error(msg)
                 continue
             # get the data
-            Fc_un = pfp_utils.GetVariable(ds, label)
-            Sc = pfp_utils.GetVariable(ds, source)
+            Fco2_uncorrected = pfp_utils.GetVariable(ds, label)
+            Sco2 = pfp_utils.GetVariable(ds, source)
             # check the units
-            if Fc_un["Attr"]["units"] != Sc["Attr"]["units"]:
-                msg = " Units for "+label+" and "+source+" don't match"
+            if Fco2_uncorrected["Attr"]["units"] != Sco2["Attr"]["units"]:
+                msg = " Units for " + label + " and " + source + " don't match"
                 logger.error(msg)
                 return
-            msg = " *** Applying storage term "+source+" to "+label+" ***"
+            msg = " *** Applying storage term " + source + " to " + label + " ***"
             logger.info(msg)
-            # Make a copy of the uncorrected Fc
-            Fc = copy.deepcopy(Fc_un)
+            # Make a copy of the uncorrected Fco2
+            Fco2_corrected = copy.deepcopy(Fco2_uncorrected)
             # update the label, the long name and write the uncorrected data to the data structure
-            Fc_un["Label"] = Fc_un["Label"]+"_raw"
-            Fc_un["Attr"]["long_name"] = Fc_un["Attr"]["long_name"] + ", uncorrected"
-            pfp_utils.CreateVariable(ds, Fc_un)
-            # correct Fc by adding the storage
-            Fc["Data"] = Fc_un["Data"] + Sc["Data"]
-            # check to see if the user wants to relax the correct
-            if pfp_utils.get_optionskeyaslogical(cf, "RelaxFcStorage"):
-                # if so, replace missing corrected Fc with uncorrected Fc
-                idx = numpy.where(numpy.ma.getmaskarray(Fc["Data"])==True)[0]
-                Fc[idx] = Fc_un[idx]
-                logger.info(" Replaced corrected Fc with "+str(len(idx))+" uncorrected values")
-            Fc["Flag"] = numpy.where(numpy.ma.getmaskarray(Fc["Data"])==True, ones, zeros)
-            Fc["Attr"] = copy.deepcopy(Fc_un["Attr"])
-            Fc["Attr"]["long_name"] = Fc["Attr"]["long_name"].replace(", uncorrected",
-                                                                      ", corrected for storage using supplied storage term")
-            pfp_utils.CreateVariable(ds, Fc)
+            Fco2_uncorrected["Label"] = Fco2_uncorrected["Label"] + "_uncorrected"
+            Fco2_uncorrected["Attr"][descr] = Fco2_uncorrected["Attr"]["long_name"]
+            Fco2_uncorrected["Attr"][descr] += ", not corrected for storage"
+            pfp_utils.CreateVariable(ds, Fco2_uncorrected)
+            # correct Fco2 by adding the storage
+            Fco2_corrected["Data"] = Fco2_uncorrected["Data"] + Sco2["Data"]
+            # if requested, replace missing storage corrected with uncorrected data
+            if pfp_utils.get_optionskeyaslogical(cf, "RelaxFco2Storage"):
+                # if so, replace missing corrected Fco2 with uncorrected Fco2
+                mask = numpy.ma.getmaskarray(Fco2_corrected["Data"])
+                idx = numpy.where(mask == True)[0]
+                Fco2_corrected["Data"][idx] = Fco2_uncorrected["Data"][idx]
+                msg = " Replaced corrected Fco2 with " + str(len(idx)) + " uncorrected values"
+                logger.info(msg)
+            # write the uncorrected CO2 flux to the data structure
+            Fco2_uncorrected["Attr"][descr] = Fco2_uncorrected["Attr"]["long_name"]
+            Fco2_uncorrected["Attr"][descr] += ", not corrected for storage"
+            pfp_utils.CreateVariable(ds, Fco2_uncorrected)
+            # write the corrected CO2 flux to the data structure
+            Fco2_corrected["Attr"][descr] = Fco2_corrected["Attr"]["long_name"]
+            Fco2_corrected["Attr"][descr] += ", corrected for storage using supplied storage term"
+            Fco2_corrected["Label"] = "Fco2"
+            mask = numpy.ma.getmaskarray(Fco2_corrected["Data"])
+            flag = numpy.where(mask == True, ones, zeros)
+            Fco2_corrected["Flag"] = flag
+            pfp_utils.CreateVariable(ds, Fco2_corrected)
     return
 
 def CorrectIndividualFgForStorage(cf,ds):
@@ -1364,7 +1406,7 @@ def CorrectFgForStorage(cf,ds,Fg_out='Fg',Fg_in='Fg',Ts_in='Ts',Sws_in='Sws'):
     #index = numpy.ma.where(numpy.ma.getmaskarray(dTs)==True)[0]
     dTs_flag[index] = numpy.int32(1)
     #logger.warning('  Setting first SHFstorage in series to missing value')
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Change in soil temperature',units='C')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Change in soil temperature',units='degC')
     pfp_utils.CreateSeries(ds,"dTs",dTs,dTs_flag,attr)
     # get the time difference
     dt = numpy.ma.zeros(nRecs)
@@ -1385,17 +1427,17 @@ def CorrectFgForStorage(cf,ds,Fg_out='Fg',Fg_in='Fg',Ts_in='Ts',Sws_in='Sws'):
         #index = numpy.where(item==numpy.int32(1))[0]
         #Fg_out_flag[index] = numpy.int32(1)
     # put the corrected soil heat flux into the data structure
-    attr= pfp_utils.MakeAttributeDictionary(long_name='Soil heat flux corrected for storage',units='W/m2',standard_name='downward_heat_flux_in_soil')
+    attr= pfp_utils.MakeAttributeDictionary(long_name='Soil heat flux corrected for storage',units='W/m^2',standard_name='downward_heat_flux_in_soil')
     flag = numpy.where(numpy.ma.getmaskarray(Fg_out_data)==True,ones,zeros)
     pfp_utils.CreateSeries(ds,Fg_out,Fg_out_data,flag,attr)
     # save the input (uncorrected) soil heat flux series, this will be used if the correction is relaxed
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Soil heat flux uncorrected for storage',units='W/m2')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Soil heat flux uncorrected for storage',units='W/m^2')
     pfp_utils.CreateSeries(ds,'Fg_Av',Fg,Fg_flag,attr)
     flag = numpy.where(numpy.ma.getmaskarray(S)==True,ones,zeros)
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Soil heat flux storage',units='W/m2')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Soil heat flux storage',units='W/m^2')
     pfp_utils.CreateSeries(ds,'S',S,flag,attr)
     flag = numpy.where(numpy.ma.getmaskarray(Cs)==True,ones,zeros)
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity',units='J/m3/K')
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity',units='J/m^3/K')
     pfp_utils.CreateSeries(ds,'Cs',Cs,flag,attr)
     if pfp_utils.get_optionskeyaslogical(cf, "RelaxFgStorage"):
         ReplaceWhereMissing(ds.series['Fg'],ds.series['Fg'],ds.series['Fg_Av'],FlagValue=20)
@@ -1593,11 +1635,11 @@ def do_attributes(cf,ds):
         ds.globalattributes['Flag39'] = 'GapFilling: L4 Diurnal SD Check'
         # the following flags are used by James Cleverly's version but not
         # by the standard OzFlux version.
-        #ds.globalattributes['Flag51'] = 'albedo: bad Fsd < threshold (290 W/m2 default) only if bad time flag (31) not set'
+        #ds.globalattributes['Flag51'] = 'albedo: bad Fsd < threshold (290 W/m^2 default) only if bad time flag (31) not set'
         #ds.globalattributes['Flag52'] = 'albedo: bad time flag (not midday 10.00 to 14.00)'
         #ds.globalattributes['Flag61'] = 'Penman-Monteith: bad rst (rst < 0) only if bad Uavg (35), bad Fe (33) and bad Fsd (34) flags not set'
-        #ds.globalattributes['Flag62'] = 'Penman-Monteith: bad Fe < threshold (0 W/m2 default) only if bad Fsd (34) flag not set'
-        #ds.globalattributes['Flag63'] = 'Penman-Monteith: bad Fsd < threshold (10 W/m2 default)'
+        #ds.globalattributes['Flag62'] = 'Penman-Monteith: bad Fe < threshold (0 W/m^2 default) only if bad Fsd (34) flag not set'
+        #ds.globalattributes['Flag63'] = 'Penman-Monteith: bad Fsd < threshold (10 W/m^2 default)'
         #ds.globalattributes['Flag64'] = 'Penman-Monteith: Uavg == 0 (undefined aerodynamic resistance under calm conditions) only if bad Fe (33) and bad Fsd (34) flags not set'
         #ds.globalattributes['Flag70'] = 'Partitioning Night: Re computed from exponential temperature response curves'
         #ds.globalattributes['Flag80'] = 'Partitioning Day: GPP/Re computed from light-response curves, GPP = Re - Fc'
@@ -1662,57 +1704,57 @@ def CalculateStandardDeviations(ds):
     if 'AhAh' in list(ds.series.keys()) and 'Ah_7500_Sd' not in list(ds.series.keys()):
         AhAh,flag,attr = pfp_utils.GetSeriesasMA(ds,'AhAh')
         Ah_7500_Sd = numpy.ma.sqrt(AhAh)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m3')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m^3')
         pfp_utils.CreateSeries(ds,'Ah_7500_Sd',Ah_7500_Sd,flag,attr)
     if 'Ah_7500_Sd' in list(ds.series.keys()) and 'AhAh' not in list(ds.series.keys()):
         Ah_7500_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ah_7500_Sd')
         AhAh = Ah_7500_Sd*Ah_7500_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='(g/m3)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='g^2/m^6')
         pfp_utils.CreateSeries(ds,'AhAh',AhAh,flag,attr)
     if 'Ah_IRGA_Vr' in list(ds.series.keys()) and 'Ah_IRGA_Sd' not in list(ds.series.keys()):
         Ah_IRGA_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ah_IRGA_Vr')
         Ah_IRGA_Sd = numpy.ma.sqrt(Ah_IRGA_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m3')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m^3')
         pfp_utils.CreateSeries(ds,'Ah_IRGA_Sd',Ah_IRGA_Sd,flag,attr)
     if 'Ah_IRGA_Sd' in list(ds.series.keys()) and 'Ah_IRGA_Vr' not in list(ds.series.keys()):
         Ah_IRGA_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ah_IRGA_Sd')
         Ah_IRGA_Vr = Ah_IRGA_Sd*Ah_IRGA_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='(g/m3)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='g^2/m^6')
         pfp_utils.CreateSeries(ds,'Ah_IRGA_Vr',Ah_IRGA_Vr,flag,attr)
     if 'H2O_IRGA_Vr' in list(ds.series.keys()) and 'H2O_IRGA_Sd' not in list(ds.series.keys()):
         H2O_IRGA_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'H2O_IRGA_Vr')
         H2O_IRGA_Sd = numpy.ma.sqrt(H2O_IRGA_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m3')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m^3')
         pfp_utils.CreateSeries(ds,'H2O_IRGA_Sd',H2O_IRGA_Sd,flag,attr)
     if 'H2O_IRGA_Sd' in list(ds.series.keys()) and 'H2O_IRGA_Vr' not in list(ds.series.keys()):
         H2O_IRGA_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'H2O_IRGA_Sd')
         H2O_IRGA_Vr = H2O_IRGA_Sd*H2O_IRGA_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='(g/m3)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='g^2/m^6')
         pfp_utils.CreateSeries(ds,'H2O_IRGA_Vr',H2O_IRGA_Vr,flag,attr)
     if 'CcCc' in list(ds.series.keys()) and 'Cc_7500_Sd' not in list(ds.series.keys()):
         CcCc,flag,attr = pfp_utils.GetSeriesasMA(ds,'CcCc')
         Cc_7500_Sd = numpy.ma.sqrt(CcCc)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, standard deviation',units='mg/m3')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, standard deviation',units='mg/m^3')
         pfp_utils.CreateSeries(ds,'Cc_7500_Sd',Cc_7500_Sd,flag,attr)
     if 'CO2_IRGA_Sd' in list(ds.series.keys()) and 'CO2_IRGA_Vr' not in list(ds.series.keys()):
         CO2_IRGA_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'CO2_IRGA_Sd')
         CO2_IRGA_Vr = CO2_IRGA_Sd*CO2_IRGA_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, variance',units='(mg/m3)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, variance',units='mg^2/m^6')
         pfp_utils.CreateSeries(ds,'CO2_IRGA_Vr',CO2_IRGA_Vr,flag,attr)
     if 'Cc_7500_Sd' in list(ds.series.keys()) and 'CcCc' not in list(ds.series.keys()):
         Cc_7500_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Cc_7500_Sd')
         CcCc = Cc_7500_Sd*Cc_7500_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, variance',units='(mg/m3)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, variance',units='mg^2/m^6')
         pfp_utils.CreateSeries(ds,'CcCc',CcCc,flag,attr)
     if 'CO2_IRGA_Vr' in list(ds.series.keys()) and 'CO2_IRGA_Sd' not in list(ds.series.keys()):
         CO2_IRGA_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'CO2_IRGA_Vr')
         CO2_IRGA_Sd = numpy.ma.sqrt(CO2_IRGA_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, standard deviation',units='mg/m3')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, standard deviation',units='mg/m^3')
         pfp_utils.CreateSeries(ds,'CO2_IRGA_Sd',CO2_IRGA_Sd,flag,attr)
     if 'Ux_Sd' in list(ds.series.keys()) and 'UxUx' not in list(ds.series.keys()):
         Ux_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ux_Sd')
         UxUx = Ux_Sd*Ux_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, variance',units='(m/s)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, variance',units='m^2/s^2')
         pfp_utils.CreateSeries(ds,'UxUx',UxUx,flag,attr)
     if 'UxUx' in list(ds.series.keys()) and 'Ux_Sd' not in list(ds.series.keys()):
         UxUx,flag,attr = pfp_utils.GetSeriesasMA(ds,'UxUx')
@@ -1722,7 +1764,7 @@ def CalculateStandardDeviations(ds):
     if 'Uy_Sd' in list(ds.series.keys()) and 'UyUy' not in list(ds.series.keys()):
         Uy_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uy_Sd')
         UyUy = Uy_Sd*Uy_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, variance',units='(m/s)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, variance',units='m^2/s^2')
         pfp_utils.CreateSeries(ds,'UyUy',UyUy,flag,attr)
     if 'UyUy' in list(ds.series.keys()) and 'Uy_Sd' not in list(ds.series.keys()):
         UyUy,flag,attr = pfp_utils.GetSeriesasMA(ds,'UyUy')
@@ -1732,7 +1774,7 @@ def CalculateStandardDeviations(ds):
     if 'Uz_Sd' in list(ds.series.keys()) and 'UzUz' not in list(ds.series.keys()):
         Uz_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uz_Sd')
         UzUz = Uz_Sd*Uz_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, variance',units='(m/s)2')
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, variance',units='m^2/s^2')
         pfp_utils.CreateSeries(ds,'UzUz',UzUz,flag,attr)
     if 'UzUz' in list(ds.series.keys()) and 'Uz_Sd' not in list(ds.series.keys()):
         UzUz,flag,attr = pfp_utils.GetSeriesasMA(ds,'UzUz')
@@ -1770,7 +1812,7 @@ def do_mergeseries(ds,target,srclist,mode="verbose"):
     attr["long_name"] = attr["long_name"]+", merged from " + SeriesNameString
     pfp_utils.CreateSeries(ds,target,data,flag1,attr)
 
-def Fc_WPL(cf, ds):
+def Fc_WPL(cf, ds, CO2_in = "CO2"):
     """
         Apply Webb, Pearman and Leuning correction to carbon flux.  This
         correction is necessary to account for flux effects on density
@@ -1808,25 +1850,15 @@ def Fc_WPL(cf, ds):
     rhod = pfp_utils.GetVariable(ds, "rhod")
     RhoCp = pfp_utils.GetVariable(ds, "RhoCp")
     Lv = pfp_utils.GetVariable(ds, "Lv")
-    # deal with aliases for CO2 concentration
-    if "Cc" in list(ds.series.keys()):
-        CO2_in = "Cc"
-    elif "CO2" in list(ds.series.keys()):
-        CO2_in = "CO2"
-    else:
-        msg = " Fc_WPL: did not find CO2 in data structure"
-        logger.error(msg)
-        ds.returncodes["message"] = msg
-        ds.returncodes["value"] = 1
-        return 1
     CO2 = pfp_utils.GetVariable(ds, CO2_in)
-    if CO2["Attr"]["units"] != "mg/m3":
+    if CO2["Attr"]["units"] != "mg/m^3":
         if CO2["Attr"]["units"] == "umol/mol":
-            msg = " Fc_WPL: CO2 units ("+CO2["Attr"]["units"]+") converted to mg/m3"
+            msg = " Fc_WPL: CO2 units (" + CO2["Attr"]["units"] + ") converted to mg/m^3"
             logger.warning(msg)
             CO2["Data"] = pfp_mf.co2_mgCO2pm3fromppm(CO2["Data"], Ta["Data"], ps["Data"])
+            CO2["Attr"]["units"] == "mg/m^3"
         else:
-            msg = " Fc_WPL: unrecognised units ("+CO2["Attr"]["units"]+") for CO2"
+            msg = " Fc_WPL: unrecognised units (" + CO2["Attr"]["units"] + ") for CO2"
             logger.error(msg)
             ds.returncodes["message"] = msg
             ds.returncodes["value"] = 1
@@ -1838,7 +1870,7 @@ def Fc_WPL(cf, ds):
     Fc_wpl_flag = numpy.zeros(len(Fc_wpl_data))
     index = numpy.where(numpy.ma.getmaskarray(Fc_wpl_data) == True)[0]
     Fc_wpl_flag[index] = numpy.int32(14)
-    attr = {"group_name": "flux", "long_name": "CO2 flux", "units": "mg/m2/s",
+    attr = {"group_name": "flux", "long_name": "CO2 flux", "units": "mg/m^2/s",
             "standard_name": "not defined", descr_level: "WPL corrected"}
     for item in ["instrument", "height", "serial_number"]:
         attr[item] = Fc["Attr"][item]
@@ -1889,7 +1921,7 @@ def Fe_WPL(cf, ds):
     Fe_wpl_flag = numpy.zeros(len(Fe_wpl_data))
     idx = numpy.where(numpy.ma.getmaskarray(Fe_wpl_data) == True)[0]
     Fe_wpl_flag[idx] = numpy.int32(14)
-    attr = {"group_name": "flux", "long_name": "Latent heat flux", "units": "W/m2",
+    attr = {"group_name": "flux", "long_name": "Latent heat flux", "units": "W/m^2",
             "standard_name": "surface_upward_latent_heat_flux",
             descr_level: "WPL corrected"}
     for item in ["instrument", "height", "serial_number"]:
@@ -1902,7 +1934,7 @@ def Fe_WPL(cf, ds):
         ReplaceWhereMissing(ds.series['Fe'], ds.series['Fe'], ds.series['Fe_raw'], FlagValue=20)
     return 0
 
-def FhvtoFh(cf, ds):
+def FhvtoFh(cf, ds, Tv_in = "Tv_SONIC_Av"):
     '''
     Convert the virtual heat flux to the sensible heat flux.
     USEAGE:
@@ -1912,28 +1944,18 @@ def FhvtoFh(cf, ds):
     OUTPUT:
      All outputs are written to the data structure.
     '''
-    logger.info(' Converting virtual Fh to Fh')
+    logger.info(" Converting virtual Fhv to Fh")
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
-    # deal with sonic temperature aliases
-    Tv_in = "Tv_SONIC_Av"
-    if Tv_in not in list(ds.series.keys()):
-        if "Tv_CSAT" in list(ds.series.keys()):
-            Tv_in = "Tv_CSAT"
-        elif "Tv_CSAT_Av" in list(ds.series.keys()):
-            Tv_in = "Tv_CSAT_Av"
-        else:
-            logger.error(" FhvtoFh: sonic virtual temperature not found in data structure")
-            return
     # get the input series
     Fhv = pfp_utils.GetVariable(ds, "Fhv")              # get the virtual heat flux
     Tv = pfp_utils.GetVariable(ds, Tv_in)               # get the virtual temperature, C
     Tv["Data"] = Tv["Data"] + c.C2K                     # convert from C to K
-    wA = pfp_utils.GetVariable(ds, "wA")                # get the wA covariance, g/m2/s
-    wA["Data"] = wA["Data"] * c.g2kg                    # convert from g/m2/s to kg/m2/s
+    wA = pfp_utils.GetVariable(ds, "wA")                # get the wA covariance, g/m^2/s
+    wA["Data"] = wA["Data"] * c.g2kg                    # convert from g/m^2/s to kg/m2/s
     SH = pfp_utils.GetVariable(ds, "SH")                # get the specific humidity, kg/kg
-    wT = pfp_utils.GetVariable(ds, "wT")                # get the wT covariance, mK/s
+    wT = pfp_utils.GetVariable(ds, "wT")                # get the wT covariance, m.K/s
     # get the utility series
     RhoCp = pfp_utils.GetVariable(ds, "RhoCp")          # get rho*Cp
     rhom = pfp_utils.GetVariable(ds, "rhom")            # get the moist air density, kg/m3
@@ -1944,7 +1966,7 @@ def FhvtoFh(cf, ds):
     t2 = RhoCp["Data"]*alpha*SH["Data"]*wT["Data"]
     Fh = Fhv["Data"] - t1 - t2
     # put the calculated sensible heat flux into the data structure
-    attr = {"group_name": "flux", "long_name": "Sensible heat flux", "units": "W/m2",
+    attr = {"group_name": "flux", "long_name": "Sensible heat flux", "units": "W/m^2",
                     "standard_name": "surface_upward_sensible_heat_flux"}
     for item in ["instrument", "height", "serial_number"]:
         attr[item] = wT["Attr"][item]
@@ -2190,12 +2212,12 @@ def get_synthetic_fsd(ds):
     nRecs = len(Fsd_syn)
     flag = numpy.zeros(nRecs,dtype=numpy.int32)
     # add the synthetic downwelling shortwave radiation to the data structure
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Synthetic downwelling shortwave radiation',units='W/m2',
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Synthetic downwelling shortwave radiation',units='W/m^2',
                                            standard_name='surface_downwelling_shortwave_flux_in_air')
     pfp_utils.CreateSeries(ds,"Fsd_syn",Fsd_syn,flag,attr)
     ds.intermediate.append("Fsd_syn")
     # add the solar altitude to the data structure
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Solar altitude',units='deg',
+    attr = pfp_utils.MakeAttributeDictionary(long_name='Solar altitude',units='degrees',
                                            standard_name='not defined')
     pfp_utils.CreateSeries(ds,"solar_altitude",alt_solar,flag,attr)
     ds.intermediate.append("solar_altitude")
@@ -2599,17 +2621,17 @@ def MergeHumidities(cf, ds, convert_units=False):
     if "Ah" in cf["Variables"]:
         if "MergeSeries" in cf["Variables"]["Ah"]:
             MergeSeries(cf, ds, "Ah", convert_units=convert_units)
-            pfp_utils.CheckUnits(ds, "Ah", "g/m3", convert_units=True)
+            pfp_utils.CheckUnits(ds, "Ah", "g/m^3", convert_units=True)
         elif "AverageSeries" in cf["Variables"]["Ah"]:
             AverageSeriesByElements(cf, ds, "Ah")
-            pfp_utils.CheckUnits(ds, "Ah", "g/m3", convert_units=True)
+            pfp_utils.CheckUnits(ds, "Ah", "g/m^3", convert_units=True)
     if "RH" in cf["Variables"]:
         if "MergeSeries" in cf["Variables"]["RH"]:
             MergeSeries(cf, ds, "RH", convert_units=convert_units)
-            pfp_utils.CheckUnits(ds, "RH", "%", convert_units=True)
+            pfp_utils.CheckUnits(ds, "RH", "percent", convert_units=True)
         elif "AverageSeries" in cf["Variables"]["RH"]:
             AverageSeriesByElements(cf, ds, "RH")
-            pfp_utils.CheckUnits(ds, "RH", "%", convert_units=True)
+            pfp_utils.CheckUnits(ds, "RH", "percent", convert_units=True)
     if "SH" in cf["Variables"]:
         if "MergeSeries" in cf["Variables"]["SH"]:
             MergeSeries(cf, ds, "SH", convert_units=convert_units)
@@ -2924,13 +2946,14 @@ def SquareRoot(Series):
     tmp[index] = Series[index] ** .5
     return tmp
 
-def TaFromTv(cf,ds,Ta_out='Ta_SONIC_Av',Tv_in='Tv_SONIC_Av',Ah_in='Ah',RH_in='RH',q_in='SH',ps_in='ps'):
+def TaFromTv(cf, ds, Ta_out="Ta_SONIC_Av", Tv_in="Tv_SONIC_Av", Ah_in="Ah",
+             RH_in="RH", q_in="SH", ps_in="ps"):
     # Calculate the air temperature from the virtual temperature, the
     # absolute humidity and the pressure.
     # NOTE: the virtual temperature is used in place of the air temperature
     #       to calculate the vapour pressure from the absolute humidity, the
     #       approximation involved here is of the order of 1%.
-    logger.info(' Calculating Ta from Tv')
+    logger.info(" Calculating Ta from Tv")
     # check to see if we have enough data to proceed
     # deal with possible aliases for the sonic temperature
     if Tv_in not in list(ds.series.keys()):
@@ -2943,34 +2966,38 @@ def TaFromTv(cf,ds,Ta_out='Ta_SONIC_Av',Tv_in='Tv_SONIC_Av',Ah_in='Ah',RH_in='RH
         else:
             logger.error(" TaFromTv: sonic virtual temperature not found in data structure")
             return
-    if Ah_in not in list(ds.series.keys()) and RH_in not in list(ds.series.keys()) and q_in not in list(ds.series.keys()):
-        labstr = str(Ah_in)+","+str(RH_in)+","+str(q_in)
-        logger.error(" TaFromTv: no humidity data ("+labstr+") found in data structure")
+    if ((Ah_in not in list(ds.series.keys())) and (RH_in not in list(ds.series.keys())) and
+        (q_in not in list(ds.series.keys()))):
+        labstr = str(Ah_in) + "," + str(RH_in) + "," + str(q_in)
+        msg = " TaFromTv: no humidity data (" + labstr + ") found in data structure"
+        logger.error(msg)
         return
     if ps_in not in list(ds.series.keys()):
-        logger.error(" TaFromTv: pressure ("+str(ps_in)+") not found in data structure")
+        msg = " TaFromTv: pressure (" + str(ps_in) + ") not found in data structure"
+        logger.error(msg)
         return
     # we seem to have enough to continue
-    Tv,f,a = pfp_utils.GetSeriesasMA(ds,Tv_in)
-    ps,f,a = pfp_utils.GetSeriesasMA(ds,ps_in)
+    Tv,f,a = pfp_utils.GetSeriesasMA(ds, Tv_in)
+    ps,f,a = pfp_utils.GetSeriesasMA(ds, ps_in)
     if Ah_in in list(ds.series.keys()):
-        Ah,f,a = pfp_utils.GetSeriesasMA(ds,Ah_in)
-        vp = pfp_mf.vapourpressure(Ah,Tv)
-        mr = pfp_mf.mixingratio(ps,vp)
+        Ah,f,a = pfp_utils.GetSeriesasMA(ds, Ah_in)
+        vp = pfp_mf.vapourpressure(Ah, Tv)
+        mr = pfp_mf.mixingratio(ps, vp)
         q = pfp_mf.specifichumidity(mr)
     elif RH_in in list(ds.series.keys()):
-        RH,f,a = pfp_utils.GetSeriesasMA(ds,RH_in)
-        q = pfp_mf.specifichumidityfromRH(RH,Tv,ps)
+        RH,f,a = pfp_utils.GetSeriesasMA(ds, RH_in)
+        q = pfp_mf.specifichumidityfromRH(RH, Tv, ps)
     elif q_in in list(ds.series.keys()):
-        q,f,a = pfp_utils.GetSeriesasMA(ds,q_in)
-    Ta_data = pfp_mf.tafromtv(Tv,q)
-    nRecs = int(ds.globalattributes['nc_nrecs'])
-    Ta_flag = numpy.zeros(nRecs,numpy.int32)
+        q,f,a = pfp_utils.GetSeriesasMA(ds, q_in)
+    Ta_data = pfp_mf.tafromtv(Tv, q)
+    nRecs = int(ds.globalattributes["nc_nrecs"])
+    Ta_flag = numpy.zeros(nRecs, numpy.int32)
     mask = numpy.ma.getmask(Ta_data)
-    index = numpy.where(mask.astype(numpy.int32)==1)
+    index = numpy.where(mask.astype(numpy.int32) == 1)
     Ta_flag[index] = 15
-    attr = pfp_utils.MakeAttributeDictionary(long_name='Ta calculated from Tv using '+Tv_in,units='C',standard_name='air_temperature')
-    pfp_utils.CreateSeries(ds,Ta_out,Ta_data,Ta_flag,attr)
+    attr = pfp_utils.MakeAttributeDictionary(long_name="Ta calculated from Tv using " + Tv_in,
+                                             units="degC", standard_name="air_temperature")
+    pfp_utils.CreateSeries(ds, Ta_out, Ta_data, Ta_flag, attr)
 
 def TransformAlternate(TList,DateTime,Series,ts=30):
     # Apply polynomial transform to data series being used as replacement data for gap filling

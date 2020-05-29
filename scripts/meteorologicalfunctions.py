@@ -46,7 +46,7 @@ def co2_mgCO2pm3fromppm(c_ppm,T,p):
          CO2_ppm (input) - CO2 concentration, umol/mol
          T (input) - air temperature, C
          p (input) - air pressure, kPa
-        Returns the CO2 concentration in mg/m3.
+        Returns the CO2 concentration in mg/m^3.
     """
     # convert to masked array if required
     c_ppm, WasND = SeriestoMA(c_ppm)
@@ -62,14 +62,14 @@ def co2_mgCO2pm3fromppm(c_ppm,T,p):
 
 def co2_umolpm3fromppm(c_ppm, T, p):
     """
-     Convert CO2 concentration units of umol/mol (ppm) to umol/m3
+     Convert CO2 concentration units of umol/mol (ppm) to umol/m^3
         Usage:
          CO2_umolpm3 = co2_umolpm3fromppm(CO2_ppm, T, p)
          where
          CO2_ppm (input) - CO2 concentration, umol/mol
          T (input) - air temperature, C
          p (input) - air pressure, kPa
-        Returns the CO2 concentration in umol/m3.
+        Returns the CO2 concentration in umol/m^3.
     """
     # convert to masked array if required
     c_ppm, WasND = SeriestoMA(c_ppm)
@@ -122,11 +122,11 @@ def es(T):
 
 def Fc_gCpm2psfromumolpm2ps(Fc_umolpm2ps):
     """
-    Convert Fc in units of umol/m2/s to units of gC/m2/s
+    Convert Fc in units of umol/m^2/s to units of gC/m2/s
     Usage:
      Fc_mgpm2ps = Fc_gCpm2psfromumolpm2ps(Fc_umolpm2ps)
      where:
-      Fc_umolpm2ps (input) - CO2 flux in units of umol/m2/s
+      Fc_umolpm2ps (input) - CO2 flux in units of umol/m^2/s
     Returns the CO2 flux in units of gC/m2/s
     """
     # convert to masked array
@@ -139,11 +139,11 @@ def Fc_gCpm2psfromumolpm2ps(Fc_umolpm2ps):
 
 def Fc_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps):
     """
-    Convert Fc in units of umol/m2/s to units of mgCO2/m2/s
+    Convert Fc in units of umol/m^2/s to units of mgCO2/m2/s
     Usage:
      Fc_mgCO2pm2ps = Fc_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps)
      where:
-      Fc_umolpm2ps (input) - CO2 flux in units of umol/m2/s
+      Fc_umolpm2ps (input) - CO2 flux in units of umol/m^2/s
     Returns the CO2 flux in units of mgCO2/m2/s
     """
     # convert to masked array
@@ -156,12 +156,12 @@ def Fc_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps):
 
 def Fc_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps):
     """
-    Convert Fc in units of mg/m2/s to units of umol/m2/s
+    Convert Fc in units of mg/m^2/s to units of umol/m^2/s
     Usage:
      Fc_umolpm2ps = Fc_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps)
      where:
-      Fc_mgpm2ps (input) - CO2 flux in units of mg/m2/s
-    Returns the CO2 flux in units of umol/m2/s
+      Fc_mgpm2ps (input) - CO2 flux in units of mg/m^2/s
+    Returns the CO2 flux in units of umol/m^2/s
     """
     # convert to masked array
     Fc_mgpm2ps, WasND = SeriestoMA(Fc_mgpm2ps)
@@ -173,11 +173,11 @@ def Fc_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps):
 
 def h2o_mmolpmolfromgpm3(h_gpm3,T,p):
     """
-     Convert H2O concentration units of g/m3 to mmol/mol.
+     Convert H2O concentration units of g/m^3 to mmol/mol.
         Usage:
          H2O_mmolpmol = h2o_mmolpmolfromgpm3(H2O_gpm3, T, p)
          where
-         H2O_gpm3 (input) - H2O concentration, g/m3
+         H2O_gpm3 (input) - H2O concentration, g/m^3
          T (input) - air temperature, C
          p (input) - air pressure, kPa
         Returns the H2O concentration in mmol/mol.
@@ -194,14 +194,14 @@ def h2o_mmolpmolfromgpm3(h_gpm3,T,p):
 
 def h2o_gpm3frommmolpmol(h_mmpm,T,p):
     """
-     Convert H2O concentration units of mmol/mol to g/m3.
+     Convert H2O concentration units of mmol/mol to g/m^3.
         Usage:
          H2O_gpm3 = h2o_gpm3frommmolpmol(H2O_mmolpmol, T, p)
          where
          H2O_mmolpmol (input) - H2O concentration, mmol/mol
          T (input) - air temperature, C
          p (input) - air pressure, kPa
-        Returns the H2O concentration in g/m3.
+        Returns the H2O concentration in g/m^3.
     """
     # convert to masked arrays
     h_mmpm, WasND = SeriestoMA(h_mmpm)
@@ -257,7 +257,7 @@ def qsat(esat,ps):
 def RHfromabsolutehumidity(Ah,Ta):
     # Relative humidity from absolute humidity
     #  Ta is the air temperature, C
-    #  Ah is the absolute humidity, g/m3
+    #  Ah is the absolute humidity, g/m^3
     #  RH is the relative humidity, %
     # convert to masked arrays
     Ah, WasND = SeriestoMA(Ah)
@@ -387,7 +387,7 @@ def theta(T,p):
 
 def vapourpressure(Ah,Ta):
     # Calculate vapour pressure from absolute humidity and temperature
-    #  Ah - absolute humidity, g/m3
+    #  Ah - absolute humidity, g/m^3
     #  Ta - air temperature, C
     # Returns
     #  vp - vapour pressure, kPa

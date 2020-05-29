@@ -113,7 +113,7 @@ def l3qc(cf, ds2):
     pfp_ts.TaFromTv(cf, ds3)
     # merge the HMP and corrected CSAT data
     pfp_ts.CombineSeries(cf, ds3, "Ta", convert_units=True)
-    pfp_utils.CheckUnits(ds3, "Ta", "C", convert_units=True)
+    pfp_utils.CheckUnits(ds3, "Ta", "degC", convert_units=True)
     # ***************************
     # *** Calcuate humidities ***
     # ***************************
@@ -122,20 +122,8 @@ def l3qc(cf, ds2):
     # ********************************
     # *** Merge CO2 concentrations ***
     # ********************************
-    # merge the 7500 CO2 concentration
-    # PRI 09/08/2017 possibly the ugliest thing I have done yet
-    # This needs to be abstracted to a general alias checking routine at the
-    # start of the L3 processing so that possible aliases are mapped to a single
-    # set of variable names.
-    if "CO2" in cf["Variables"]:
-        CO2 = "CO2"
-    elif "Cc" in cf["Variables"]:
-        CO2 = "Cc"
-    else:
-        msg = "Label for CO2 ('CO2','Cc') not found in control file"
-        logger.warning(msg)
-        CO2 = None
-    pfp_ts.CombineSeries(cf, ds3, CO2, convert_units=True)
+    # merge the CO2 concentrations
+    pfp_ts.CombineSeries(cf, ds3, "CO2", convert_units=True)
     # ******************************************
     # *** Calculate meteorological variables ***
     # ******************************************
@@ -165,49 +153,49 @@ def l3qc(cf, ds2):
     # *** CO2 and Fc section ***
     # **************************
     # convert CO2 units if required
-    pfp_utils.ConvertCO2Units(cf, ds3, CO2=CO2)
-    # calculate Fc storage term - single height only at present
-    pfp_ts.CalculateFcStorageSinglePoint(cf, ds3, Fc_out='Fc_single', CO2_in=CO2)
-    # convert Fc and Fc_storage units if required
-    #pfp_utils.ConvertFcUnits(cf, ds3)
-    Fc_list = ["Fc", "Fc_single", "Fc_profile", "Fc_storage"]
-    pfp_utils.CheckUnits(ds3, Fc_list, "umol/m2/s", convert_units=True)
-    # merge Fc and Fc_storage series if required
+    pfp_utils.ConvertCO2Units(cf, ds3, CO2="CO2")
+    # calculate Fco2 storage term - single height only at present
+    pfp_ts.CalculateFco2StorageSinglePoint(cf, ds3, Fco2_out="Fco2_single", CO2_in="CO2")
+    # convert Fco2 and Fco2_storage units if required
+    #pfp_utils.ConvertFco2Units(cf, ds3)
+    Fco2_list = ["Fco2", "Fco2_single", "Fco2_profile", "Fco2_storage"]
+    pfp_utils.CheckUnits(ds3, Fco2_list, "umol/m^2/s", convert_units=True)
+    # merge Fco2 and Fco2_storage series if required
     cfv = cf["Variables"]
-    merge_list = [l for l in list(cfv.keys()) if l[0:2] == "Fc" and "MergeSeries" in list(cfv[l].keys())]
+    merge_list = [l for l in list(cfv.keys()) if l[0:2] == "Fco2" and "MergeSeries" in list(cfv[l].keys())]
     for label in merge_list:
         pfp_ts.CombineSeries(cf, ds3, label, save_originals=True)
-    # correct Fc for storage term - only recommended if storage calculated from profile available
-    pfp_ts.CorrectFcForStorage(cf, ds3)
+    # correct Fco2 for storage term - only recommended if storage calculated from profile available
+    pfp_ts.CorrectFco2ForStorage(cf, ds3)
     # *************************
     # *** Radiation section ***
     # *************************
     # merge the incoming shortwave radiation
-    pfp_ts.CombineSeries(cf, ds3, 'Fsd')
+    pfp_ts.CombineSeries(cf, ds3, "Fsd")
     # calculate the net radiation from the Kipp and Zonen CNR1
     pfp_ts.CalculateNetRadiation(cf, ds3)
-    pfp_ts.CombineSeries(cf, ds3, 'Fn')
+    pfp_ts.CombineSeries(cf, ds3, "Fn")
     # ****************************************
     # *** Wind speed and direction section ***
     # ****************************************
     # combine wind speed from the Wind Sentry and the SONIC
-    pfp_ts.CombineSeries(cf,ds3, 'Ws')
+    pfp_ts.CombineSeries(cf,ds3, "Ws")
     # combine wind direction from the Wind Sentry and the SONIC
-    pfp_ts.CombineSeries(cf,ds3, 'Wd')
+    pfp_ts.CombineSeries(cf,ds3, "Wd")
     # ********************
     # *** Soil section ***
     # ********************
     # correct soil heat flux for storage
     #    ... either average the raw ground heat flux, soil temperature and moisture
     #        and then do the correction (OzFlux "standard")
-    pfp_ts.CombineSeries(cf, ds3, 'Ts')
-    pfp_ts.CombineSeries(cf, ds3, 'Sws')
+    pfp_ts.CombineSeries(cf, ds3, "Ts")
+    pfp_ts.CombineSeries(cf, ds3, "Sws")
     if pfp_utils.get_optionskeyaslogical(cf, "CorrectIndividualFg"):
         #    ... or correct the individual ground heat flux measurements (James' method)
         pfp_ts.CorrectIndividualFgForStorage(cf, ds3)
-        pfp_ts.CombineSeries(cf, ds3, 'Fg')
+        pfp_ts.CombineSeries(cf, ds3, "Fg")
     else:
-        pfp_ts.CombineSeries(cf, ds3, 'Fg')
+        pfp_ts.CombineSeries(cf, ds3, "Fg")
         pfp_ts.CorrectFgForStorage(cf, ds3)
     # calculate the available energy
     pfp_ts.CalculateAvailableEnergy(ds3)
@@ -216,7 +204,7 @@ def l3qc(cf, ds2):
     # Calculate Monin-Obukhov length
     pfp_ts.CalculateMoninObukhovLength(ds3)
     # re-apply the quality control checks (range, diurnal and rules)
-    pfp_ck.do_qcchecks(cf,ds3)
+    pfp_ck.do_qcchecks(cf, ds3)
     # check missing data and QC flags are consistent
     pfp_utils.CheckQCFlags(ds3)
     # get the statistics for the QC flags and write these to an Excel spreadsheet

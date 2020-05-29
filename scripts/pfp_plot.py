@@ -598,7 +598,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     fig = plt.figure(nFig, figsize=(8, 8))
     fig.canvas.set_window_title("Surface Energy Balance")
     plt.figtext(0.5, 0.95, plot_title, horizontalalignment='center', size=16)
-    xyplot(Fa_SEB, FhpFe_SEB, sub=[2,2,1], regr=1, title="All hours", xlabel='Fa (W/m2)', ylabel='Fh+Fe (W/m2)')
+    xyplot(Fa_SEB, FhpFe_SEB, sub=[2,2,1], regr=1, title="All hours", xlabel='Fa (W/m^2)', ylabel='Fh+Fe (W/m^2)')
     # scatter plot of (Fh+Fe) versus Fa, 24 hour averages
     mask = numpy.ma.mask_or(daily["Fa"]["Data"].mask, daily["Fe"]["Data"].mask)
     mask = numpy.ma.mask_or(mask, daily["Fh"]["Data"].mask)
@@ -610,7 +610,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     Fh_daily_avg = numpy.ma.average(Fh_daily, axis=1)
     FhpFe_daily_avg = Fh_daily_avg + Fe_daily_avg
     xyplot(Fa_daily_avg, FhpFe_daily_avg, sub=[2,2,2], regr=1, thru0=1,
-           title="Daily Average", xlabel="Fa (W/m2)", ylabel="Fh+Fe (W/m2)")
+           title="Daily Average", xlabel="Fa (W/m^2)", ylabel="Fh+Fe (W/m^2)")
     # scatter plot of (Fh+Fe) versus Fa, day time
     day_mask = (data["Fsd"]["Data"] >= 10)
     Fa_day = numpy.ma.masked_where(day_mask == False, Fa_30min)
@@ -622,7 +622,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     Fe_day = numpy.ma.array(Fe_day, mask=mask)
     Fh_day = numpy.ma.array(Fh_day, mask=mask)
     FhpFe_day = Fh_day + Fe_day
-    xyplot(Fa_day, FhpFe_day, sub=[2,2,3], regr=1, title="Day", xlabel="Fa (W/m2)", ylabel="Fh+Fe (W/m2)")
+    xyplot(Fa_day, FhpFe_day, sub=[2,2,3], regr=1, title="Day", xlabel="Fa (W/m^2)", ylabel="Fh+Fe (W/m^2)")
     # scatter plot of (Fh+Fe) versus Fa, night time
     night_mask = (data["Fsd"]["Data"] < 10)
     Fa_night = numpy.ma.masked_where(night_mask==False, Fa_30min)
@@ -634,7 +634,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     Fe_night = numpy.ma.array(Fe_night, mask=mask)
     Fh_night = numpy.ma.array(Fh_night, mask=mask)
     FhpFe_night = Fh_night + Fe_night
-    xyplot(Fa_night, FhpFe_night, sub=[2,2,4], regr=1, title="Night", xlabel="Fa (W/m2)", ylabel="Fh+Fe (W/m2)")
+    xyplot(Fa_night, FhpFe_night, sub=[2,2,4], regr=1, title="Night", xlabel="Fa (W/m^2)", ylabel="Fh+Fe (W/m^2)")
     # hard copy of plot
     fig.savefig(figure_name, format='png')
     # draw the plot on the screen
@@ -643,7 +643,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
 
 def plot_quickcheck_get_seb(daily):
     # get the SEB ratio
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
     Fa_daily = daily["Fa"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
@@ -674,7 +674,7 @@ def plot_quickcheck_get_seb(daily):
 
 def plot_quickcheck_get_ef(daily):
     # get the EF
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
     Fa_daily = daily["Fa"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
@@ -700,7 +700,7 @@ def plot_quickcheck_get_ef(daily):
 
 def plot_quickcheck_get_br(daily):
     # get the BR
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
     Fh_daily = daily["Fh"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
@@ -726,7 +726,7 @@ def plot_quickcheck_get_br(daily):
 
 def plot_quickcheck_get_wue(daily):
     # get the Wue
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
     Fc_daily = daily["Fc"]["Data"]
     Fe_daily = daily["Fe"]["Data"]

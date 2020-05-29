@@ -1411,20 +1411,20 @@ class edit_cfg_L3(QtWidgets.QWidget):
         self.sections["Options"].appendRow([child0, child1])
         self.update_tab_text()
 
-    def add_applyfcstorage_to_options(self):
-        """ Add storage term to Fc to the [Options] section."""
-        child0 = QtGui.QStandardItem("ApplyFcStorage")
+    def add_applyfco2storage_to_options(self):
+        """ Add storage term to Fco2 to the [Options] section."""
+        child0 = QtGui.QStandardItem("ApplyFco2Storage")
         child1 = QtGui.QStandardItem("Yes")
         self.sections["Options"].appendRow([child0, child1])
         self.update_tab_text()
 
-    def add_applyfcstorage_to_variable(self):
-        """ Add apply Fc storage instruction to a variable."""
+    def add_applyfco2storage_to_variable(self):
+        """ Add apply Fco2 storage instruction to a variable."""
         # get the index of the selected item
         idx = self.view.selectedIndexes()[0]
         # get the selected item from the index
         selected_item = idx.model().itemFromIndex(idx)
-        parent = QtGui.QStandardItem("ApplyFcStorage")
+        parent = QtGui.QStandardItem("ApplyFco2Storage")
         child0 = QtGui.QStandardItem("source")
         child1 = QtGui.QStandardItem("")
         parent.appendRow([child0, child1])
@@ -1455,6 +1455,13 @@ class edit_cfg_L3(QtWidgets.QWidget):
         """ Add correct Fg for storage to the [Options] section."""
         child0 = QtGui.QStandardItem("CorrectFgForStorage")
         child1 = QtGui.QStandardItem("Yes")
+        self.sections["Options"].appendRow([child0, child1])
+        self.update_tab_text()
+
+    def add_co2units_to_options(self):
+        """ Add CO2 units to the [Options] section."""
+        child0 = QtGui.QStandardItem("CO2Units")
+        child1 = QtGui.QStandardItem("umol/mol")
         self.sections["Options"].appendRow([child0, child1])
         self.update_tab_text()
 
@@ -1499,6 +1506,13 @@ class edit_cfg_L3(QtWidgets.QWidget):
         child1 = QtGui.QStandardItem("YYYY-mm-dd HH:MM, YYYY-mm-dd HH:MM")
         # add them
         selected_item.appendRow([child0, child1])
+        self.update_tab_text()
+
+    def add_fco2units_to_options(self):
+        """ Add Fco2 units to the [Options] section."""
+        child0 = QtGui.QStandardItem("Fco2Units")
+        child1 = QtGui.QStandardItem("umol/m^2/s")
+        self.sections["Options"].appendRow([child0, child1])
         self.update_tab_text()
 
     def add_file_path(self):
@@ -1841,11 +1855,11 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.actionAddMassmanCorrection.setText("MassmanCorrection")
                     self.context_menu.addAction(self.context_menu.actionAddMassmanCorrection)
                     self.context_menu.actionAddMassmanCorrection.triggered.connect(self.add_massmancorrection)
-                if "ApplyFcStorage" not in existing_entries:
+                if "ApplyFco2Storage" not in existing_entries:
                     self.context_menu.actionAddApplyFcStorage = QtWidgets.QAction(self)
-                    self.context_menu.actionAddApplyFcStorage.setText("ApplyFcStorage")
+                    self.context_menu.actionAddApplyFcStorage.setText("ApplyFco2Storage")
                     self.context_menu.addAction(self.context_menu.actionAddApplyFcStorage)
-                    self.context_menu.actionAddApplyFcStorage.triggered.connect(self.add_applyfcstorage_to_options)
+                    self.context_menu.actionAddApplyFcStorage.triggered.connect(self.add_applyfco2storage_to_options)
                 if "CorrectIndividualFg" not in existing_entries:
                     self.context_menu.actionAddCorrectIndividualFg = QtWidgets.QAction(self)
                     self.context_menu.actionAddCorrectIndividualFg.setText("CorrectIndividualFg")
@@ -1856,6 +1870,16 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.actionAddCorrectFgForStorage.setText("CorrectFgForStorage")
                     self.context_menu.addAction(self.context_menu.actionAddCorrectFgForStorage)
                     self.context_menu.actionAddCorrectFgForStorage.triggered.connect(self.add_correctfgforstorage)
+                if "CO2Units" not in existing_entries:
+                    self.context_menu.actionAddCO2Units = QtWidgets.QAction(self)
+                    self.context_menu.actionAddCO2Units.setText("CO2Units")
+                    self.context_menu.addAction(self.context_menu.actionAddCO2Units)
+                    self.context_menu.actionAddCO2Units.triggered.connect(self.add_co2units_to_options)
+                if "Fco2Units" not in existing_entries:
+                    self.context_menu.actionAddFco2Units = QtWidgets.QAction(self)
+                    self.context_menu.actionAddFco2Units.setText("Fco2Units")
+                    self.context_menu.addAction(self.context_menu.actionAddFco2Units)
+                    self.context_menu.actionAddFco2Units.triggered.connect(self.add_fco2units_to_options)
                 #self.context_menu.actionCoordinateFluxGaps = QtWidgets.QAction(self)
                 #self.context_menu.actionCoordinateFluxGaps.setText("CoordinateFluxGaps")
                 #self.context_menu.addAction(self.context_menu.actionAddCoordinateFluxGaps)
@@ -2167,7 +2191,7 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     parent2 = QtGui.QStandardItem(key2)
                     for key3 in self.cfg[key1][key2]:
                         if key3 in ["RangeCheck", "DependencyCheck", "DiurnalCheck", "ExcludeDates",
-                                    "ApplyFcStorage", "MergeSeries", "AverageSeries"]:
+                                    "ApplyFco2Storage", "MergeSeries", "AverageSeries"]:
                             parent3 = QtGui.QStandardItem(key3)
                             for key4 in self.cfg[key1][key2][key3]:
                                 value = self.cfg[key1][key2][key3][key4]
