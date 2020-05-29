@@ -247,18 +247,18 @@ def CalculateFluxes(cf, ds):
     if "wC" in list(ds.series.keys()):
         wC = pfp_utils.GetVariable(ds, "wC")
         if wC["Attr"]["units"] == "mg/m^2/s":
-            Fc = wC["Data"]
+            Fco2 = wC["Data"]
             attr = {"group_name": "flux", "long_name": "CO2 flux", "units": "mg/m^2/s",
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
                 attr[item] = wC["Attr"][item]
-            flag = numpy.where(numpy.ma.getmaskarray(Fc) == True, ones, zeros)
-            pfp_utils.CreateVariable(ds, {"Label": "Fc", "Data": Fc, "Flag": flag, "Attr": attr})
+            flag = numpy.where(numpy.ma.getmaskarray(Fco2) == True, ones, zeros)
+            pfp_utils.CreateVariable(ds, {"Label": "Fco2", "Data": Fco2, "Flag": flag, "Attr": attr})
         else:
-            logger.error(" CalculateFluxes: Incorrect units for wC, Fc not calculated")
+            logger.error(" CalculateFluxes: Incorrect units for wC, Fco2 not calculated")
     else:
-        logger.error("  CalculateFluxes: wC not found, Fc not calculated")
+        logger.error("  CalculateFluxes: wC not found, Fco2 not calculated")
     if "uw" in list(ds.series.keys()):
         if "vw" in list(ds.series.keys()):
             uw = pfp_utils.GetVariable(ds, "uw")
@@ -915,16 +915,22 @@ def CoordRotation2D(cf, ds):
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     # get the raw wind velocity components
-    Ux = pfp_utils.GetVariable(ds, "Ux")          # longitudinal component in CSAT coordinate system
-    Uy = pfp_utils.GetVariable(ds, "Uy")          # lateral component in CSAT coordinate system
-    Uz = pfp_utils.GetVariable(ds, "Uz")          # vertical component in CSAT coordinate system
+    # longitudinal component in CSAT coordinate system
+    Ux = pfp_utils.GetVariable(ds, "Ux_SONIC_Av")
+    # lateral component in CSAT coordinate system
+    Uy = pfp_utils.GetVariable(ds, "Uy_SONIC_Av")
+    # vertical component in CSAT coordinate system
+    Uz = pfp_utils.GetVariable(ds, "Uz_SONIC_Av")
     # get the raw covariances
     UxUz = pfp_utils.GetVariable(ds, "UxUz")      # covariance(Ux,Uz)
     UyUz = pfp_utils.GetVariable(ds, "UyUz")      # covariance(Uy,Uz)
     UxUy = pfp_utils.GetVariable(ds, "UxUy")      # covariance(Ux,Uy)
-    UyUy = pfp_utils.GetVariable(ds, "UyUy")      # variance(Uy)
-    UxUx = pfp_utils.GetVariable(ds, "UxUx")      # variance(Ux)
-    UzUz = pfp_utils.GetVariable(ds, "UzUz")      # variance(Ux)
+    # variance(Uy)
+    UyUy = pfp_utils.GetVariable(ds, "Uy_SONIC_Vr")
+    # variance(Ux)
+    UxUx = pfp_utils.GetVariable(ds, "Ux_SONIC_Vr")
+    # variance(Uz)
+    UzUz = pfp_utils.GetVariable(ds, "Uz_SONIC_Vr")
     UzC = pfp_utils.GetVariable(ds, "UzC")        # covariance(Uz,C)
     UzA = pfp_utils.GetVariable(ds, "UzA")        # covariance(Uz,A)
     UzT = pfp_utils.GetVariable(ds, "UzT")        # covariance(Uz,T)
@@ -1812,7 +1818,7 @@ def do_mergeseries(ds,target,srclist,mode="verbose"):
     attr["long_name"] = attr["long_name"]+", merged from " + SeriesNameString
     pfp_utils.CreateSeries(ds,target,data,flag1,attr)
 
-def Fc_WPL(cf, ds, CO2_in = "CO2"):
+def Fco2_WPL(cf, ds, CO2_in="CO2", Fco2_in="Fco2"):
     """
         Apply Webb, Pearman and Leuning correction to carbon flux.  This
         correction is necessary to account for flux effects on density
@@ -1830,16 +1836,14 @@ def Fc_WPL(cf, ds, CO2_in = "CO2"):
 
         Accepts meteorological constants or variables
         """
-    if "DisableFcWPL" in cf["Options"]:
-        if cf["Options"].as_bool("DisableFcWPL"):
-            logger.warning(" WPL correction for Fc disabled in control file")
+    if "DisableFco2WPL" in cf["Options"]:
+        if cf["Options"].as_bool("DisableFco2WPL"):
+            logger.warning(" WPL correction for Fco2 disabled in control file")
             return 0
-    logger.info(" Applying WPL correction to Fc")
+    logger.info(" Applying WPL correction to Fco2")
     descr_level = "description_" + ds.globalattributes["nc_level"]
     nRecs = int(ds.globalattributes["nc_nrecs"])
-    zeros = numpy.zeros(nRecs, dtype=numpy.int32)
-    ones = numpy.ones(nRecs, dtype=numpy.int32)
-    Fc = pfp_utils.GetVariable(ds, "Fc")
+    Fco2 = pfp_utils.GetVariable(ds, Fco2_in)
     Fh = pfp_utils.GetVariable(ds, "Fh")
     Fe = pfp_utils.GetVariable(ds, "Fe")
     ps = pfp_utils.GetVariable(ds, "ps")
@@ -1853,12 +1857,12 @@ def Fc_WPL(cf, ds, CO2_in = "CO2"):
     CO2 = pfp_utils.GetVariable(ds, CO2_in)
     if CO2["Attr"]["units"] != "mg/m^3":
         if CO2["Attr"]["units"] == "umol/mol":
-            msg = " Fc_WPL: CO2 units (" + CO2["Attr"]["units"] + ") converted to mg/m^3"
+            msg = " Fco2_WPL: CO2 units (" + CO2["Attr"]["units"] + ") converted to mg/m^3"
             logger.warning(msg)
             CO2["Data"] = pfp_mf.co2_mgCO2pm3fromppm(CO2["Data"], Ta["Data"], ps["Data"])
             CO2["Attr"]["units"] == "mg/m^3"
         else:
-            msg = " Fc_WPL: unrecognised units (" + CO2["Attr"]["units"] + ") for CO2"
+            msg = " Fco2_WPL: unrecognised units (" + CO2["Attr"]["units"] + ") for CO2"
             logger.error(msg)
             ds.returncodes["message"] = msg
             ds.returncodes["value"] = 1
@@ -1866,17 +1870,17 @@ def Fc_WPL(cf, ds, CO2_in = "CO2"):
     sigma = Ah["Data"] / rhod["Data"]
     co2_wpl_Fe = (c.mu/(1+c.mu*sigma))*(CO2["Data"]/rhod["Data"])*(Fe["Data"]/Lv["Data"])
     co2_wpl_Fh = (CO2["Data"]/Ta["Data"])*(Fh["Data"]/RhoCp["Data"])
-    Fc_wpl_data = Fc["Data"] + co2_wpl_Fe + co2_wpl_Fh
-    Fc_wpl_flag = numpy.zeros(len(Fc_wpl_data))
-    index = numpy.where(numpy.ma.getmaskarray(Fc_wpl_data) == True)[0]
-    Fc_wpl_flag[index] = numpy.int32(14)
+    Fco2_wpl_data = Fco2["Data"] + co2_wpl_Fe + co2_wpl_Fh
+    Fco2_wpl_flag = numpy.zeros(len(Fco2_wpl_data))
+    index = numpy.where(numpy.ma.getmaskarray(Fco2_wpl_data) == True)[0]
+    Fco2_wpl_flag[index] = numpy.int32(14)
     attr = {"group_name": "flux", "long_name": "CO2 flux", "units": "mg/m^2/s",
             "standard_name": "not defined", descr_level: "WPL corrected"}
     for item in ["instrument", "height", "serial_number"]:
-        attr[item] = Fc["Attr"][item]
-    variable = {"Label": "Fc", "Data": Fc_wpl_data, "Flag": Fc_wpl_flag, "Attr": attr}
+        attr[item] = Fco2["Attr"][item]
+    variable = {"Label": "Fco2", "Data": Fco2_wpl_data, "Flag": Fco2_wpl_flag, "Attr": attr}
     pfp_utils.CreateVariable(ds, variable)
-    variable = {"Label": "Fc_PFP", "Data": Fc_wpl_data, "Flag": Fc_wpl_flag, "Attr": attr}
+    variable = {"Label": "Fco2_PFP", "Data": Fco2_wpl_data, "Flag": Fco2_wpl_flag, "Attr": attr}
     pfp_utils.CreateVariable(ds, variable)
     return 0
 
