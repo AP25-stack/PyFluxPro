@@ -317,7 +317,7 @@ def plot_fingerprint(cf):
     """ Do a fingerprint plot"""
     # set up some variable aliases
     aliases = {"CO2":["CO2", "Cc"], "Cc":["Cc", "CO2"],
-               "H2O":["H2O", "Ah"], "Ah":["Ah", "H2O"]}
+               "H2O":["H2O", "AH"], "AH":["AH", "H2O"]}
     # read the input files
     ds = pltfingerprint_readncfiles(cf)
     # create a dictionary to hold the fingerprint plot information

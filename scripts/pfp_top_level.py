@@ -323,7 +323,8 @@ def do_file_convert_ncupdate():
         file_names = QtWidgets.QFileDialog.getOpenFileNames(caption="Choose netCDF files", filter="*.nc")[0]
         if len(file_names) == 0: return
         # get the control file
-        stdname = os.path.join("controlfiles", "standard", "nc_cleanup.txt")
+        #stdname = os.path.join("controlfiles", "standard", "nc_cleanup.txt")
+        stdname = os.path.join("controlfiles", "standard", "cfg_update.txt")
         cfg = pfp_io.get_controlfilecontents(stdname)
         if len(cfg) == 0: return
         # loop over the selected files

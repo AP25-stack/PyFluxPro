@@ -1060,7 +1060,7 @@ def gfSOLO_createdict_outputs(cf, l5_info, target, called_by, flag_code):
     # loop over the outputs listed in the control file
     if level == "L5":
         section = "Fluxes"
-        drivers = "Fn,Fg,SHD,q,Ta,Ts"
+        drivers = "Fn,Fg,SHD,SH,Ta,Ts"
         source = target
     elif level == "L6":
         section = "EcosystemRespiration"

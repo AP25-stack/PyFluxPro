@@ -10,7 +10,7 @@ import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 
-def AhfromRH(ds, Ah_out, RH_in, Ta_in):
+def AhfromRH(ds, AH_out, RH_in, Ta_in):
     """
     Purpose:
      Function to calculate absolute humidity given relative humidity and
@@ -20,7 +20,7 @@ def AhfromRH(ds, Ah_out, RH_in, Ta_in):
      The calculated absolute humidity is created as a new series in the
      data structure.
     Usage:
-     pfp_func.AhfromRH(ds,"Ah_HMP_2m","RH_HMP_2m","Ta_HMP_2m")
+     pfp_func.AhfromRH(ds,"AH_HMP_2m","RH_HMP_2m","Ta_HMP_2m")
     Author: PRI
     Date: September 2015
     """
@@ -29,24 +29,24 @@ def AhfromRH(ds, Ah_out, RH_in, Ta_in):
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     for item in [RH_in,Ta_in]:
         if item not in list(ds.series.keys()):
-            msg = " AhfromRH: Requested series "+item+" not found, "+Ah_out+" not calculated"
+            msg = " AhfromRH: Requested series "+item+" not found, "+AH_out+" not calculated"
             logger.error(msg)
             return 0
-    if Ah_out in list(ds.series.keys()):
-        msg = " AhfromRH: Output series "+Ah_out+" already exists, skipping ..."
+    if AH_out in list(ds.series.keys()):
+        msg = " AhfromRH: Output series "+AH_out+" already exists, skipping ..."
         logger.error(msg)
         return 0
     RH_data,RH_flag,RH_attr = pfp_utils.GetSeriesasMA(ds,RH_in)
     Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds,Ta_in)
-    Ah_data = pfp_mf.absolutehumidityfromRH(Ta_data,RH_data)
-    Ah_attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity calculated from "+RH_in+" and "+Ta_in,
+    AH_data = pfp_mf.absolutehumidityfromrelativehumidity(Ta_data,RH_data)
+    AH_attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity calculated from "+RH_in+" and "+Ta_in,
                                               height=RH_attr["height"],
                                               units="g/m^3")
-    flag = numpy.where(numpy.ma.getmaskarray(Ah_data)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,Ah_out,Ah_data,flag,Ah_attr)
+    flag = numpy.where(numpy.ma.getmaskarray(AH_data)==True,ones,zeros)
+    pfp_utils.CreateSeries(ds,AH_out,AH_data,flag,AH_attr)
     return 1
 
-def AhfromMR(ds, Ah_out, MR_in, Ta_in, ps_in):
+def AhfromMR(ds, AH_out, MR_in, Ta_in, ps_in):
     """
     Purpose:
      Function to calculate absolute humidity given the water vapour mixing
@@ -56,7 +56,7 @@ def AhfromMR(ds, Ah_out, MR_in, Ta_in, ps_in):
      The calculated absolute humidity is created as a new series in the
      data structure.
     Usage:
-     pfp_func.AhfromMR(ds,"Ah_IRGA_Av","H2O_IRGA_Av","Ta_HMP_2m","ps")
+     pfp_func.AhfromMR(ds,"AH_IRGA_Av","H2O_IRGA_Av","Ta_HMP_2m","ps")
     Author: PRI
     Date: September 2015
     """
@@ -65,23 +65,23 @@ def AhfromMR(ds, Ah_out, MR_in, Ta_in, ps_in):
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     for item in [MR_in,Ta_in,ps_in]:
         if item not in list(ds.series.keys()):
-            msg = " AhfromMR: Requested series "+item+" not found, "+Ah_out+" not calculated"
+            msg = " AhfromMR: Requested series "+item+" not found, "+AH_out+" not calculated"
             logger.error(msg)
             return 0
-    if Ah_out in list(ds.series.keys()):
-        msg = " AhfromMR: Output series "+Ah_out+" already exists, skipping ..."
+    if AH_out in list(ds.series.keys()):
+        msg = " AhfromMR: Output series "+AH_out+" already exists, skipping ..."
         logger.error(msg)
         return 0
     MR_data,MR_flag,MR_attr = pfp_utils.GetSeriesasMA(ds,MR_in)
     Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds,Ta_in)
     ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds,ps_in)
-    Ah_data = pfp_mf.h2o_gpm3frommmolpmol(MR_data,Ta_data,ps_data)
+    AH_data = pfp_mf.h2o_gpm3frommmolpmol(MR_data,Ta_data,ps_data)
     long_name = "Absolute humidity calculated from "+MR_in+", "+Ta_in+" and "+ps_in
-    Ah_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,
+    AH_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,
                                               height=MR_attr["height"],
                                               units="g/m^3")
-    flag = numpy.where(numpy.ma.getmaskarray(Ah_data)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,Ah_out,Ah_data,flag,Ah_attr)
+    flag = numpy.where(numpy.ma.getmaskarray(AH_data)==True,ones,zeros)
+    pfp_utils.CreateSeries(ds,AH_out,AH_data,flag,AH_attr)
     return 1
 
 def ConvertK2C(ds, T_out, T_in):
@@ -275,15 +275,15 @@ def DateTimeFromDateAndTimeString(ds, dt_out, Date, Time):
     ds.globalattributes["nc_nrecs"] = nRecs
     return 1
 
-def MRfromAh(ds, MR_out, Ah_in, Ta_in, ps_in):
+def MRfromAh(ds, MR_out, AH_in, Ta_in, ps_in):
     """
     Purpose:
-     Calculate H2O mixing ratio from absolute humidity (Ah).
+     Calculate H2O mixing ratio from absolute humidity (AH).
     """
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
-    for item in [Ah_in, Ta_in, ps_in]:
+    for item in [AH_in, Ta_in, ps_in]:
         if item not in list(ds.series.keys()):
             msg = " MRfromAh: Requested series "+item+" not found, "+MR_out+" not calculated"
             logger.error(msg)
@@ -292,12 +292,12 @@ def MRfromAh(ds, MR_out, Ah_in, Ta_in, ps_in):
         msg = " MRfromAh: Output series "+MR_out+" already exists, skipping ..."
         logger.error(msg)
         return 0
-    Ah_data,Ah_flag,Ah_attr = pfp_utils.GetSeriesasMA(ds, Ah_in)
+    AH_data,AH_flag,AH_attr = pfp_utils.GetSeriesasMA(ds, AH_in)
     Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds, Ta_in)
     ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds, ps_in)
-    MR_data = pfp_mf.h2o_mmolpmolfromgpm3(Ah_data, Ta_data, ps_data)
-    MR_attr = pfp_utils.MakeAttributeDictionary(long_name="H2O mixing ratio calculated from "+Ah_in+", "+Ta_in+" and "+ps_in,
-                                              height=Ah_attr["height"],
+    MR_data = pfp_mf.h2o_mmolpmolfromgpm3(AH_data, Ta_data, ps_data)
+    MR_attr = pfp_utils.MakeAttributeDictionary(long_name="H2O mixing ratio calculated from "+AH_in+", "+Ta_in+" and "+ps_in,
+                                              height=AH_attr["height"],
                                               units="mmol/mol")
     flag = numpy.where(numpy.ma.getmaskarray(MR_data)==True,ones,zeros)
     pfp_utils.CreateSeries(ds, MR_out, MR_data, flag, MR_attr)
@@ -322,9 +322,9 @@ def MRfromRH(ds, MR_out, RH_in, Ta_in, ps_in):
         return 0
     RH_data,RH_flag,RH_attr = pfp_utils.GetSeriesasMA(ds, RH_in)
     Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds, Ta_in)
-    Ah_data = pfp_mf.absolutehumidityfromRH(Ta_data, RH_data)
+    AH_data = pfp_mf.absolutehumidityfromrelativehumidity(Ta_data, RH_data)
     ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds, ps_in)
-    MR_data = pfp_mf.h2o_mmolpmolfromgpm3(Ah_data, Ta_data, ps_data)
+    MR_data = pfp_mf.h2o_mmolpmolfromgpm3(AH_data, Ta_data, ps_data)
     MR_attr = pfp_utils.MakeAttributeDictionary(long_name="H2O mixing ratio calculated from "+RH_in+", "+Ta_in+" and "+ps_in,
                                               height=RH_attr["height"],
                                               units="mmol/mol")

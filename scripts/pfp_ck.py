@@ -498,7 +498,7 @@ def do_EC155check(cf,ds):
         if item in list(ds.series.keys()):
             if ("Signal_H2O" in item) or ("Signal_CO2" in item):
                 used_Signal = True
-            if ("H2O" in item) or ("Ah" in item):
+            if ("H2O" in item) or ("AH" in item):
                 used_H2O = True
             if ("CO2" in item) or ("Cc" in item):
                 used_CO2 = True
@@ -685,7 +685,7 @@ def do_li7500check(cf, ds, code=4):
        flag is non-zero.  If the Diag_7500 flag is not present in the data structure passed
        to this routine, it is constructed from the QC flags of the series specified in
        LI75Lisat.  Additional checks are done for AGC_7500 (the LI-7500 AGC value),
-       Ah_7500_Sd (standard deviation of absolute humidity) and Cc_7500_Sd (standard
+       AH_7500_Sd (standard deviation of absolute humidity) and Cc_7500_Sd (standard
        deviation of CO2 concentration).'''
     series_list = list(ds.series.keys())
     # check we have an IRGA diagnostics series to use
@@ -702,7 +702,7 @@ def do_li7500check(cf, ds, code=4):
     # let's check the contents of ds and see what we have to work with
     # first, list everything we may have once used for some kind of LI-7500 output
     # we do this for backwards compatibility
-    irga_list_all = ["Ah_7500_Av", "Ah_7500_Sd", "Ah_IRGA_Av", "Ah_IRGA_Sd",
+    irga_list_all = ["AH_7500_Av", "AH_7500_Sd", "AH_IRGA_Av", "AH_IRGA_Sd",
                      "Cc_7500_Av", "Cc_7500_Sd", "Cc_7500_Av", "Cc_7500_Sd",
                      "H2O_IRGA_Av", "H2O_IRGA_Vr","CO2_IRGA_Av", "CO2_IRGA_Vr",
                      "UzA", "UxA", "UyA", "UzC", "UxC", "UyC"]
@@ -718,11 +718,11 @@ def do_li7500check(cf, ds, code=4):
     # and then we start with the dependents
     # and again we list everything we may have used in the past for backwards compatibility
     irga_dependents_all = ["AGC_7500", "AGC_IRGA",
-                           "Ah_7500_Sd","Cc_7500_Sd",
-                           "Ah_IRGA_Sd", "Cc_IRGA_Sd",
+                           "AH_7500_Sd","Cc_7500_Sd",
+                           "AH_IRGA_Sd", "Cc_IRGA_Sd",
                            "H2O_IRGA_Sd", "CO2_IRGA_Sd",
                            "AhAh","CcCc",
-                           "Ah_IRGA_Vr", "Cc_IRGA_Vr",
+                           "AH_IRGA_Vr", "Cc_IRGA_Vr",
                            "H2O_IRGA_Vr", "CO2_IRGA_Vr"]
     # and then check to see what we actually have to work with
     irga_dependents = []
@@ -730,7 +730,7 @@ def do_li7500check(cf, ds, code=4):
         if label in series_list:
             irga_dependents.append(label)
     # and then remove variances where variances and standard deviations are duplicated
-    std_list = ["Ah_7500_Sd", "Cc_7500_Sd", "Ah_IRGA_Sd", "Cc_IRGA_Sd", "H2O_IRGA_Sd", "CO2_IRGA_Sd"]
+    std_list = ["AH_7500_Sd", "Cc_7500_Sd", "AH_IRGA_Sd", "Cc_IRGA_Sd", "H2O_IRGA_Sd", "CO2_IRGA_Sd"]
     var_list = ["AhAh",       "CcCc",       "AhAh",       "CcCc",       "H2O_IRGA_Vr", "CO2_IRGA_Vr"]
     irga_dependents_nodups = copy.deepcopy(irga_dependents)
     for std, var in zip(std_list, var_list):
@@ -744,7 +744,7 @@ def do_li7500check(cf, ds, code=4):
     for label in irga_dependents_nodups:
         if "AGC" in label:
             used_AGC = True
-        if ("H2O" in label) or ("Ah" in label):
+        if ("H2O" in label) or ("AH" in label):
             used_H2O = True
         if ("CO2" in label) or ("Cc" in label):
             used_CO2 = True
@@ -774,7 +774,7 @@ def do_li7500acheck(cf,ds):
        flag is non-zero.  If the Diag_IRGA flag is not present in the data structure passed
        to this routine, it is constructed from the QC flags of the series specified in
        LI75Lisat.  Additional checks are done for AGC_7500 (the LI-7500 AGC value),
-       Ah_7500_Sd (standard deviation of absolute humidity) and Cc_7500_Sd (standard
+       AH_7500_Sd (standard deviation of absolute humidity) and Cc_7500_Sd (standard
        deviation of CO2 concentration).'''
     if "Diag_IRGA" not in list(ds.series.keys()):
         msg = " Diag_IRGA not found in data, skipping IRGA checks ..."
@@ -794,7 +794,7 @@ def do_li7500acheck(cf,ds):
         if item in list(ds.series.keys()):
             if ("Signal_H2O" in item) or ("Signal_CO2" in item):
                 used_Signal = True
-            if ("H2O" in item) or ("Ah" in item):
+            if ("H2O" in item) or ("AH" in item):
                 used_H2O = True
             if ("CO2" in item) or ("Cc" in item):
                 used_CO2 = True

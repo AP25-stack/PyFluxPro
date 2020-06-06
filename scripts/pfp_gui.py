@@ -2595,7 +2595,7 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
     def add_seriestocheck(self):
         """ Add the SeriesToCheck option to the context menu."""
         # add the option to the [Options] section
-        series = "Ah,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,ps,Sws,Ta,Ts,Ws,Wd,Precip"
+        series = "AH,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,ps,Sws,Ta,Ts,Ws,Wd,Precip"
         dict_to_add = {"SeriesToCheck": series}
         # add the subsubsection (GapFillFromAlternate)
         self.add_subsection(dict_to_add)
@@ -4001,7 +4001,7 @@ class edit_cfg_L5(QtWidgets.QWidget):
         """ Add GapFillUsingSOLO to a variable."""
         idx = self.view.selectedIndexes()[0]
         var_name = str(idx.data()) + "_SOLO"
-        dict_to_add = {"GapFillUsingSOLO":{var_name: {"drivers": "Fn,Fg,q,VPD,Ta,Ts"}}}
+        dict_to_add = {"GapFillUsingSOLO":{var_name: {"drivers": "Fn,Fg,SH,VPD,Ta,Ts"}}}
         # add the subsubsection (GapFillUsingSOLO)
         self.add_subsubsubsection(dict_to_add)
         # update the Merge section
@@ -4016,7 +4016,7 @@ class edit_cfg_L5(QtWidgets.QWidget):
         """ Add GapFillLongSOLO to a variable."""
         idx = self.view.selectedIndexes()[0]
         var_name = str(idx.data()) + "_LONG"
-        dict_to_add = {"GapFillLongSOLO":{var_name: {"drivers": "Fn,Fg,q,VPD,Ta,Ts,EVI"}}}
+        dict_to_add = {"GapFillLongSOLO":{var_name: {"drivers": "Fn,Fg,SH,VPD,Ta,Ts,EVI"}}}
         # add the subsubsection (GapFillUsingSOLO)
         self.add_subsubsubsection(dict_to_add)
         # update the Merge section

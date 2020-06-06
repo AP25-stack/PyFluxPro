@@ -440,7 +440,7 @@ def write_csv_reddyproc(cf):
     for series in series_list:
         if series=="NEE":
             if data[series]["Attr"]["units"] in ["mg/m^2/s","mgCO2/m2/s"]:
-                data[series]["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
+                data[series]["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
                 data[series]["Attr"]["units"] = "umolm-2s-1"
             elif data[series]["Attr"]["units"]=='umol/m^2/s':
                 data[series]["Attr"]["units"] = "umolm-2s-1"
@@ -732,7 +732,7 @@ def write_csv_ecostress(cf):
             data[label]["Attr"]["fmt"] = strfmt
     # adjust units as required
     # GPP
-    data["GPP"]["Data"] = pfp_mf.Fc_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
+    data["GPP"]["Data"] = pfp_mf.Fco2_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
     data["GPP"]["Attr"]["units"] = "gC/m2/s"
     # SWC
     data["SWC"]["Attr"]["units"] = "m^3/m^3"
@@ -1005,9 +1005,9 @@ def write_csv_fluxnet(cf):
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     # Tumbarumba doesn't have RH in the netCDF files
     if "RH" not in list(ds.series.keys()):
-        Ah,f,a = pfp_utils.GetSeriesasMA(ds,'Ah')
+        AH,f,a = pfp_utils.GetSeriesasMA(ds,'AH')
         Ta,f,a = pfp_utils.GetSeriesasMA(ds,'Ta')
-        RH = pfp_mf.RHfromabsolutehumidity(Ah, Ta)
+        RH = pfp_mf.relativehumidityfromabsolutehumidity(AH, Ta)
         attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity", units="percent",
                                                  standard_name='relative_humidity')
         flag = numpy.where(numpy.ma.getmaskarray(RH)==True,ones,zeros)
@@ -1116,7 +1116,7 @@ def write_csv_fluxnet(cf):
     #adjust units if required
     for series in series_list:
         if series=="FC" and data[series]["Attr"]["units"]=='mg/m^2/s':
-            data[series]["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
+            data[series]["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
             data[series]["Attr"]["units"] = "umol/m^2/s"
         if series=="CO2" and data[series]["Attr"]["units"]=='mg/m^3':
             CO2 = data["CO2"]["Data"]

@@ -1323,8 +1323,8 @@ def L6_summary_createseriesdict(cf,ds):
     for item in sdl["h2o"]:
         series_dict["daily"][item] = {"operator":"sum","format":"0.00"}
         series_dict["cumulative"][item] = {"operator":"sum","format":"0.00"}
-    if "Ah" in list(ds.series.keys()):
-        series_dict["daily"]["Ah"] = {"operator":"average","format":"0.00"}
+    if "AH" in list(ds.series.keys()):
+        series_dict["daily"]["AH"] = {"operator":"average","format":"0.00"}
     if "CO2" in list(ds.series.keys()):
         series_dict["daily"]["CO2"] = {"operator":"average","format":"0.0"}
     if "Fc" in list(ds.series.keys()):

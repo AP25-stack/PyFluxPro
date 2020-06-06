@@ -55,6 +55,8 @@
     Ws_CSAT_Vr = Ws_SONIC_Vr
 [rename_pattern]
     Fc = Fco2
+    Ah = AH
+    q = SH
 # exclude variables that start with these strings
 [exclude]
     [[eta]]
@@ -63,8 +65,8 @@
     [[Cpm]]
     [[Cpw]]
     [[ET_PFP]]
-    [[Fc_PFP]]
-    [[Fc_raw]]
+    [[Fco2_PFP]]
+    [[Fco2_raw]]
     [[Fe_PFP]]
     [[Fe_raw]]
     [[Fg_Av]]
@@ -94,13 +96,13 @@
     [[Year]]
 # include variables that start with these strings
 [include]
-    [[Ah]]
+    [[AH]]
     [[crs]]
     [[CO2]]
     [[DateTime]]
     [[EC_]]
     [[Fa]]
-    [[Fc]]
+    [[Fco2]]
     [[Fe]]
     [[Fg]]
     [[Fh]]
@@ -179,7 +181,7 @@
         long_name = IRGA automatic gain control value
         group_name = diagnostics
         units = 
-    [[Ah]]
+    [[AH]]
         long_name = Absolute humidity
         group_name = meteorology
         units = g/m^3
@@ -203,7 +205,7 @@
         long_name = Available energy
         group_name = flux
         units = W/m^2
-    [[Fc]]
+    [[Fco2]]
         long_name = CO2 flux
         group_name = flux
         units = mg/m^2/s,umol/m^2/s

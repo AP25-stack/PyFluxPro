@@ -293,13 +293,13 @@ def ConvertFcUnits(cf, ds):
         # if we get here, we need to convert units
         logger.info(" Converting "+label+" from "+Fc_units_in+" to "+Fc_units_out)
         if Fc_units_out == "umol/m^2/s" and Fc_units_in == "mg/m^2/s":
-            Fc["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(Fc["Data"])
+            Fc["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(Fc["Data"])
             Fc["Attr"]["long_name"] = Fc["Attr"]["long_name"]+", converted to umol/m^2/s"
             Fc["Attr"]["units"] = Fc_units_out
             #attr["standard_name"] = "surface_upward_mole_flux_of_carbon_dioxide"
             CreateVariable(ds, Fc)
         elif Fc_units_out == "mg/m^2/s" and Fc_units_in == "umol/m^2/s":
-            Fc["Data"] = pfp_mf.Fc_mgCO2pm2psfromumolpm2ps(Fc["Data"])
+            Fc["Data"] = pfp_mf.Fco2_mgCO2pm2psfromumolpm2ps(Fc["Data"])
             Fc["Attr"]["long_name"] = Fc["Attr"]["long_name"]+", converted to mgCO2/m2/s"
             Fc["Attr"]["units"] = Fc_units_out
             #attr["standard_name"] = "not defined"
@@ -565,13 +565,13 @@ def convert_units_co2(ds, variable, new_units):
         variable["Attr"]["units"] = new_units
     elif old_units in ["mg/m^2/s", "mgCO2/m2/s"] and new_units == "umol/m^2/s":
         # convert the data
-        variable["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(variable["Data"])
+        variable["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(variable["Data"])
         # update the range check limits in the variable attribute
         # this one is easy because it is a simple numerical change
         for attr in ["rangecheck_lower", "rangecheck_upper"]:
             if attr in variable["Attr"]:
                 attr_limit = numpy.array(parse_rangecheck_limits(variable["Attr"][attr]))
-                attr_limit = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(attr_limit)
+                attr_limit = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(attr_limit)
                 variable["Attr"][attr] = list(attr_limit)
                 if attr == "rangecheck_lower":
                     valid_range_minimum = numpy.amin(attr_limit)
@@ -591,13 +591,13 @@ def convert_units_co2(ds, variable, new_units):
         variable["Attr"]["units"] = new_units
     elif old_units == "umol/m^2/s" and new_units in ["mg/m^2/s", "mgCO2/m2/s"]:
         # convert the data
-        variable["Data"] = pfp_mf.Fc_mgCO2pm2psfromumolpm2ps(variable["Data"])
+        variable["Data"] = pfp_mf.Fco2_mgCO2pm2psfromumolpm2ps(variable["Data"])
         # update the range check limits in the variable attribute
         # this one is easy because it is a simple numerical change
         for attr in ["rangecheck_lower", "rangecheck_upper"]:
             if attr in variable["Attr"]:
                 attr_limit = numpy.array(parse_rangecheck_limits(variable["Attr"][attr]))
-                attr_limit = pfp_mf.Fc_mgCO2pm2psfromumolpm2ps(attr_limit)
+                attr_limit = pfp_mf.Fco2_mgCO2pm2psfromumolpm2ps(attr_limit)
                 variable["Attr"][attr] = list(attr_limit)
                 if attr == "rangecheck_lower":
                     valid_range_minimum = numpy.amin(attr_limit)
@@ -1424,7 +1424,7 @@ def FixNonIntegralTimeSteps(ds,fixtimestepmethod=""):
     logger.info(" Maximum drift is "+str(numpy.max(dt_diffs))+" seconds, minimum drift is "+str(numpy.min(dt_diffs))+" seconds")
     ans = fixtimestepmethod
     if ans=="": ans = input("Do you want to [Q]uit, [I]nterploate or [R]ound? ")
-    if ans.lower()[0]=="q":
+    if ans.lower()[0]=="SH":
         msg = "Quiting ..."
         logger.error(msg)
         sys.exit()
@@ -1998,7 +1998,7 @@ def get_coverage_groups(ds,rad=None,met=None,flux=None,soil=None):
     if "nc_level" in ds.globalattributes:
         level = str(ds.globalattributes["nc_level"])
     rad = ['Fsd','Fsu','Fld','Flu','Fn']
-    met = ['Ah','Cc','Precip','ps','Ta','Ws','Wd']
+    met = ['AH','Cc','Precip','ps','Ta','Ws','Wd']
     flux = ['Fm','ustar','Fh','Fe','Fc']
     soil = ['Fg','Ts','Sws']
     for ThisGroup, ThisLabel in zip([rad,met,flux,soil],['radiation','meteorology','flux','soil']):

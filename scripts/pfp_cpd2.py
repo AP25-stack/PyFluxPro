@@ -984,11 +984,11 @@ def fcnaniqr(X):
                             IQR[ic, iq] = yX - yN
     return IQR
 
-def myprctile(Y, q):
+def myprctile(Y, SH):
     """
     Stripped down version of Octave prctile.m
     """
-    Q = myquantile(Y, q/float(100))
+    Q = myquantile(Y, SH/float(100))
     return Q
 
 def myquantile(x, p, method=5):
