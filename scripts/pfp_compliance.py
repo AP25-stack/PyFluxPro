@@ -41,6 +41,7 @@ def change_variable_names(cfg, ds):
             ds.series[new_name] = ds.series.pop(label)
     # rename pattern matches
     renames_pattern = list(cfg["rename_pattern"].keys())
+    labels = list(ds.series.keys())
     for rp in renames_pattern:
         llen = len(rp)
         srp = cfg["rename_pattern"][rp]
@@ -67,8 +68,10 @@ def change_variable_units(cfg, ds):
     new_units = [cfg["units_map"][o] for o in old_units]
     ok_units = list(set(old_units + new_units))
     for label in labels:
+        if label in ["DateTime", "time"]:
+            continue
         units = ds.series[label]["Attr"]["units"]
-        if units.lower() == "none" or len(units) == 0:
+        if len(units) == 0:
             continue
         if units not in ok_units:
             msg = " Unrecognised units " + units + " for variable " + label
@@ -235,19 +238,15 @@ def consistent_Fco2_storage(ds, file_name):
     Author: PRI
     Date: November 2019
     """
-    # save Fco2_single if it exists - debug only
     labels = list(ds.series.keys())
-    if "Fco2_single" in labels:
-        variable = pfp_utils.GetVariable(ds, "Fco2_single")
-        variable["Label"] = "Fco2_sinorg"
-        pfp_utils.CreateVariable(ds, variable)
-        pfp_utils.DeleteVariable(ds, "Fco2_single")
-    # do nothing if Fco2_single exists
-    labels = list(ds.series.keys())
-    if "Fco2_single" in labels:
+    if "CO2" not in labels:
+        # do nothing if CO2 concentration does not exist
         pass
-    # Fc_single may be called Fc_storage
+    elif "Fco2_single" in labels:
+        # do nothing if Fco2_single already exists
+        pass
     elif "Fco2_storage" in labels:
+        # Fc_single may be called Fc_storage in earlier files
         level = ds.globalattributes["nc_level"]
         descr = "description_" + level
         variable = pfp_utils.GetVariable(ds, "Fco2_storage")
@@ -366,7 +365,7 @@ def ParseConcatenateControlFile(cf):
     inc["end_date"] = []
     inc["chrono_files"] = []
     inc["labels"] = []
-    inc["attributes"] = ["height", "instrument", "long_name", "serial_number",
+    inc["attributes"] = ["group_name", "height", "instrument", "long_name",
                          "standard_name", "units", "valid_range"]
     # add key for updating netCDF files
     stdname = os.path.join("controlfiles", "standard", "nc_cleanup.txt")
@@ -576,7 +575,7 @@ def ParseL3ControlFile(cf, ds):
         ## ... and return
         #return
 
-def parse_variable_attributes(attributes):
+def parse_variable_attributes(attributes_in):
     """
     Purpose:
      Clean up the variable attributes.
@@ -584,8 +583,9 @@ def parse_variable_attributes(attributes):
     Author: PRI
     Date: September 2019
     """
-    for attr in attributes:
-        value = attributes[attr]
+    attributes_out = copy.deepcopy(attributes_in)
+    for attr in attributes_out:
+        value = attributes_out[attr]
         if not isinstance(value, str):
             continue
         if attr in ["rangecheck_lower", "rangecheck_upper", "diurnalcheck_numsd"]:
@@ -606,8 +606,8 @@ def parse_variable_attributes(attributes):
         for c in strip_list:
             if c in value:
                 value = value.replace(c, "")
-        attributes[attr] = value
-    return attributes
+        attributes_out[attr] = value
+    return attributes_out
 
 def remove_variables(cfg, ds):
     """
@@ -714,20 +714,31 @@ def change_variable_attributes(cfg, ds):
         for item in vattr_list:
             if label[:len(item)] == item:
                 for key in list(cfg["variable_attributes"][item].keys()):
-                    variable["Attr"][key] = cfg["variable_attributes"][item][key]
+                    if key != "units":
+                        variable["Attr"][key] = cfg["variable_attributes"][item][key]
         pfp_utils.CreateVariable(ds, variable)
     # parse variable attributes to new format, remove deprecated variable attributes
     # and fix valid_range == "-1e+35,1e+35"
-    tmp = cfg["variable_attributes"]["deprecated"]
-    deprecated = pfp_cfg.cfg_string_to_list(tmp)
+    tmp = cfg["variable_attributes"]["deprecated_attributes"]
+    deprecated_attributes = pfp_cfg.cfg_string_to_list(tmp)
+    tmp = cfg["variable_attributes"]["deprecated_values"]
+    deprecated_values = pfp_cfg.cfg_string_to_list(tmp)
     series_list = list(ds.series.keys())
     for label in series_list:
         variable = pfp_utils.GetVariable(ds, label)
         # parse variable attributes to new format
         variable["Attr"] = parse_variable_attributes(variable["Attr"])
         # remove deprecated variable attributes
-        for vattr in deprecated:
+        for vattr in deprecated_attributes:
             if vattr in list(variable["Attr"].keys()):
+                del variable["Attr"][vattr]
+        # remove attributes with deprecated values
+        for vattr in list(variable["Attr"].keys()):
+            if variable["Attr"][vattr] in deprecated_values:
+                del variable["Attr"][vattr]
+        # remove attributes with empty values
+        for vattr in list(variable["Attr"].keys()):
+            if len(str(variable["Attr"][vattr])) == 0:
                 del variable["Attr"][vattr]
         # fix valid_range == "-1e+35,1e+35"
         if "valid_range" in variable["Attr"]:
@@ -995,7 +1006,7 @@ def l1_update_cfg_variable_deprecate(cfg, cfg_std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(cfg_std["deprecated"].keys())
+    labels_deprecated = list(cfg_std["deprecated_attributes"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Variables"].keys()):
             cfg["Variables"].pop(label_deprecated)
@@ -1174,7 +1185,7 @@ def l2_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(std["deprecated"].keys())
+    labels_deprecated = list(std["deprecated_attributes"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Variables"].keys()):
             cfg["Variables"].pop(label_deprecated)
@@ -1402,7 +1413,7 @@ def l3_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(std["deprecated"].keys())
+    labels_deprecated = list(std["deprecated_attributes"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Variables"].keys()):
             cfg["Variables"].pop(label_deprecated)
@@ -1617,7 +1628,7 @@ def l4_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: June 2020
     """
-    labels_deprecated = list(std["deprecated"].keys())
+    labels_deprecated = list(std["deprecated_attributes"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Drivers"].keys()):
             cfg["Drivers"].pop(label_deprecated)
@@ -1885,14 +1896,18 @@ def nc_update(cfg):
     ds1 = pfp_io.nc_read_series(nc_file_path)
     # update the variable names
     change_variable_names(cfg, ds1)
-    # update the variable units
-    change_variable_units(cfg, ds1)
-    # make sure there are Ws and Wd series
-    copy_ws_wd(ds1)
     # make sure we have all the variables we want ...
     ds2 = include_variables(cfg, ds1)
     # ... but not the ones we don't
     exclude_variables(cfg, ds2)
+    # update the variable units
+    change_variable_units(cfg, ds2)
+    # make sure there are Ws and Wd series
+    copy_ws_wd(ds2)
+    ## make sure we have all the variables we want ...
+    #ds2 = include_variables(cfg, ds1)
+    ## ... but not the ones we don't
+    #exclude_variables(cfg, ds2)
     # update the global attributes
     change_global_attributes(cfg, ds2)
     # update the variable attributes

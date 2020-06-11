@@ -1,8 +1,8 @@
 [Global]
     license_type = CC BY 4.0
     license_url = https://creativecommons.org/licenses/by/4.0/
-    history = "Cleaned by cleanup_netcdf_files.py"
-# deprecated section
+    history = Cleaned by cleanup_netcdf_files.py
+# deprecated variables section
 [deprecated]
     [[xlDateTime]]
 # rename section
@@ -147,11 +147,17 @@
     (g/m3)2 = g^2/m^6
     g/m2/s = g/m^2/s
     hPa = hPa
+    J/kg = J/kg
+    J/kg-K = J/kg/K
+    J/m3/K = J/m^3/K
+    J/m3-K = J/m^3/K
     K = K
     K2 = K^2
     kg/kg = kg/kg
     kg/m/s2 = kg/m/s^2
+    kg/m3 = kg/m^3
     kPa = kPa
+    m = m
     m/s = m/s
     (m/s)2 = m^2/s^2
     m2/s2 = m^2/s^2
@@ -177,6 +183,8 @@
     W/m2 = W/m^2
 # variable attributes section
 [variable_attributes]
+    deprecated_attributes = ancillary_variables
+    deprecated_values = none, not defined, notdefined
     [[AGC_IRGA]]
         long_name = IRGA automatic gain control value
         group_name = diagnostics

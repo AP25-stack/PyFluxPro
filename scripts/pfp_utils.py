@@ -2070,7 +2070,7 @@ def get_datetime_from_nctime(ds):
         # should work for cftime less than V1.1.0
         dt = cftime.num2date(nc_time_data, nc_time_units)
     pydt = {"Label": "DateTime", "Data": dt, "Flag": numpy.zeros(nRecs),
-            "Attr": {"long_name": "Datetime in local timezone", "units": "None"}}
+            "Attr": {"long_name": "Datetime in local timezone", "units": ""}}
     CreateVariable(ds, pydt)
     return
 
@@ -2637,11 +2637,11 @@ def make_attribute_dictionary(attr_existing):
     Author: PRI
     Date: Back in the day
     """
-    attr_new = {"height": "", "instrument": "", "long_name": "", "serial_number": "",
-                "standard_name": "", "units": "", "valid_range": "", "group_name": ""}
+    attr_new = {"group_name": "", "height": "", "instrument": "", "long_name": "",
+                "standard_name": "", "units": "", "valid_range": ""}
     if isinstance(attr_existing, dict):
         for item in attr_existing:
-            if item in ["height", "standard_name", "long_name", "units"]:
+            if item in attr_new:
                 attr_new[item] = attr_existing[item]
     return attr_new
 

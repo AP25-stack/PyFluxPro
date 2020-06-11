@@ -690,25 +690,25 @@ def CalculateMeteorologicalVariables(ds, info, Ta_name="Ta", ps_name="ps", SH_na
     iris["not_output"].append("Lv")
 
     attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of dry air',
-                                             units='J/kg.K')
+                                             units='J/kg/K')
     flag = numpy.where(numpy.ma.getmaskarray(Cpd) == True, ones, zeros)
     pfp_utils.CreateSeries(ds, 'Cpd', Cpd, flag, attr)
     iris["not_output"].append("Cpd")
 
     attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of water vapour',
-                                             units='J/kg.K')
+                                             units='J/kg/K')
     flag = numpy.where(numpy.ma.getmaskarray(Cpw) == True, ones, zeros)
     pfp_utils.CreateSeries(ds, 'Cpw', Cpw, flag, attr)
     iris["not_output"].append("Cpw")
 
     attr = pfp_utils.MakeAttributeDictionary(long_name='Specific heat capacity of moist air',
-                                             units='J/kg.K')
+                                             units='J/kg/K')
     flag = numpy.where(numpy.ma.getmaskarray(Cpm) == True, ones, zeros)
     pfp_utils.CreateSeries(ds, 'Cpm', Cpm, flag, attr)
     iris["not_output"].append("Cpm")
 
     attr = pfp_utils.MakeAttributeDictionary(long_name='Product of air density and specific heat capacity',
-                                             units='J/m^3.K')
+                                             units='J/m^3/K')
     flag = numpy.where(numpy.ma.getmaskarray(RhoCp) == True, ones, zeros)
     pfp_utils.CreateSeries(ds,'RhoCp', RhoCp, flag, attr)
     iris["not_output"].append("RhoCp")
@@ -732,6 +732,7 @@ def CalculateMeteorologicalVariables(ds, info, Ta_name="Ta", ps_name="ps", SH_na
     attr[descr_level] = "Water vapour mixing ratio calculated from AH, Ta and ps"
     flag = numpy.where(numpy.ma.getmaskarray(h2o) == True, ones, zeros)
     pfp_utils.CreateSeries(ds, 'H2O', h2o, flag, attr)
+    return
 
 def CalculateMoninObukhovLength(ds):
     """

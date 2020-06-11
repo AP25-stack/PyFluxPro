@@ -1167,7 +1167,9 @@ def get_controlfilecontents(ControlFileName, mode="verbose"):
     if mode != "quiet":
         logger.info(" Processing the control file")
     if len(ControlFileName) != 0:
-        cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False)
+        #cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False)
+        cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False,
+                       write_empty_values=True)
         cf["controlfile_name"] = ControlFileName
     else:
         cf = ConfigObj()
@@ -1388,7 +1390,7 @@ def netcdf_concatenate_create_ds_out(data, info):
                 dout["Flag"][indsa] = din["Flag"][indsb]
                 # copy the variable attributes but only if they don't already exist
                 netcdf_concatenate_variable_attributes(dout["Attr"], din["Attr"], info)
-    # update the global attributes
+    # update thdoute global attributes
     ds_out.globalattributes["nc_nrecs"] = nrecs
     return ds_out
 
@@ -1407,10 +1409,22 @@ def netcdf_concatenate_variable_attributes(attr_out, attr_in, info):
     Author: PRI
     Date: November 2019
     """
-    inc = info["NetCDFConcatenate"]
+    #inc = info["NetCDFConcatenate"]
+    #for attr in attr_in:
+        #if attr in inc["attributes"]:
+            #attr_out[attr] = attr_in[attr]
     for attr in attr_in:
-        if attr in inc["attributes"]:
-            attr_out[attr] = attr_in[attr]
+        # check we want this attribute
+        if attr not in info["NetCDFConcatenate"]["attributes"]:
+            continue
+        # skip if attribute empty
+        if len(str(attr_in[attr])) == 0:
+            continue
+        # this accepts the first non-empty attribute value
+        #if attr not in attr_out:
+            #attr_out[attr] = attr_in[attr]
+        # this accepts the last non-empty attribute value
+        attr_out[attr] = attr_in[attr]
     return
 
 def netcdf_concatenate_read_input_files(info):
@@ -1900,13 +1914,13 @@ def nc_write_series(ncFile, ds, outputlist=None, ndims=3):
             ncVar[:] = pfp_utils.convert_anglestring(str(ds.globalattributes["latitude"]))
             setattr(ncVar,'long_name','latitude')
             setattr(ncVar,'standard_name','latitude')
-            setattr(ncVar,'units','degrees north')
+            setattr(ncVar,'units','degrees')
         if "longitude" not in outputlist:
             ncVar = ncFile.createVariable("longitude","d",("longitude",))
             ncVar[:] = pfp_utils.convert_anglestring(str(ds.globalattributes["longitude"]))
             setattr(ncVar,'long_name','longitude')
             setattr(ncVar,'standard_name','longitude')
-            setattr(ncVar,'units','degrees east')
+            setattr(ncVar,'units','degrees')
     # now make sure the date and time series are in outputlist
     datetimelist = ['xlDateTime','Year','Month','Day','Hour','Minute','Second','Hdh','Ddd']
     # and write them to the netCDF file
@@ -1963,7 +1977,7 @@ def nc_write_var(ncFile, ds, ThisOne, dim):
     # write the attributes
     vattrs = sorted(list(ds.series[ThisOne]["Attr"].keys()))
     for item in vattrs:
-        if item != "_FillValue":
+        if len(str(ds.series[ThisOne]["Attr"][item])) != 0:
             attr = str(ds.series[ThisOne]["Attr"][item])
             ncVar.setncattr(item, attr)
     # make sure the missing_value attribute is written
