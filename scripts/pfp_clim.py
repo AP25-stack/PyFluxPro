@@ -308,8 +308,8 @@ def compare_eddypro():
     Fh_ep = pfp_utils.GetVariable(ds_ep,'Fh',start=si_ep,end=ei_ep)
     Fe_of = pfp_utils.GetVariable(ds_of,'Fe',start=si_of,end=ei_of)
     Fe_ep = pfp_utils.GetVariable(ds_ep,'Fe',start=si_ep,end=ei_ep)
-    Fc_of = pfp_utils.GetVariable(ds_of,'Fc',start=si_of,end=ei_of)
-    Fc_ep = pfp_utils.GetVariable(ds_ep,'Fc',start=si_ep,end=ei_ep)
+    Fc_of = pfp_utils.GetVariable(ds_of,'Fco2',start=si_of,end=ei_of)
+    Fc_ep = pfp_utils.GetVariable(ds_ep,'Fco2',start=si_ep,end=ei_ep)
     # copy the range check values from the OFQC attributes to the EP attributes
     for of, ep in zip([us_of, Fh_of, Fe_of, Fc_of], [us_ep, Fh_ep, Fe_ep, Fc_ep]):
         for item in ["rangecheck_upper", "rangecheck_lower"]:

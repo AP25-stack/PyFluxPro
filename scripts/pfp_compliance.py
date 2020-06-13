@@ -707,6 +707,8 @@ def change_variable_attributes(cfg, ds):
     # attribute
     vattr_list = list(cfg["variable_attributes"].keys())
     series_list = list(ds.series.keys())
+    if "nc_level" not in ds.globalattributes:
+        ds.globalattributes["nc_level"] = "L1"
     descr = "description_" + ds.globalattributes["nc_level"]
     for label in series_list:
         variable = pfp_utils.GetVariable(ds, label)
@@ -1413,7 +1415,7 @@ def l3_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(std["deprecated_attributes"].keys())
+    labels_deprecated = list(std["deprecated"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Variables"].keys()):
             cfg["Variables"].pop(label_deprecated)
@@ -1501,7 +1503,7 @@ def l4_update_controlfile(cfg):
         cfg = l4_update_cfg_variable_attributes(cfg, std)
     except Exception:
         ok = False
-        msg = " An error occurred updating the L3 control file contents"
+        msg = " An error occurred updating the L4 control file contents"
     if ok:
         # check to see if the control file object has been changed
         if cfg != cfg_original:
@@ -1628,7 +1630,7 @@ def l4_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: June 2020
     """
-    labels_deprecated = list(std["deprecated_attributes"].keys())
+    labels_deprecated = list(std["deprecated"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Drivers"].keys()):
             cfg["Drivers"].pop(label_deprecated)
@@ -1672,86 +1674,273 @@ def l5_update_controlfile(cfg):
     Usage:
      result = pfp_compliance.l5_update_controlfile(cfg)
      where cfg is a ConfigObj object
-           result is True if the L5 control file is compliant
-                     False if it is not compliant
+           result is True if the L5 control file was updated successfully
+                     False if it couldn't be updated
     Side effects:
     Author: PRI
-    Date: September 2019
+    Date: June 2020
     """
     # get a copy of the original control file object
     cfg_original = copy.deepcopy(cfg)
     # initialise the return logical
     ok = True
     try:
-        strip_list = ['"', "'", "[", "]"]
-        for key1 in cfg:
-            if key1 in ["level"]:
-                cfg[key1] = parse_cfg_values(key1, cfg[key1], strip_list)
-            elif key1 in ["Files", "Global", "ustar_threshold"]:
-                for key2 in cfg[key1]:
-                    cfg2 = cfg[key1][key2]
-                    cfg2 = parse_cfg_values(key2, cfg2, strip_list)
-            elif key1 in ["Options"]:
-                for key2 in cfg[key1]:
-                    if key2 in ["MaxGapInterpolate", "MaxShortGapLength", "FilterList",
-                                "TurbulenceFilter", "DayNightFilter", "AcceptDayTimes",
-                                "TruncateToImports"]:
-                        cfg2 = cfg[key1][key2]
-                        cfg2 = parse_cfg_values(key2, cfg2, strip_list)
-                    else:
-                        del cfg[key1][key2]
-            elif key1 in ["Imports"]:
-                for key2 in cfg[key1]:
-                    for key3 in cfg[key1][key2]:
-                        cfg3 = cfg[key1][key2][key3]
-                        cfg3 = parse_cfg_values(key3, cfg3, strip_list)
-            elif key1 in ["Fluxes"]:
-                # key2 is the variable name
-                for key2 in cfg[key1]:
-                    # key3 is the gap filling method
-                    for key3 in cfg[key1][key2]:
-                        cfg3 = cfg[key1][key2][key3]
-                        if key3 in ["GapFillUsingSOLO", "GapFillLongSOLO", "GapFillUsingMDS",
-                                    "GapFillFromClimatology"]:
-                            # key4 is the gap fill variable
-                            for key4 in cfg3:
-                                cfg4 = cfg[key1][key2][key3][key4]
-                                for key5 in cfg4:
-                                    cfg4.rename(key5, key5.lower())
-                                    cfg5 = cfg4[key5.lower()]
-                                    cfg5 = parse_cfg_values(key5, cfg5, strip_list)
-                        elif key3 in ["MergeSeries", "RangeCheck", "DependencyCheck",
-                                      "DiurnalCheck", "ExcludeDates"]:
-                            # strip out unwanted characters
-                            for key4 in cfg3:
-                                # force lower case
-                                cfg3.rename(key4, key4.lower())
-                                cfg4 = cfg3[key4.lower()]
-                                cfg4 = parse_cfg_variables_value(key3, cfg4)
-            else:
-                del cfg[key1]
+        cfg = l5_update_cfg_syntax(cfg)
+    except Exception:
+        ok = False
+        msg = " An error occurred while updating the L5 control file syntax"
+    # check to see if we can load the nc_cleanup.txt standard control file
+    try:
+        stdname = "controlfiles/standard/cfg_update.txt"
+        std = pfp_io.get_controlfilecontents(stdname)
+    except Exception:
+        ok = False
+        msg = " Unable to load standard control file " + stdname
+    # clean up the variable names
+    try:
+        cfg = l5_update_cfg_options(cfg, std)
+        cfg = l5_update_cfg_variable_deprecate(cfg, std)
+        cfg = l5_update_cfg_variable_names(cfg, std)
+        cfg = l5_update_cfg_variable_attributes(cfg, std)
+    except Exception:
+        ok = False
+        msg = " An error occurred updating the L5 control file contents"
+    if ok:
         # check to see if the control file object has been changed
         if cfg != cfg_original:
             # and save it if it has changed
             file_name = os.path.basename(cfg.filename)
             logger.info(" Updated and saved control file " + file_name)
             cfg.write()
-    except Exception:
-        ok = False
-        msg = " An error occurred while parsing the L4 control file"
+    else:
         logger.error(msg)
         error_message = traceback.format_exc()
         logger.error(error_message)
     return ok
 
+def l5_update_cfg_options(cfg, std):
+    """
+    Purpose:
+     Update Options section in L5 control file.
+    Usage:
+    Side effects:
+     Returns a modified control file object.
+    Author: PRI
+    Date: June 2020
+    """
+    # check to see if control file has an Options section
+    if "Options" not in cfg:
+        return
+    # rename exact variable name matches
+    renames_exact = list(std["rename_exact"].keys())
+    # rename pattern matches
+    renames_pattern = list(std["rename_pattern"].keys())
+    # loop over entries in the Options section, exact match
+    options = cfg["Options"]
+    for option in options:
+        opt = cfg["Options"][option]
+        if opt in renames_exact:
+            cfg["Options"][option] = std["rename_exact"][opt]
+    # loop over entries in the Options section, pattern match
+    options = cfg["Options"]
+    for rp in renames_pattern:
+        llen = len(rp)
+        srp = std["rename_pattern"][rp]
+        klen = len(srp)
+        for option in options:
+            opt = str(cfg["Options"][option])
+            if ((opt[:llen] == rp) and
+                (opt[:klen] != srp)):
+                new_opt = opt.replace(opt[:llen], srp)
+                cfg["Options"][option] = new_opt
+    return cfg
+
+def l5_update_cfg_syntax(cfg):
+    """
+    Purpose:
+     Update an L5 control file from the old-style (pre PFP V1.0) syntax to the
+     new-style syntax (post PFP V1.0).
+    Usage:
+    Side effects:
+     Returns a modified control file object.
+    Author: PRI
+    Date: June 2020
+    """
+    strip_list = ['"', "'", "[", "]"]
+    for key1 in cfg:
+        if key1 in ["level"]:
+            cfg[key1] = parse_cfg_values(key1, cfg[key1], strip_list)
+        elif key1 in ["Files", "Global", "ustar_threshold"]:
+            for key2 in cfg[key1]:
+                cfg2 = cfg[key1][key2]
+                cfg2 = parse_cfg_values(key2, cfg2, strip_list)
+        elif key1 in ["Options"]:
+            for key2 in cfg[key1]:
+                if key2 in ["MaxGapInterpolate", "MaxShortGapLength", "FilterList",
+                            "TurbulenceFilter", "DayNightFilter", "AcceptDayTimes",
+                            "TruncateToImports"]:
+                    cfg2 = cfg[key1][key2]
+                    cfg2 = parse_cfg_values(key2, cfg2, strip_list)
+                else:
+                    del cfg[key1][key2]
+        elif key1 in ["Imports"]:
+            for key2 in cfg[key1]:
+                for key3 in cfg[key1][key2]:
+                    cfg3 = cfg[key1][key2][key3]
+                    cfg3 = parse_cfg_values(key3, cfg3, strip_list)
+        elif key1 in ["Fluxes"]:
+            # key2 is the variable name
+            for key2 in cfg[key1]:
+                # key3 is the gap filling method
+                for key3 in cfg[key1][key2]:
+                    cfg3 = cfg[key1][key2][key3]
+                    if key3 in ["GapFillUsingSOLO", "GapFillLongSOLO", "GapFillUsingMDS",
+                                "GapFillFromClimatology"]:
+                        # key4 is the gap fill variable
+                        for key4 in cfg3:
+                            cfg4 = cfg[key1][key2][key3][key4]
+                            for key5 in cfg4:
+                                cfg4.rename(key5, key5.lower())
+                                cfg5 = cfg4[key5.lower()]
+                                cfg5 = parse_cfg_values(key5, cfg5, strip_list)
+                    elif key3 in ["MergeSeries", "RangeCheck", "DependencyCheck",
+                                  "DiurnalCheck", "ExcludeDates"]:
+                        # strip out unwanted characters
+                        for key4 in cfg3:
+                            # force lower case
+                            cfg3.rename(key4, key4.lower())
+                            cfg4 = cfg3[key4.lower()]
+                            cfg4 = parse_cfg_variables_value(key3, cfg4)
+        else:
+            del cfg[key1]
+    return cfg
+
+def l5_update_cfg_variable_attributes(cfg, std):
+    """
+    Purpose:
+     Update the variable attributes according to the rules in the standard control file.
+      - rename variables in DependencyCheck
+    Usage:
+    Author: PRI
+    Date: June 2020
+    """
+    # rename exact variable name matches
+    renames_exact = list(std["rename_exact"].keys())
+    # rename pattern matches
+    renames_pattern = list(std["rename_pattern"].keys())
+    # loop over variables in the control file
+    labels_cfg = list(cfg["Fluxes"].keys())
+    for label_cfg in labels_cfg:
+        for qc in ["DependencyCheck", "MergeSeries", "AverageSeries"]:
+            if qc in cfg["Fluxes"][label_cfg]:
+                source = cfg["Fluxes"][label_cfg][qc]["source"]
+                vs = pfp_cfg.cfg_string_to_list(source)
+                vs = [std["rename_exact"][v] if v in renames_exact else v for v in vs]
+                for rp in renames_pattern:
+                    llen = len(rp)
+                    srp = std["rename_pattern"][rp]
+                    klen = len(srp)
+                    vs = [v.replace(v[:llen], srp) if ((v[:llen] == rp) and
+                                                       (v[:klen] != srp)) else v for v in vs]
+                cfg["Fluxes"][label_cfg][qc]["source"] = ",".join(vs)
+            else:
+                continue
+        for gfm in ["GapFillUsingSOLO", "GapFillLongSOLO", "GapFillUsingMDS"]:
+            if gfm in cfg["Fluxes"][label_cfg]:
+                # loop over the variables for this gap filling method and rename if necessary
+                gfvs = list(cfg["Fluxes"][label_cfg][gfm].keys())
+                for gfv in gfvs:
+                    if gfv in renames_exact:
+                        new_name = std["rename_exact"][gfv]
+                        cfg["Fluxes"][label_cfg][gfm].rename(gfv, new_name)
+
+                # now loop over the drivers and rename if necessary
+                gfvs = list(cfg["Fluxes"][label_cfg][gfm].keys())
+                for gfv in gfvs:
+                    drivers = cfg["Fluxes"][label_cfg][gfm][gfv]["drivers"]
+                    for re in renames_exact:
+                        if re in drivers:
+                            drivers = drivers.replace(re, std["rename_exact"][re])
+                    cfg["Fluxes"][label_cfg][gfm][gfv]["drivers"] = drivers
+
+                # rename if first characters of variable name match pattern
+                for rp in renames_pattern:
+                    llen = len(rp)
+                    srp = std["rename_pattern"][rp]
+                    klen = len(srp)
+                    # loop over the variables in the control file
+                    gfvs = list(cfg["Fluxes"][label_cfg][gfm].keys())
+                    for gfv in gfvs:
+                        if ((gfv[:llen] == rp) and
+                            (gfv[:klen] != srp)):
+                            new_name = gfv.replace(gfv[:llen], srp)
+                            cfg["Fluxes"][label_cfg][gfm].rename(gfv, new_name)
+                # loop over the drivers
+                gfvs = list(cfg["Fluxes"][label_cfg][gfm].keys())
+                for gfv in gfvs:
+                    drivers = cfg["Fluxes"][label_cfg][gfm][gfv]["drivers"]
+                    for rp in renames_pattern:
+                        if rp in drivers:
+                            drivers = drivers.replace(rp, std["rename_pattern"][rp])
+    return cfg
+
+def l5_update_cfg_variable_deprecate(cfg, std):
+    """
+    Purpose:
+     Remove deprecated variables from L5 control file.
+    Usage:
+    Author: PRI
+    Date: June 2020
+    """
+    labels_deprecated = list(std["deprecated"].keys())
+    for label_deprecated in labels_deprecated:
+        if label_deprecated in list(cfg["Fluxes"].keys()):
+            cfg["Fluxes"].pop(label_deprecated)
+    return cfg
+
+def l5_update_cfg_variable_names(cfg, std):
+    """
+    Purpose:
+     Update the variable names according to the rules in the standard control file.
+    Usage:
+    Author: PRI
+    Date: June 2020
+    """
+    # rename exact variable name matches
+    renames_exact = list(std["rename_exact"].keys())
+    # loop over the variables in the Fluxes section of the control file
+    labels_cfg = list(cfg["Fluxes"].keys())
+    for label_cfg in labels_cfg:
+        if label_cfg in renames_exact:
+            new_name = std["rename_exact"][label_cfg]
+            cfg["Fluxes"].rename(label_cfg, new_name)
+    # rename pattern matches
+    renames_pattern = list(std["rename_pattern"].keys())
+    for rp in renames_pattern:
+        llen = len(rp)
+        srp = std["rename_pattern"][rp]
+        klen = len(srp)
+        # loop over the variables in the control file
+        for label_cfg in labels_cfg:
+            if ((label_cfg[:llen] == rp) and
+                (label_cfg[:klen] != srp)):
+                new_name = label_cfg.replace(label_cfg[:llen], srp)
+                cfg["Fluxes"].rename(label_cfg, new_name)
+    return cfg
+
 def l6_update_controlfile(cfg):
     """
     Purpose:
-     Check a control file to see if it conforms to the the syntax expected at L6.
+     Parse the L6 control file to make sure the syntax is correct and that the
+     control file contains all of the information needed.
     Usage:
+     result = pfp_compliance.l6_update_controlfile(cfg)
+     where cfg is a ConfigObj object
+           result is True if the L6 control file was updated successfully
+                     False if it couldn't be updated
     Side effects:
     Author: PRI
-    Date: August 2019
+    Date: June 2020
     """
     # get a copy of the original control file object
     cfg_original = copy.deepcopy(cfg)
@@ -1766,56 +1955,243 @@ def l6_update_controlfile(cfg):
         result = pfp_gui.MsgBox_Quit(msg, title="Critical")
         return ok
     try:
-        strip_list = ['"', "'", "[", "]"]
-        for key1 in cfg:
-            if key1 in ["level"]:
-                cfg[key1] = parse_cfg_values(key1, cfg[key1], strip_list)
-            elif key1 in ["Files", "Global"]:
-                for key2 in cfg[key1]:
-                    cfg2 = cfg[key1][key2]
-                    cfg2 = parse_cfg_values(key2, cfg2, strip_list)
-            elif key1 in ["Options"]:
-                # no options section in L6 control file yet
-                pass
-            elif key1 in ["EcosystemRespiration"]:
-                for key2 in cfg[key1]:
-                    cfg2 = cfg[key1][key2]
-                    for key3 in cfg2:
-                        cfg3 = cfg[key1][key2][key3]
-                        if key3 in ["ERUsingSOLO", "ERUsingLloydTaylor", "ERUsingLasslop"]:
-                            for key4 in cfg3:
-                                cfg4 = cfg[key1][key2][key3][key4]
-                                for key5 in cfg4:
-                                    cfg4.rename(key5, key5.lower())
-                                    cfg5 = cfg4[key5.lower()]
-                                    cfg5 = parse_cfg_values(key5, cfg5, strip_list)
-                        elif key3 in ["MergeSeries"]:
-                            # strip out unwanted characters
-                            for key4 in cfg[key1][key2][key3]:
-                                # force lower case
-                                cfg3.rename(key4, key4.lower())
-                                cfg4 = cfg3[key4.lower()]
-                                cfg4 = parse_cfg_variables_value(key3, cfg4)
-            elif key1 in ["NetEcosystemExchange", "GrossPrimaryProductivity"]:
-                for key2 in cfg[key1]:
-                    for key3 in cfg[key1][key2]:
-                        cfg3 = cfg[key1][key2][key3]
-                        cfg3 = parse_cfg_values(key3, cfg3, strip_list)
-            else:
-                del cfg[key1]
+        cfg = l6_update_cfg_syntax(cfg)
+    except Exception:
+        ok = False
+        msg = " An error occurred while updating the L6 control file syntax"
+    # check to see if we can load the nc_cleanup.txt standard control file
+    try:
+        stdname = "controlfiles/standard/cfg_update.txt"
+        std = pfp_io.get_controlfilecontents(stdname)
+    except Exception:
+        ok = False
+        msg = " Unable to load standard control file " + stdname
+    # clean up the variable names
+    try:
+        #cfg = l5_update_cfg_options(cfg, std)
+        #cfg = l5_update_cfg_variable_deprecate(cfg, std)
+        cfg = l6_update_cfg_variable_names(cfg, std)
+        cfg = l6_update_cfg_variable_attributes(cfg, std)
+    except Exception:
+        ok = False
+        msg = " An error occurred updating the L6 control file contents"
+    if ok:
         # check to see if the control file object has been changed
         if cfg != cfg_original:
             # and save it if it has changed
             file_name = os.path.basename(cfg.filename)
             logger.info(" Updated and saved control file " + file_name)
             cfg.write()
-    except Exception:
-        ok = False
-        msg = " An error occurred while parsing the L6 control file"
+    else:
         logger.error(msg)
         error_message = traceback.format_exc()
         logger.error(error_message)
     return ok
+
+def l6_update_cfg_syntax(cfg):
+    """
+    Purpose:
+     Update an L6 control file from the old-style (pre PFP V1.0) syntax to the
+     new-style syntax (post PFP V1.0).
+    Usage:
+    Side effects:
+     Returns a modified control file object.
+    Author: PRI
+    Date: June 2020
+    """
+    strip_list = ['"', "'", "[", "]"]
+    for key1 in cfg:
+        if key1 in ["level"]:
+            cfg[key1] = parse_cfg_values(key1, cfg[key1], strip_list)
+        elif key1 in ["Files", "Global"]:
+            for key2 in cfg[key1]:
+                cfg2 = cfg[key1][key2]
+                cfg2 = parse_cfg_values(key2, cfg2, strip_list)
+        elif key1 in ["Options"]:
+            # no options section in L6 control file yet
+            pass
+        elif key1 in ["EcosystemRespiration"]:
+            for key2 in cfg[key1]:
+                cfg2 = cfg[key1][key2]
+                for key3 in cfg2:
+                    cfg3 = cfg[key1][key2][key3]
+                    if key3 in ["ERUsingSOLO", "ERUsingLloydTaylor", "ERUsingLasslop"]:
+                        for key4 in cfg3:
+                            cfg4 = cfg[key1][key2][key3][key4]
+                            for key5 in cfg4:
+                                cfg4.rename(key5, key5.lower())
+                                cfg5 = cfg4[key5.lower()]
+                                cfg5 = parse_cfg_values(key5, cfg5, strip_list)
+                    elif key3 in ["MergeSeries"]:
+                        # strip out unwanted characters
+                        for key4 in cfg[key1][key2][key3]:
+                            # force lower case
+                            cfg3.rename(key4, key4.lower())
+                            cfg4 = cfg3[key4.lower()]
+                            cfg4 = parse_cfg_variables_value(key3, cfg4)
+        elif key1 in ["NetEcosystemExchange", "GrossPrimaryProductivity"]:
+            for key2 in cfg[key1]:
+                for key3 in cfg[key1][key2]:
+                    cfg3 = cfg[key1][key2][key3]
+                    cfg3 = parse_cfg_values(key3, cfg3, strip_list)
+        else:
+            del cfg[key1]
+    return cfg
+
+def l6_update_cfg_variable_attributes(cfg, std):
+    """
+    Purpose:
+     Update the variable attributes according to the rules in the standard control file.
+      - rename variables in DependencyCheck
+    Usage:
+    Author: PRI
+    Date: June 2020
+    """
+    # exact and pattern rename lists
+    renames_exact = list(std["rename_exact"].keys())
+    renames_pattern = list(std["rename_pattern"].keys())
+    # loop over the variables in the EcosystemRespiration section of the control file
+    for method in ["EcosystemRespiration"]:
+        labels_cfg = list(cfg[method].keys())
+        for label_cfg in labels_cfg:
+            for qc in ["MergeSeries", "AverageSeries"]:
+                if qc in cfg[method][label_cfg]:
+                    source = cfg[method][label_cfg][qc]["source"]
+                    vs = pfp_cfg.cfg_string_to_list(source)
+                    vs = [std["rename_exact"][v] if v in renames_exact else v for v in vs]
+                    for rp in renames_pattern:
+                        llen = len(rp)
+                        srp = std["rename_pattern"][rp]
+                        klen = len(srp)
+                        vs = [v.replace(v[:llen], srp) if ((v[:llen] == rp) and
+                                                           (v[:klen] != srp)) else v for v in vs]
+                    cfg[method][label_cfg][qc]["source"] = ",".join(vs)
+                else:
+                    continue
+            for gfm in ["ERUsingSOLO", "ERUsingLloydTaylor", "ERUsingLasslop"]:
+                if gfm in cfg[method][label_cfg]:
+                    # loop over the variables for this gap filling method and rename if necessary
+                    gfvs = list(cfg[method][label_cfg][gfm].keys())
+                    for gfv in gfvs:
+                        if gfv in renames_exact:
+                            new_name = std["rename_exact"][gfv]
+                            cfg[method][label_cfg][gfm].rename(gfv, new_name)
+
+                    # now loop over the drivers and rename if necessary
+                    gfvs = list(cfg[method][label_cfg][gfm].keys())
+                    for gfv in gfvs:
+                        item = cfg[method][label_cfg][gfm][gfv]["drivers"]
+                        drivers = pfp_cfg.cfg_string_to_list(item)
+                        for driver in list(drivers):
+                            for re in renames_exact:
+                                if driver == re:
+                                    new_name = std["rename_exact"][re]
+                                    drivers[drivers.index(driver)] = new_name
+                        cfg[method][label_cfg][gfm][gfv]["drivers"] = ",".join(drivers)
+
+                    # rename if first characters of variable name match pattern
+                    for rp in renames_pattern:
+                        llen = len(rp)
+                        srp = std["rename_pattern"][rp]
+                        klen = len(srp)
+                        # loop over the variables in the control file
+                        gfvs = list(cfg[method][label_cfg][gfm].keys())
+                        for gfv in gfvs:
+                            if ((gfv[:llen] == rp) and
+                                (gfv[:klen] != srp)):
+                                new_name = gfv.replace(gfv[:llen], srp)
+                                cfg[method][label_cfg][gfm].rename(gfv, new_name)
+
+                    # loop over the drivers
+                    gfvs = list(cfg[method][label_cfg][gfm].keys())
+                    for gfv in gfvs:
+                        item = cfg[method][label_cfg][gfm][gfv]["drivers"]
+                        drivers = pfp_cfg.cfg_string_to_list(item)
+                        for driver in list(drivers):
+                            for rp in renames_pattern:
+                                llen = len(rp)
+                                srp = std["rename_pattern"][rp]
+                                klen = len(srp)
+                                if ((driver[:llen] == rp) and
+                                    (driver[:klen] != srp)):
+                                    new_name = opt.replace(driver[:llen], srp)
+                                    drivers[drivers.index(driver)] = new_name
+                        cfg[method][label_cfg][gfm][gfv]["drivers"] = ",".join(drivers)
+
+
+    # loop over the variables in the NEE and GPP sections
+    for method in ["NetEcosystemExchange", "GrossPrimaryProductivity"]:
+        labels_cfg = list(cfg[method].keys())
+        for label_cfg in labels_cfg:
+            # first loop is over the keys
+            variables = list(cfg[method][label_cfg].keys())
+            for var in variables:
+                opt = cfg[method][label_cfg][var]
+                # exact matches
+                if var in renames_exact:
+                    new_name = std["rename_exact"][var]
+                    cfg[method][label_cfg].rename(var, new_name)
+                # pattern matches
+                for rp in renames_pattern:
+                    llen = len(rp)
+                    srp = std["rename_pattern"][rp]
+                    klen = len(srp)
+                    if ((var[:llen] == rp) and
+                        (var[:klen] != srp)):
+                        new_name = var.replace(var[:llen], srp)
+                        cfg[method][label_cfg].rename(var, new_name)
+            # second loop is over the values in case any of the keys were renamed
+            variables = list(cfg[method][label_cfg].keys())
+            for var in variables:
+                opt = cfg[method][label_cfg][var]
+                # exact matches
+                if opt in renames_exact:
+                    new_name = std["rename_exact"][opt]
+                    cfg[method][label_cfg][var] = new_name
+                # pattern matches
+                for rp in renames_pattern:
+                    llen = len(rp)
+                    srp = std["rename_pattern"][rp]
+                    klen = len(srp)
+                    if ((opt[:llen] == rp) and
+                        (opt[:klen] != srp)):
+                        new_name = opt.replace(opt[:llen], srp)
+                        cfg[method][label_cfg][var] = new_name
+    return cfg
+
+def l6_update_cfg_variable_names(cfg, std):
+    """
+    Purpose:
+     Update the variable names according to the rules in the standard control file.
+    Usage:
+    Author: PRI
+    Date: June 2020
+    """
+    # exact and pattern rename lists
+    renames_exact = list(std["rename_exact"].keys())
+    renames_pattern = list(std["rename_pattern"].keys())
+    # loop over the variables in the EcosystemRespiration, NetEcosystemExchange and
+    # GrossPrimaryProductivity section of the control file
+    for method in ["EcosystemRespiration", "NetEcosystemExchange", "GrossPrimaryProductivity"]:
+        # rename exact matches
+        labels_cfg = list(cfg[method].keys())
+        for label_cfg in labels_cfg:
+            if label_cfg in renames_exact:
+                new_name = std["rename_exact"][label_cfg]
+                cfg[method].rename(label_cfg, new_name)
+        # rename pattern matches
+        labels_cfg = list(cfg[method].keys())
+        for rp in renames_pattern:
+            llen = len(rp)
+            srp = std["rename_pattern"][rp]
+            klen = len(srp)
+            # loop over the variables in the control file
+            for label_cfg in labels_cfg:
+                if ((label_cfg[:llen] == rp) and
+                    (label_cfg[:klen] != srp)):
+                    new_name = label_cfg.replace(label_cfg[:llen], srp)
+                    cfg[method].rename(label_cfg, new_name)
+    return cfg
 
 def parse_cfg_plots_title(cfg, key1, key2):
     """ Parse the [Plots] section for a title."""

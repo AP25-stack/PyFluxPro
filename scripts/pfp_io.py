@@ -369,7 +369,7 @@ def read_eddypro_full(csvname):
     variable["Flag"] = numpy.array(Fe_flag_list,dtype=numpy.int32)
     variable["Attr"] = pfp_utils.MakeAttributeDictionary()
     pfp_utils.CreateVariable(ds, variable)
-    variable = {"Label":"Fc"}
+    variable = {"Label":"Fco2"}
     variable["Data"] = numpy.array(Fc_data_list,dtype=numpy.float64)
     variable["Flag"] = numpy.array(Fc_flag_list,dtype=numpy.int32)
     variable["Attr"] = pfp_utils.MakeAttributeDictionary()
@@ -733,7 +733,9 @@ def write_csv_ecostress(cf):
     # adjust units as required
     # GPP
     data["GPP"]["Data"] = pfp_mf.Fco2_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
-    data["GPP"]["Attr"]["units"] = "gC/m2/s"
+    data["GPP"]["Attr"]["units"] = "g/m^2/s"
+    data["GPP"]["Attr"]["long_name"] = "Gross Primary Productivity"
+    data["GPP"]["Attr"]["description_L6"] = "Expressed as grams Carbon"
     # SWC
     data["SWC"]["Attr"]["units"] = "m^3/m^3"
     # add the QC flags for Fh, Fe, Fg, GPP, Ta, T2, VPD, Fn
@@ -1310,8 +1312,8 @@ def NetCDFConcatenate(info):
     # and make sure we have all of the meteorological variables
     pfp_ts.CalculateMeteorologicalVariables(ds_out, info)
     # check units of Fc and convert if necessary
-    Fc_list = ["Fc", "Fc_single", "Fc_profile", "Fc_storage"]
-    pfp_utils.CheckUnits(ds_out, Fc_list, "umol/m^2/s", convert_units=True)
+    Fco2_list = ["Fco2", "Fco2_single", "Fco2_profile", "Fco2_storage"]
+    pfp_utils.CheckUnits(ds_out, Fco2_list, "umol/m^2/s", convert_units=True)
     # check missing data and QC flags are consistent
     pfp_utils.CheckQCFlags(ds_out)
     # update the coverage statistics

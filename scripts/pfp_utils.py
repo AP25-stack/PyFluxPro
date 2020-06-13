@@ -275,7 +275,7 @@ def ConvertFcUnits(cf, ds):
     # get the Fc units requested by the user
     Fc_units_out = get_keyvaluefromcf(cf, ['Options'], "FcUnits", default="umol/m^2/s")
     # get a list of Fc series
-    Fc_list = [label for label in list(ds.series.keys()) if label[0:2] == "Fc"]
+    Fc_list = [label for label in list(ds.series.keys()) if label[0:2] == "Fco2"]
     # convert units of Fc as required
     units_list = ["mg/m^2/s", "umol/m^2/s"]
     for label in Fc_list:
@@ -331,7 +331,7 @@ def convert_units_func(ds, variable, new_units, mode="quiet"):
         return variable
     # check the units are something we understand
     # add more lists here to cope with water etc
-    co2_list = ["mg/m^3", "umol/mol", "mg/m^2/s", "umol/m^2/s"]
+    co2_list = ["mg/m^3", "umol/mol", "mg/m^2/s", "umol/m^2/s", "g/m^2"]
     h2o_list = ["g/m^3", "mmol/mol", "percent", "kg/kg"]
     t_list = ["degC", "K"]
     ps_list = ["Pa", "hPa", "kPa"]
@@ -369,8 +369,8 @@ def convert_units_co2(ds, variable, new_units):
      General purpose routine to convert from one set of CO2 concentration units
      to another.
      Conversions supported are:
-      umol/m^2/s to gC/m2 (per time step)
-      gC/m2 (per time step) to umol/m^2/s
+      umol/m^2/s to g/m^2 (per time step)
+      g/m^2 (per time step) to umol/m^2/s
       mg/m^3 to umol/mol
       mgCO2/m3 to umol/mol
       umol/mol to mg/m^3
@@ -394,7 +394,7 @@ def convert_units_co2(ds, variable, new_units):
     valid_range_minimum = -1E35
     valid_range_maximum = 1E35
     # now check the units and see what we have to convert
-    if old_units == "umol/m^2/s" and new_units == "gC/m2":
+    if old_units == "umol/m^2/s" and new_units == "g/m^2":
         # convert the data
         variable["Data"] = variable["Data"]*12.01*ts*60/1E6
         # update the range check limits in the variable attribute
@@ -420,7 +420,7 @@ def convert_units_co2(ds, variable, new_units):
             variable["Attr"]["valid_range"] += "," + repr(valid_range_maximum)
         # update the variable attributes to the new units
         variable["Attr"]["units"] = new_units
-    elif old_units == "gC/m2" and new_units == "umol/m^2/s":
+    elif old_units == "g/m^2" and new_units == "umol/m^2/s":
         # convert the data
         variable["Data"] = variable["Data"]*1E6/(12.01*ts*60)
         # update the range check limits in the variable attribute
@@ -1998,8 +1998,8 @@ def get_coverage_groups(ds,rad=None,met=None,flux=None,soil=None):
     if "nc_level" in ds.globalattributes:
         level = str(ds.globalattributes["nc_level"])
     rad = ['Fsd','Fsu','Fld','Flu','Fn']
-    met = ['AH','Cc','Precip','ps','Ta','Ws','Wd']
-    flux = ['Fm','ustar','Fh','Fe','Fc']
+    met = ['AH','CO2','Precip','ps','Ta','Ws','Wd']
+    flux = ['Fm','ustar','Fh','Fe','Fco2']
     soil = ['Fg','Ts','Sws']
     for ThisGroup, ThisLabel in zip([rad,met,flux,soil],['radiation','meteorology','flux','soil']):
         sum_coverage = float(0); count = float(0)

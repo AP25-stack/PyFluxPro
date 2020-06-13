@@ -1,7 +1,7 @@
 [Variables]
     [[Ta]]
         format = 0.00
-    [[Ah]]
+    [[AH]]
         format = 0.00
     [[RH]]
         format = 0

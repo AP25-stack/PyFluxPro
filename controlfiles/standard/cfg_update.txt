@@ -181,6 +181,10 @@
     (umol/mol)2 = umol^2/mol^2
     V = V
     W/m2 = W/m^2
+    # ACCESS and AWS units correction
+    W/m2/s = W/m^2
+    mm/30 minutes = mm
+    degT = degrees
 # variable attributes section
 [variable_attributes]
     deprecated_attributes = ancillary_variables

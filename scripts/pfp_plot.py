@@ -145,7 +145,7 @@ def plot_fcvsustar(ds):
         start = datetime.datetime(year, 1, 1, 0, 30, 0)
         end = datetime.datetime(year+1, 1, 1, 0, 0, 0)
         # get the variables from the data structure
-        Fc = pfp_utils.GetVariable(ds, "Fc", start=start, end=end)
+        Fc = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
         Fsd = pfp_utils.GetVariable(ds, "Fsd", start=start, end=end)
         ustar = pfp_utils.GetVariable(ds, "ustar", start=start, end=end)
         # get the observations and night time filters
@@ -208,7 +208,7 @@ def plot_fcvsustar(ds):
                 fig.delaxes(axs[row, col])
                 continue
             # get the variables from the data structure
-            Fc = pfp_utils.GetVariable(ds, "Fc", start=start, end=end)
+            Fc = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
             Fsd = pfp_utils.GetVariable(ds, "Fsd", start=start, end=end)
             ustar = pfp_utils.GetVariable(ds, "ustar", start=start, end=end)
             # get the observations and night time filters
@@ -728,7 +728,7 @@ def plot_quickcheck_get_wue(daily):
     # get the Wue
     # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
-    Fc_daily = daily["Fc"]["Data"]
+    Fc_daily = daily["Fco2"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
     Fe_day = numpy.ma.masked_where(nm == True, Fe_daily)
     Fc_day = numpy.ma.masked_where(nm == True, Fc_daily)
@@ -820,7 +820,7 @@ def plot_quickcheck(cf):
     data["Minute"]["Data"] = numpy.array([d.minute for d in DateTime])
     # now do the data we want to plot
     data_list = ["Fsd", "Fsu", "Fld", "Flu", "Fn",
-                 "Fg", "Fa", "Fe", "Fh", "Fc", "ustar",
+                 "Fg", "Fa", "Fe", "Fh", "Fco2", "ustar",
                  "Ta", "H2O", "CO2", "Precip", "Ws",
                  "Sws", "Ts"]
     for label in data_list:
@@ -908,7 +908,7 @@ def plot_quickcheck(cf):
     fig.canvas.set_window_title("Daily Average Fluxes")
     plt.figtext(0.5, 0.95, plot_title, horizontalalignment="center", size=16)
     plt.figtext(0.5, 0.90, "Day time data points only", horizontalalignment="center", size=14)
-    tsplot3_list = ["Fsd", "Fa", "Fe", "Fh", "Fc"]
+    tsplot3_list = ["Fsd", "Fa", "Fe", "Fh", "Fco2"]
     nplots = len(tsplot3_list)
     for nrow, label in enumerate(tsplot3_list):
         daily[label]["Avg"], daily[label]["Count"] = plot_quickcheck_get_avg(daily, label, filter_type="day")
@@ -959,7 +959,7 @@ def plot_quickcheck(cf):
     # month labels
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     # variable labels
-    labels = ["Fsd", "Fsu", "Fa", "Fn", "Fg", "Ta", "Ts", "Fh", "Fe", "Fc"]
+    labels = ["Fsd", "Fsu", "Fa", "Fn", "Fg", "Ta", "Ts", "Fh", "Fe", "Fco2"]
     # get the colour map, points will be coloured according to the percentage of good data
     cm = plt.cm.get_cmap("RdYlBu")
     # 12 plots per page, 1 for each month

@@ -1222,9 +1222,12 @@ def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2", Fco2_storage_
         if not pfp_utils.get_optionskeyaslogical(cf, "ApplyFco2Storage"):
             return
         # check to see if we have the required data series
-        if ((Fco2_in not in list(ds.series.keys())) or
-            (Fco2_storage_in not in list(ds.series.keys()))):
-            msg = "CorrectFco2ForStorage: Fco2 or Fco2_storage not found, skipping ..."
+        if Fco2_in not in list(ds.series.keys()):
+            msg = Fco2_in + " not found in data, skipping Fco2 storage correction ..."
+            logger.warning(msg)
+            return
+        if Fco2_storage_in not in list(ds.series.keys()):
+            msg = Fco2_storage_in + " not found in data, skipping Fco2 storage correction..."
             logger.warning(msg)
             return
         # check to see if we have an Fco2_profile series

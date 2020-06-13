@@ -52,9 +52,9 @@ level = L3
         [[[RangeCheck]]]
             lower = 0
             upper = 50
-    [[Ah]]
+    [[AH]]
         [[[MergeSeries]]]
-            source = Ah_HMP_<height>m,Ah_IRGA_Av
+            source = AH_HMP_<height>m,AH_IRGA_Av
         [[[RangeCheck]]]
             lower = 0
             upper = 35
@@ -100,13 +100,13 @@ level = L3
     [[Turbulent fluxes]]
         variables = Fh,Fe,Fco2,ustar,Fm
     [[Fh diagnostics]]
-        variables = Fh,UzT,Diag_SONIC,Diag_IRGA,AGC_IRGA,Ah_IRGA_Sd,CO2_IRGA_Sd
+        variables = Fh,UzT,Diag_SONIC,Diag_IRGA,AGC_IRGA,AH_IRGA_Sd,CO2_IRGA_Sd
     [[Fe diagnostics]]
-        variables = Fe,UzA,Diag_SONIC,Diag_IRGA,AGC_IRGA,Ah_IRGA_Sd,CO2_IRGA_Sd
+        variables = Fe,UzA,Diag_SONIC,Diag_IRGA,AGC_IRGA,AH_IRGA_Sd,CO2_IRGA_Sd
     [[Fco2 diagnostics]]
-        variables = Fco2,UzC,Diag_SONIC,Diag_IRGA,AGC_IRGA,Ah_IRGA_Sd,CO2_IRGA_Sd
+        variables = Fco2,UzC,Diag_SONIC,Diag_IRGA,AGC_IRGA,AH_IRGA_Sd,CO2_IRGA_Sd
     [[Air temperature, humidity and CO2]]
-        variables = Ta,Ta_HMP_<height>m,Ah,Ah_HMP_<height>m,CO2_IRGA_Av
+        variables = Ta,Ta_HMP_<height>m,AH,AH_HMP_<height>m,CO2_IRGA_Av
     [[Soil temperature, water content and heat flux]]
         variables = Precip,Ts,Sws,Sws_<depth><letter>,Fg
     [[Pressure, wind speed and direction]]

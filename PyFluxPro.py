@@ -123,7 +123,7 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.actionRunCurrent.setShortcut('Ctrl+R')
         # Plot menu items
         self.actionPlotFcVersusUstar = QtWidgets.QAction(self)
-        self.actionPlotFcVersusUstar.setText("Fc vs u*")
+        self.actionPlotFcVersusUstar.setText("Fco2 vs u*")
         self.actionPlotFingerprints = QtWidgets.QAction(self)
         self.actionPlotFingerprints.setText("Fingerprints")
         self.actionPlotQuickCheck = QtWidgets.QAction(self)

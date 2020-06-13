@@ -121,12 +121,12 @@ def VPsat(T):
 
 def Fco2_gCpm2psfromumolpm2ps(Fc_umolpm2ps):
     """
-    Convert Fc in units of umol/m^2/s to units of gC/m2/s
+    Convert Fco2 in units of umol/m^2/s to units of g/m^2/s (C, not CO2)
     Usage:
-     Fc_mgpm2ps = Fco2_gCpm2psfromumolpm2ps(Fc_umolpm2ps)
+     Fco2_mgpm2ps = Fco2_gCpm2psfromumolpm2ps(Fc_umolpm2ps)
      where:
-      Fc_umolpm2ps (input) - CO2 flux in units of umol/m^2/s
-    Returns the CO2 flux in units of gC/m2/s
+      Fco2_umolpm2ps (input) - CO2 flux in units of umol/m^2/s
+    Returns the CO2 flux in units of g/m^2/s (C, not CO2)
     """
     # convert to masked array
     Fc_umolpm2ps, WasND = SeriestoMA(Fc_umolpm2ps)

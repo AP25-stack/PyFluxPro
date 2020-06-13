@@ -401,7 +401,7 @@ def rpLL_createdict_info(cf, ds, erll, called_by):
     erll["info"]["enddate"] = ldt[-1].strftime("%Y-%m-%d %H:%M")
     erll["info"]["called_by"] = called_by
     erll["info"]["time_step"] = time_step
-    erll["info"]["source"] = "Fc"
+    erll["info"]["source"] = "Fco2"
     erll["info"]["target"] = "ER"
     # check to see if this is a batch or an interactive run
     call_mode = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "call_mode", default="interactive")
@@ -451,7 +451,7 @@ def rpLL_createdict_outputs(cf, erll, target, called_by, flag_code):
         # get the target
         sl = [section, target, called_by, output]
         eo[output]["target"] = pfp_utils.get_keyvaluefromcf(cf, sl, "target", default=target)
-        eo[output]["source"] = pfp_utils.get_keyvaluefromcf(cf, sl, "source", default="Fc")
+        eo[output]["source"] = pfp_utils.get_keyvaluefromcf(cf, sl, "source", default="Fco2")
         # add the flag_code
         eo[output]["flag_code"] = flag_code
         # list of drivers

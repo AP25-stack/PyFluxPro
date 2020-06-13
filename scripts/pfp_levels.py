@@ -155,7 +155,7 @@ def l3qc(cf, ds2):
     # convert CO2 units if required
     pfp_utils.ConvertCO2Units(cf, ds3, CO2="CO2")
     # calculate Fco2 storage term - single height only at present
-    pfp_ts.CalculateFco2StorageSinglePoint(cf, ds3, Fco2_out="Fco2_single", CO2_in="CO2")
+    pfp_ts.CalculateFco2StorageSinglePoint(cf, ds3)
     # convert Fco2 and Fco2_storage units if required
     #pfp_utils.ConvertFco2Units(cf, ds3)
     Fco2_list = ["Fco2", "Fco2_single", "Fco2_profile", "Fco2_storage"]
@@ -338,8 +338,8 @@ def l6qc(main_gui, cf, ds5):
     # check to see if we have any imports
     pfp_gf.ImportSeries(cf, ds6)
     # check units of Fc
-    Fc_units_list = ["mg/m2/s", "mgCO2/m2/s", "umol/m2/s"]
-    Fc_list = [l for l in list(ds6.series.keys()) if ("Fc" in l[0:2]) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
+    Fc_units_list = ["mg/m^2/s", "umol/m^2/s"]
+    Fc_list = [l for l in list(ds6.series.keys()) if ("Fco2" in l[0:2]) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
     pfp_utils.CheckUnits(ds6, Fc_list, "umol/m2/s", convert_units=True)
     # get ER from the observed Fc
     pfp_rp.GetERFromFc(cf, ds6)

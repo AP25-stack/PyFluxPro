@@ -795,7 +795,7 @@ def gfMDS_createdict(cf, ds, l5_info, label, called_by, flag_code):
             continue
     # check that all requested targets and drivers have a mapping to
     # a FluxNet label, remove if they don't
-    fluxnet_label_map = {"Fc":"NEE", "Fe":"LE", "Fh":"H",
+    fluxnet_label_map = {"Fco2":"NEE", "Fe":"LE", "Fh":"H",
                          "Fsd":"SW_IN", "Ta":"TA", "VPD":"VPD"}
     for mds_label in l5_info[called_by]["outputs"]:
         l5_info[called_by]["outputs"][mds_label]["mds_label"] = mds_label
@@ -1065,7 +1065,7 @@ def gfSOLO_createdict_outputs(cf, l5_info, target, called_by, flag_code):
     elif level == "L6":
         section = "EcosystemRespiration"
         drivers = "Ta,Ts,Sws"
-        source = "Fc"
+        source = "Fco2"
     else:
         msg = "Unrecognised control file level (must be L5 or L6)"
         logger.error(msg)

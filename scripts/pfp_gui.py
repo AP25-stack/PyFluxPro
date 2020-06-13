@@ -1856,10 +1856,10 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.addAction(self.context_menu.actionAddMassmanCorrection)
                     self.context_menu.actionAddMassmanCorrection.triggered.connect(self.add_massmancorrection)
                 if "ApplyFco2Storage" not in existing_entries:
-                    self.context_menu.actionAddApplyFcStorage = QtWidgets.QAction(self)
-                    self.context_menu.actionAddApplyFcStorage.setText("ApplyFco2Storage")
-                    self.context_menu.addAction(self.context_menu.actionAddApplyFcStorage)
-                    self.context_menu.actionAddApplyFcStorage.triggered.connect(self.add_applyfco2storage_to_options)
+                    self.context_menu.actionAddApplyFco2Storage = QtWidgets.QAction(self)
+                    self.context_menu.actionAddApplyFco2Storage.setText("ApplyFco2Storage")
+                    self.context_menu.addAction(self.context_menu.actionAddApplyFco2Storage)
+                    self.context_menu.actionAddApplyFco2Storage.triggered.connect(self.add_applyfco2storage_to_options)
                 if "CorrectIndividualFg" not in existing_entries:
                     self.context_menu.actionAddCorrectIndividualFg = QtWidgets.QAction(self)
                     self.context_menu.actionAddCorrectIndividualFg.setText("CorrectIndividualFg")
@@ -1965,11 +1965,11 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.actionAddExcludeDates.setText("Add ExcludeDates")
                     self.context_menu.addAction(self.context_menu.actionAddExcludeDates)
                     self.context_menu.actionAddExcludeDates.triggered.connect(self.add_excludedates)
-                if "ApplyFcStorage" not in existing_entries and selected_text[0:2] == "Fc":
-                    self.context_menu.actionAddApplyFcStorage = QtWidgets.QAction(self)
-                    self.context_menu.actionAddApplyFcStorage.setText("Add ApplyFcStorage")
-                    self.context_menu.addAction(self.context_menu.actionAddApplyFcStorage)
-                    self.context_menu.actionAddApplyFcStorage.triggered.connect(self.add_applyfcstorage_to_variable)
+                if "ApplyFco2Storage" not in existing_entries and selected_text[0:2] == "Fco2":
+                    self.context_menu.actionAddApplyFco2Storage = QtWidgets.QAction(self)
+                    self.context_menu.actionAddApplyFco2Storage.setText("Add ApplyFco2Storage")
+                    self.context_menu.addAction(self.context_menu.actionAddApplyFco2Storage)
+                    self.context_menu.actionAddApplyFco2Storage.triggered.connect(self.add_applyfcstorage_to_variable)
                 self.context_menu.addSeparator()
                 if "MergeSeries" not in existing_entries:
                     self.context_menu.actionAddMergeSeries = QtWidgets.QAction(self)
@@ -4152,7 +4152,7 @@ class edit_cfg_L5(QtWidgets.QWidget):
 
     def add_filterlist(self):
         """ Add FilterList to the [Options] section."""
-        dict_to_add = {"FilterList": "Fc"}
+        dict_to_add = {"FilterList": "Fco2"}
         # add the subsection
         self.add_subsection(dict_to_add)
 

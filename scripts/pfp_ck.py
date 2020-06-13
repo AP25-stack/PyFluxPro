@@ -228,7 +228,7 @@ def ApplyTurbulenceFilter_checks(cf, ds):
     Author:
     Date:
     """
-    opt = {"OK":True,"turbulence_filter":"ustar","filter_list":['Fc']}
+    opt = {"OK":True, "turbulence_filter":"ustar", "filter_list":["Fco2"]}
     # return if there is no Options section in control file
     if "Options" not in cf:
         msg = " ApplyTurbulenceFilter: Options section not found in control file"
@@ -500,7 +500,7 @@ def do_EC155check(cf,ds):
                 used_Signal = True
             if ("H2O" in item) or ("AH" in item):
                 used_H2O = True
-            if ("CO2" in item) or ("Cc" in item):
+            if ("CO2" in item):
                 used_CO2 = True
             EC155_dependents.append(item)
     if not used_Signal:
@@ -742,11 +742,11 @@ def do_li7500check(cf, ds, code=4):
     used_CO2 = False
     flag = numpy.copy(ds.series["Diag_IRGA"]["Flag"])
     for label in irga_dependents_nodups:
-        if "AGC" in label:
+        if ("AGC" in label):
             used_AGC = True
         if ("H2O" in label) or ("AH" in label):
             used_H2O = True
-        if ("CO2" in label) or ("Cc" in label):
+        if ("CO2" in label):
             used_CO2 = True
         idx = numpy.where(ds.series[label]["Flag"] != 0)
         logger.info("  IRGACheck: "+label+" rejected "+str(numpy.size(idx))+" points")
@@ -796,7 +796,7 @@ def do_li7500acheck(cf,ds):
                 used_Signal = True
             if ("H2O" in item) or ("AH" in item):
                 used_H2O = True
-            if ("CO2" in item) or ("Cc" in item):
+            if ("CO2" in item):
                 used_CO2 = True
             LI75_dependents.append(item)
     if "H2O_IRGA_Sd" and "H2O_IRGA_Vr" in LI75_dependents:

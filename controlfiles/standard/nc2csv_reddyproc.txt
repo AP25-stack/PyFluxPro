@@ -1,7 +1,7 @@
 level = nc2csv_reddyproc
 [Variables]
     [[NEE]]
-        name = Fc
+        name = Fco2
         format = 0.00
     [[Ustar]]
         name = ustar
