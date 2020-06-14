@@ -1008,7 +1008,7 @@ def l1_update_cfg_variable_deprecate(cfg, cfg_std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(cfg_std["deprecated_attributes"].keys())
+    labels_deprecated = list(cfg_std["deprecated"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Variables"].keys()):
             cfg["Variables"].pop(label_deprecated)
@@ -1187,7 +1187,7 @@ def l2_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(std["deprecated_attributes"].keys())
+    labels_deprecated = list(std["deprecated"].keys())
     for label_deprecated in labels_deprecated:
         if label_deprecated in list(cfg["Variables"].keys()):
             cfg["Variables"].pop(label_deprecated)

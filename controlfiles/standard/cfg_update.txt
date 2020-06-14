@@ -187,8 +187,8 @@
     degT = degrees
 # variable attributes section
 [variable_attributes]
-    deprecated_attributes = ancillary_variables
-    deprecated_values = none, not defined, notdefined
+    #deprecated_attributes = ancillary_variables
+    #deprecated_values = none, not defined, notdefined
     [[AGC_IRGA]]
         long_name = IRGA automatic gain control value
         group_name = diagnostics
