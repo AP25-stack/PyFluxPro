@@ -11,9 +11,9 @@
    case 2: start and end date not provided, calculated as end of last month, end of current month
    where;
       arg1 = country, e.g. "australia"
-      arg2 = start_date, e.g. "2020-04-30"
-      arg3 = end_date, e.g. "2020-05-31"
-      arg4 = target_directory
+      arg2 = target_directory
+      arg3 = start_date, e.g. "2020-04-30"
+      arg4 = end_date, e.g. "2020-05-31"
   Side effects:
     (1) needs an account at CDS and a key, where url and key are stored in .cdsapirc
         url: https://cds.climate.copernicus.eu/api/v2
@@ -64,7 +64,8 @@ era5_info["target_directory"] = sys.argv[2] #"/rdsi/market/erai_processing/ERA5/
 index = list_country.index(era5_info["country"])
 era5_info["area"] = list_area[index]        #"-10/110/-45/155"
 era5_info["date"] = era5_info["start_date"] + "/" + era5_info["end_date"]
-era5_info["target"] = era5_info["target_directory"]+"ERA5_"+era5_info["start_date"]+"_to_"+era5_info["start_date"]+".nc"
+era5_info["target"] = era5_info["target_directory"]+"ERA5_"+era5_info["start_date"]+"_to_"+era5_info["end_date"]+".nc"
+print(era5_info["start_date"],era5_info["end_date"],era5_info["target"])
 
 # "australia": "-10/110/-45/155"   "/rdsi/market/erai_processing/ERA5/AUS/"
 # "usa":       "70/229.5/30/300"   "/mnt/AmeriFlux/ERA5/"
