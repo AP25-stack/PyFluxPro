@@ -572,7 +572,7 @@ for n, era5_name in enumerate(era5_files):
         flag = numpy.zeros(len(Ah_era5_tts),dtype=numpy.int32)
         attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity", 
                                                  group_name = "meteorology", units="g/m^3")
-        pfp_utils.CreateSeries(ds_era5,"Ah",Ah_era5_tts,flag,attr)
+        pfp_utils.CreateSeries(ds_era5,"AH",Ah_era5_tts,flag,attr)
 
         # === SPECIFIC HUMIDITY Ah === #
         # get the specific humidity
