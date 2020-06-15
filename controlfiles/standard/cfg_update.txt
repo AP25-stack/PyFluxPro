@@ -2,9 +2,6 @@
     license_type = CC BY 4.0
     license_url = https://creativecommons.org/licenses/by/4.0/
     history = Cleaned by cleanup_netcdf_files.py
-# deprecated variables section
-[deprecated]
-    [[xlDateTime]]
 # rename section
 [rename_exact]
     AGC_7500 = AGC_IRGA
@@ -185,10 +182,16 @@
     W/m2/s = W/m^2
     mm/30 minutes = mm
     degT = degrees
+# deprecated section
+[deprecated]
+    global = end_datetime, start_datetime, Functions, doi
+    variables = xlDateTime, ustar_filtered
+    attributes = ancillary_variables
+    values = none, not defined, notdefined
+[essential]
+    attributes = group_name,height,instrument,long_name,standard_name,units
 # variable attributes section
 [variable_attributes]
-    #deprecated_attributes = ancillary_variables
-    #deprecated_values = none, not defined, notdefined
     [[AGC_IRGA]]
         long_name = IRGA automatic gain control value
         group_name = diagnostics
