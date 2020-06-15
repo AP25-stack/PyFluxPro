@@ -721,9 +721,9 @@ def change_variable_attributes(cfg, ds):
         pfp_utils.CreateVariable(ds, variable)
     # parse variable attributes to new format, remove deprecated variable attributes
     # and fix valid_range == "-1e+35,1e+35"
-    tmp = cfg["variable_attributes"]["deprecated_attributes"]
+    tmp = cfg["deprecated"]["attributes"]
     deprecated_attributes = pfp_cfg.cfg_string_to_list(tmp)
-    tmp = cfg["variable_attributes"]["deprecated_values"]
+    tmp = cfg["deprecated"]["values"]
     deprecated_values = pfp_cfg.cfg_string_to_list(tmp)
     series_list = list(ds.series.keys())
     for label in series_list:
@@ -857,7 +857,7 @@ def l1_update_controlfile(cfg):
         logger.error(error_message)
     return ok
 
-def l1_update_cfg_global_attributes(cfg, cfg_std):
+def l1_update_cfg_global_attributes(cfg, std):
     """
     Purpose:
      Update the global attributes according to the rules in the standard control file.
@@ -871,7 +871,7 @@ def l1_update_cfg_global_attributes(cfg, cfg_std):
         if gattr not in cfg["Global"]:
             cfg["Global"][gattr] = ""
     # remove deprecated global attributes
-    deprecated = ["end_datetime", "start_datetime", "Functions", "doi"]
+    deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["global"])
     for gattr in deprecated:
         if gattr in cfg["Global"]:
             cfg["Global"].pop(gattr)
@@ -881,9 +881,9 @@ def l1_update_cfg_global_attributes(cfg, cfg_std):
         if rename in cfg["Global"]:
             cfg["Global"][renames[rename]] = cfg["Global"].pop(rename)
     # add or change global attributes as required
-    gattrs = sorted(list(cfg_std["Global"].keys()))
+    gattrs = sorted(list(std["Global"].keys()))
     for gattr in gattrs:
-        cfg["Global"][gattr] = cfg_std["Global"][gattr]
+        cfg["Global"][gattr] = std["Global"][gattr]
     return cfg
 
 def l1_update_cfg_syntax(cfg):
@@ -931,8 +931,8 @@ def l1_update_cfg_variable_attributes(cfg, std):
     Date: May 2020
     """
     # list of essential variable attributes
-    vattrs_essential = ["group_name", "height", "instrument", "long_name", "standard_name", "units"]
-    vattrs_deprecated = ["ancillary_variables"]
+    vattrs_essential = pfp_cfg.cfg_string_to_list(std["essential"]["attributes"])
+    vattrs_deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["attributes"])
     # list of standard attribute values
     labels_std = list(std["variable_attributes"].keys())
     labels_cfg = list(cfg["Variables"].keys())
@@ -1000,7 +1000,7 @@ def l1_update_cfg_variable_attributes(cfg, std):
                 continue
     return cfg
 
-def l1_update_cfg_variable_deprecate(cfg, cfg_std):
+def l1_update_cfg_variable_deprecate(cfg, std):
     """
     Purpose:
      Remove deprecated variables from L1 control file.
@@ -1008,10 +1008,10 @@ def l1_update_cfg_variable_deprecate(cfg, cfg_std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(cfg_std["deprecated_attributes"].keys())
-    for label_deprecated in labels_deprecated:
-        if label_deprecated in list(cfg["Variables"].keys()):
-            cfg["Variables"].pop(label_deprecated)
+    deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["variables"])
+    for label in deprecated:
+        if label in cfg["Variables"]:
+            cfg["Variables"].pop(label)
     return cfg
 
 def l1_update_cfg_variable_names(cfg, std):
@@ -1133,10 +1133,6 @@ def l2_update_cfg_syntax(cfg):
                     cfg3 = parse_cfg_plots_value(key3, cfg3)
         elif key1 in ["Variables"]:
             for key2 in cfg[key1]:
-                # deprecated variables
-                if key2 in ["ustar_filtered"]:
-                    del cfg[key1][key2]
-                    continue
                 for key3 in cfg[key1][key2]:
                     cfg3 = cfg[key1][key2][key3]
                     if key3 in ["RangeCheck", "DependencyCheck", "DiurnalCheck", "ExcludeDates",
@@ -1187,10 +1183,10 @@ def l2_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(std["deprecated_attributes"].keys())
-    for label_deprecated in labels_deprecated:
-        if label_deprecated in list(cfg["Variables"].keys()):
-            cfg["Variables"].pop(label_deprecated)
+    deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["variables"])
+    for label in deprecated:
+        if label in cfg["Variables"]:
+            cfg["Variables"].pop(label)
     return cfg
 
 def l2_update_cfg_variable_names(cfg, std):
@@ -1358,10 +1354,6 @@ def l3_update_cfg_syntax(cfg):
                     cfg3 = parse_cfg_plots_value(key3, cfg3)
         elif key1 in ["Variables"]:
             for key2 in cfg[key1]:
-                # deprecated variables
-                if key2 in ["ustar_filtered"]:
-                    del cfg[key1][key2]
-                    continue
                 for key3 in cfg[key1][key2]:
                     if key3 in ["RangeCheck", "DependencyCheck", "DiurnalCheck", "ExcludeDates",
                                 "ApplyFco2Storage", "MergeSeries", "AverageSeries"]:
@@ -1415,10 +1407,10 @@ def l3_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: May 2020
     """
-    labels_deprecated = list(std["deprecated"].keys())
-    for label_deprecated in labels_deprecated:
-        if label_deprecated in list(cfg["Variables"].keys()):
-            cfg["Variables"].pop(label_deprecated)
+    deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["variables"])
+    for label in deprecated:
+        if label in cfg["Variables"]:
+            cfg["Variables"].pop(label)
     return cfg
 
 def l3_update_cfg_variable_names(cfg, std):
@@ -1630,10 +1622,10 @@ def l4_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: June 2020
     """
-    labels_deprecated = list(std["deprecated"].keys())
-    for label_deprecated in labels_deprecated:
-        if label_deprecated in list(cfg["Drivers"].keys()):
-            cfg["Drivers"].pop(label_deprecated)
+    deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["variables"])
+    for label in deprecated:
+        if label in cfg["Variables"]:
+            cfg["Variables"].pop(label)
     return cfg
 
 def l4_update_cfg_variable_names(cfg, std):
@@ -1892,10 +1884,10 @@ def l5_update_cfg_variable_deprecate(cfg, std):
     Author: PRI
     Date: June 2020
     """
-    labels_deprecated = list(std["deprecated"].keys())
-    for label_deprecated in labels_deprecated:
-        if label_deprecated in list(cfg["Fluxes"].keys()):
-            cfg["Fluxes"].pop(label_deprecated)
+    deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["variables"])
+    for label in deprecated:
+        if label in cfg["Variables"]:
+            cfg["Variables"].pop(label)
     return cfg
 
 def l5_update_cfg_variable_names(cfg, std):
