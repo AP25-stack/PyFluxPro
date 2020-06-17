@@ -162,7 +162,7 @@ def l3qc(cf, ds2):
     pfp_utils.CheckUnits(ds3, Fco2_list, "umol/m^2/s", convert_units=True)
     # merge Fco2 and Fco2_storage series if required
     cfv = cf["Variables"]
-    merge_list = [l for l in list(cfv.keys()) if l[0:2] == "Fco2" and "MergeSeries" in list(cfv[l].keys())]
+    merge_list = [l for l in list(cfv.keys()) if l[0:4] == "Fco2" and "MergeSeries" in list(cfv[l].keys())]
     for label in merge_list:
         pfp_ts.CombineSeries(cf, ds3, label, save_originals=True)
     # correct Fco2 for storage term - only recommended if storage calculated from profile available
@@ -339,7 +339,7 @@ def l6qc(main_gui, cf, ds5):
     pfp_gf.ImportSeries(cf, ds6)
     # check units of Fc
     Fc_units_list = ["mg/m^2/s", "umol/m^2/s"]
-    Fc_list = [l for l in list(ds6.series.keys()) if ("Fco2" in l[0:2]) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
+    Fc_list = [l for l in list(ds6.series.keys()) if ("Fco2" in l[0:4]) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
     pfp_utils.CheckUnits(ds6, Fc_list, "umol/m2/s", convert_units=True)
     # get ER from the observed Fc
     pfp_rp.GetERFromFc(cf, ds6)
