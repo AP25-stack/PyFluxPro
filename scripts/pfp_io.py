@@ -962,11 +962,11 @@ def ExcelToDataStructures(xl_data, l1_info):
         for xl_label in xl_labels:
             nc_label = l1ire["xl_sheets"][xl_sheet][xl_label]
             col = headers.index(xl_label)
-            logger.info(str(nc_label) +' '+ str(xl_label) +' '+ str(xl_sheet) +' '+ str(col))
+            #logger.info(str(nc_label) +' '+ str(xl_label) +' '+ str(xl_sheet) +' '+ str(col))
             values = numpy.array(active_sheet.col_values(col)[fdr:ldr])
             types = numpy.array(active_sheet.col_types(col)[fdr:ldr])
             mode = scipy.stats.mode(types, nan_policy='propagate')
-            logger.info(str(xl_label) +' '+ str(mode[0][0]) +' '+ str((mode[1][0])))
+            #logger.info(str(xl_label) +' '+ str(mode[0][0]) +' '+ str((mode[1][0])))
             if mode[0][0] == 3 and 100*mode[1][0]/nrecs > 75:
                 # time stamp (Excel cell type = 3)
                 msg = " Got time stamp " + xl_label + " from sheet " + xl_sheet
