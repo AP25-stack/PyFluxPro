@@ -1651,8 +1651,8 @@ def l4_update_cfg_variable_deprecate(cfg, std):
     """
     deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["variables"])
     for label in deprecated:
-        if label in cfg["Variables"]:
-            cfg["Variables"].pop(label)
+        if label in cfg["Drivers"]:
+            cfg["Drivers"].pop(label)
     return cfg
 
 def l4_update_cfg_variable_names(cfg, std):
@@ -1917,8 +1917,8 @@ def l5_update_cfg_variable_deprecate(cfg, std):
     """
     deprecated = pfp_cfg.cfg_string_to_list(std["deprecated"]["variables"])
     for label in deprecated:
-        if label in cfg["Variables"]:
-            cfg["Variables"].pop(label)
+        if label in cfg["Fluxes"]:
+            cfg["Fluxes"].pop(label)
     return cfg
 
 def l5_update_cfg_variable_names(cfg, std):

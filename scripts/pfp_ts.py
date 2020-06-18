@@ -1781,6 +1781,37 @@ def CalculateStandardDeviations(ds):
         Uz_Sd = numpy.ma.sqrt(UzUz)
         attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, standard deviation',units='m/s')
         pfp_utils.CreateSeries(ds,'Uz_Sd',Uz_Sd,flag,attr)
+    if 'Ux_SONIC_Sd' in list(ds.series.keys()) and 'Ux_SONIC_Vr' not in list(ds.series.keys()):
+        Ux_SONIC_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ux_SONIC_Sd')
+        Ux_SONIC_Vr = Ux_SONIC_Sd*Ux_SONIC_Sd
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, variance',units='m^2/s^2')
+        pfp_utils.CreateSeries(ds,'Ux_SONIC_Vr',Ux_SONIC_Vr,flag,attr)
+    if 'Ux_SONIC_Vr' in list(ds.series.keys()) and 'Ux_SONIC_Sd' not in list(ds.series.keys()):
+        Ux_SONIC_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ux_SONIC_Vr')
+        Ux_SONIC_Sd = numpy.ma.sqrt(Ux_SONIC_Vr)
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, standard deviation',units='m/s')
+        pfp_utils.CreateSeries(ds,'Ux_SONIC_Sd',Ux_SONIC_Sd,flag,attr)
+
+    if 'Uy_SONIC_Sd' in list(ds.series.keys()) and 'Uy_SONIC_Vr' not in list(ds.series.keys()):
+        Uy_SONIC_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uy_SONIC_Sd')
+        Uy_SONIC_Vr = Uy_SONIC_Sd*Uy_SONIC_Sd
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, variance',units='m^2/s^2')
+        pfp_utils.CreateSeries(ds,'Uy_SONIC_Vr',Uy_SONIC_Vr,flag,attr)
+    if 'Uy_SONIC_Vr' in list(ds.series.keys()) and 'Uy_SONIC_Sd' not in list(ds.series.keys()):
+        Uy_SONIC_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uy_SONIC_Vr')
+        Uy_SONIC_Sd = numpy.ma.sqrt(Uy_SONIC_Vr)
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, standard deviation',units='m/s')
+        pfp_utils.CreateSeries(ds,'Uy_SONIC_Sd',Uy_SONIC_Sd,flag,attr)
+    if 'Uz_SONIC_Sd' in list(ds.series.keys()) and 'Uz_SONIC_Vr' not in list(ds.series.keys()):
+        Uz_SONIC_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uz_SONIC_Sd')
+        Uz_SONIC_Vr = Uz_SONIC_Sd*Uz_SONIC_Sd
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, variance',units='m^2/s^2')
+        pfp_utils.CreateSeries(ds,'Uz_SONIC_Vr',Uz_SONIC_Vr,flag,attr)
+    if 'Uz_SONIC_Vr' in list(ds.series.keys()) and 'Uz_SONIC_Sd' not in list(ds.series.keys()):
+        Uz_SONIC_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uz_SONIC_Vr')
+        Uz_SONIC_Sd = numpy.ma.sqrt(Uz_SONIC_Vr)
+        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, standard deviation',units='m/s')
+        pfp_utils.CreateSeries(ds,'Uz_SONIC_Sd',Uz_SONIC_Sd,flag,attr)
 
 def do_mergeseries(ds,target,srclist,mode="verbose"):
     if mode.lower()!="quiet":

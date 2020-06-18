@@ -275,7 +275,7 @@ def ConvertFcUnits(cf, ds):
     # get the Fc units requested by the user
     Fc_units_out = get_keyvaluefromcf(cf, ['Options'], "FcUnits", default="umol/m^2/s")
     # get a list of Fc series
-    Fc_list = [label for label in list(ds.series.keys()) if label[0:2] == "Fco2"]
+    Fc_list = [label for label in list(ds.series.keys()) if label[0:4] == "Fco2"]
     # convert units of Fc as required
     units_list = ["mg/m^2/s", "umol/m^2/s"]
     for label in Fc_list:
