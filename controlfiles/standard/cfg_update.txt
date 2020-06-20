@@ -170,6 +170,7 @@
     mmol/m2/s = mmol/m^2/s
     (mmol/m3)2 = mmol^2/m^6
     (mmol/mol)2 = mmol^2/mol^2
+    none = none
     Pa = Pa
     umol/m3 = umol/m^3
     umol/mol = umol/mol
@@ -187,7 +188,7 @@
     global = end_datetime, start_datetime, Functions, doi
     variables = xlDateTime, ustar_filtered
     attributes = ancillary_variables
-    values = none, not defined, notdefined
+    values = not defined, notdefined
 [essential]
     attributes = group_name,height,instrument,long_name,standard_name,units
 # variable attributes section
@@ -195,7 +196,7 @@
     [[AGC_IRGA]]
         long_name = IRGA automatic gain control value
         group_name = diagnostics
-        units = 
+        units = none
     [[AH]]
         long_name = Absolute humidity
         group_name = meteorology
@@ -207,11 +208,11 @@
     [[Diag_IRGA]]
         long_name = IRGA diagnostic value
         group_name = diagnostics
-        units = 
+        units = none
     [[Diag_SONIC]]
         long_name = Sonic diagnostic value
         group_name = diagnostics
-        units = 
+        units = none
     [[EC_]]
         long_name = Electrical conductivity
         group_name = soil

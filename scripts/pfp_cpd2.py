@@ -443,7 +443,8 @@ def cpdEvaluateUStarTh4Season20100901(t, NEE, uStar, T, fNight, fPlot, cSiteYr):
             xCp2, xs2, xCp3, xs3 = cpdFindChangePoint20100901(muStar, mNEE, iSeason, iStrata)
 
             n, muStar, mT = cpdBin(uStar[itStrata], T[itStrata], [], nPerBin)
-            r, p = scipy.stats.pearsonr(muStar, mT)
+            nas = numpy.logical_or(numpy.isnan(muStar), numpy.isnan(mT))
+            r, p = scipy.stats.pearsonr(muStar[~nas], mT[~nas])
             xs2["mt"] = numpy.mean(t[itStrata])
             xs2["ti"] = t[itStrata[0]]
             xs2["tf"] = t[itStrata[-1]]

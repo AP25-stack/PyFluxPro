@@ -340,7 +340,7 @@ def l6qc(main_gui, cf, ds5):
     # check units of Fc
     Fc_units_list = ["mg/m^2/s", "umol/m^2/s"]
     Fc_list = [l for l in list(ds6.series.keys()) if ("Fco2" in l[0:4]) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
-    pfp_utils.CheckUnits(ds6, Fc_list, "umol/m2/s", convert_units=True)
+    pfp_utils.CheckUnits(ds6, Fc_list, "umol/m^2/s", convert_units=True)
     # get ER from the observed Fc
     pfp_rp.GetERFromFc(cf, ds6)
     # return code will be non-zero if turbulance filter not applied to CO2 flux

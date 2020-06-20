@@ -13,9 +13,12 @@ import matplotlib
 if platform.system() == "Darwin":
     # set backend to "macosx" on Macs
     matplotlib.use("macosx")
-else:
-    # set backend to "QT5Agg" for Windows and Linux
+elif platform.system() == "Windows":
+    # set backend to "QT5Agg" for Windows
     matplotlib.use("QT5Agg")
+else:
+    # use whatever on Linux ...
+    pass
 from PyQt5 import QtWidgets
 # PFP modules
 sys.path.append('scripts')
@@ -318,8 +321,8 @@ class pfp_main_ui(QtWidgets.QWidget):
             self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2csv_fluxnet(self)
             self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
             self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
-        elif self.cfg["level"] in ["nc2csv_reddyproc"]:
-            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2csv_reddyproc(self)
+        elif self.cfg["level"] in ["nc2tsv_reddyproc"]:
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2tsv_reddyproc(self)
             self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
             self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
         elif self.cfg["level"] in ["batch"]:
@@ -580,9 +583,8 @@ class pfp_main_ui(QtWidgets.QWidget):
         # call the appropriate processing routine depending on the level
         self.tabs.tab_index_running = tab_index_current
         if self.tabs.cfg_dict[tab_index_current]["level"] == "L1":
-            # !!!
-            # !!! compliance check of L1 control file goes here
-            # !!!
+            # check the L1 control file to see if it is OK to run
+            if not pfp_compliance.l1_check_controlfile(cfg): return
             pfp_top_level.do_run_l1(cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "L2":
             pfp_top_level.do_run_l2(cfg)
@@ -602,7 +604,7 @@ class pfp_main_ui(QtWidgets.QWidget):
             pfp_top_level.do_file_convert_nc2ecostress(cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_fluxnet":
             pfp_top_level.do_file_convert_nc2fluxnet(cfg)
-        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_reddyproc":
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2tsv_reddyproc":
             pfp_top_level.do_file_convert_nc2reddyproc(cfg, mode="custom")
         else:
             logger.error("Level not implemented yet ...")

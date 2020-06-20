@@ -100,7 +100,7 @@ def fit(temp_df):
     temp_df['ustar_alt1'].iloc[change_point_a+1:]=temp_df['ustar_alt1'].iloc[change_point_a]
     temp_df['ustar_alt2']=(temp_df['ustar']-temp_df['ustar'].iloc[change_point_a])*np.concatenate([np.zeros(change_point_a+1),np.ones(50-(change_point_a+1))])
     #use statsmodels
-    resols=sm.ols(formula="Fc ~ ustar_alt1 + ustar_alt2", data=temp_df).fit()
+    resols=sm.ols(formula="Fco2 ~ ustar_alt1 + ustar_alt2", data=temp_df).fit()
     a0=resols.params[0]
     a1=resols.params[1]
     a2=resols.params[2]

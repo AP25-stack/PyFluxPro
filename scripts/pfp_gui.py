@@ -659,7 +659,7 @@ class edit_cfg_L2(QtWidgets.QWidget):
 
     def add_scatterplot(self):
         """ Add a new scatter plot to the 'Plots' section."""
-        new_plot = {"Type":"xy", "XSeries":"", "YSeries":""}
+        new_plot = {"type":"xy", "xseries":"", "yseries":""}
         parent = QtGui.QStandardItem("New scatter plot")
         for key in new_plot:
             val = new_plot[key]
@@ -5931,20 +5931,20 @@ class edit_cfg_nc2csv_fluxnet(QtWidgets.QWidget):
         if "*" not in tab_text:
             self.tabs.setTabText(self.tabs.tab_index_current, tab_text+"*")
 
-class edit_cfg_nc2csv_reddyproc(QtWidgets.QWidget):
+class edit_cfg_nc2tsv_reddyproc(QtWidgets.QWidget):
     def __init__(self, main_gui):
 
-        super(edit_cfg_nc2csv_reddyproc, self).__init__()
+        super(edit_cfg_nc2tsv_reddyproc, self).__init__()
 
         self.cfg = copy.deepcopy(main_gui.cfg)
 
         self.cfg_changed = False
         self.tabs = main_gui.tabs
 
-        self.edit_nc2csv_reddyproc_gui()
+        self.edit_nc2tsv_reddyproc_gui()
 
-    def edit_nc2csv_reddyproc_gui(self):
-        """ Edit an nc2csv_reddyproc control file GUI."""
+    def edit_nc2tsv_reddyproc_gui(self):
+        """ Edit an nc2tsv_reddyproc control file GUI."""
         # get a QTreeView
         self.view = QtWidgets.QTreeView()
         self.model = QtGui.QStandardItemModel()
@@ -6008,7 +6008,7 @@ class edit_cfg_nc2csv_reddyproc(QtWidgets.QWidget):
     def get_data_from_model(self):
         """ Iterate over the model and get the data."""
         cfg = ConfigObj(indent_type="    ", list_values=False)
-        cfg["level"] = "nc2csv_reddyproc"
+        cfg["level"] = "nc2tsv_reddyproc"
         model = self.model
         # there must be a way to do this recursively
         for i in range(model.rowCount()):

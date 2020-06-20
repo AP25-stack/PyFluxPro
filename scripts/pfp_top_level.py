@@ -151,7 +151,7 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
         # check to see if the user chose a standard or a custom run
         if cfg is None and mode == "standard":
             # standard run so we use the control file in PyFluxPro/controlfiles/standard
-            stdname = "controlfiles/standard/nc2csv_reddyproc.txt"
+            stdname = "controlfiles/standard/nc2tsv_reddyproc.txt"
             # check to see if the standard control file exists
             if os.path.exists(stdname):
                 # standard control file exists so read it
@@ -170,10 +170,10 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
                 cfg["Files"]["file_path"] = os.path.join(os.path.split(filename)[0], "")
                 in_filename = os.path.split(filename)[1]
                 cfg["Files"]["in_filename"] = in_filename
-                cfg["Files"]["out_filename"] = in_filename.replace(".nc", "_REddyProc.csv")
+                cfg["Files"]["out_filename"] = in_filename.replace(".nc", "_REddyProc.tsv")
             else:
                 # issue an error mesage and return if the standard control file does not exist
-                msg = " Write REddyProc CSV file: standard control file 'nc2csv_reddyproc.txt' does not exist"
+                msg = " Write REddyProc CSV file: standard control file 'nc2tsv_reddyproc.txt' does not exist"
                 logger.error(msg)
                 return
         elif cfg is not None and mode == "custom":
@@ -181,7 +181,7 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
             pass
         else:
             # tell the user we got the wrong input options and return
-            msg = " Write REddyProc CSV file: wrong input options"
+            msg = " Write REddyProc file: wrong input options"
             logger.error(msg)
             return
         # add the [Options] section and populate it
@@ -203,7 +203,7 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
             logger.error("")
     except Exception:
         # tell the user if something goes wrong and put the exception in the log window
-        error_message = " Error converting to BIOMET format, see below for details ... "
+        error_message = " Error converting to REddyProc format, see below for details ... "
         logger.error(error_message)
         error_message = traceback.format_exc()
         logger.error(error_message)
@@ -463,8 +463,8 @@ def do_run_l2(cfg):
             logger.info("Plotting L1 and L2 data")
             for nFig in cfg['Plots'].keys():
                 plt_cf = cfg['Plots'][str(nFig)]
-                if 'Type' in plt_cf.keys():
-                    if str(plt_cf['Type']).lower() =='xy':
+                if 'type' in plt_cf.keys():
+                    if str(plt_cf['type']).lower() =='xy':
                         pfp_plot.plotxy(cfg, nFig, plt_cf, ds1, ds2)
                     else:
                         pfp_plot.plottimeseries(cfg, nFig, ds1, ds2)

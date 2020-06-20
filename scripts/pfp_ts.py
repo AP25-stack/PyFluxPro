@@ -222,7 +222,8 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                attr[item] = wT["Attr"][item]
+                if item in wT["Attr"]:
+                    attr[item] = wT["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fhv) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fhv", "Data": Fhv, "Flag": flag, "Attr": attr})
         else:
@@ -237,7 +238,8 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "surface_upward_latent_heat_flux",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                attr[item] = wA["Attr"][item]
+                if item in wA["Attr"]:
+                    attr[item] = wA["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fe) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fe", "Data": Fe, "Flag": flag, "Attr": attr})
         else:
@@ -252,7 +254,8 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                attr[item] = wC["Attr"][item]
+                if item in wC["Attr"]:
+                    attr[item] = wC["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fco2) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fco2", "Data": Fco2, "Flag": flag, "Attr": attr})
         else:
@@ -270,7 +273,8 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                attr[item] = uw["Attr"][item]
+                if item in uw["Attr"]:
+                    attr[item] = uw["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fm) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fm", "Data": Fm, "Flag": flag, "Attr": attr})
             pfp_utils.CreateVariable(ds, {"Label": "Fm_PFP", "Data": Fm, "Flag": flag, "Attr": attr})
@@ -278,7 +282,8 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                attr[item] = uw["Attr"][item]
+                if item in uw["Attr"]:
+                    attr[item] = uw["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(us) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "ustar", "Data": us, "Flag": flag, "Attr": attr})
             pfp_utils.CreateVariable(ds, {"Label": "ustar_PFP", "Data": us, "Flag": flag, "Attr": attr})
@@ -1902,7 +1907,8 @@ def Fco2_WPL(cf, ds, CO2_in="CO2", Fco2_in="Fco2"):
     attr = {"group_name": "flux", "long_name": "CO2 flux", "units": "mg/m^2/s",
             "standard_name": "not defined", descr_level: "WPL corrected"}
     for item in ["instrument", "height", "serial_number"]:
-        attr[item] = Fco2["Attr"][item]
+        if item in Fco2["Attr"]:
+            attr[item] = Fco2["Attr"][item]
     variable = {"Label": "Fco2", "Data": Fco2_wpl_data, "Flag": Fco2_wpl_flag, "Attr": attr}
     pfp_utils.CreateVariable(ds, variable)
     variable = {"Label": "Fco2_PFP", "Data": Fco2_wpl_data, "Flag": Fco2_wpl_flag, "Attr": attr}
@@ -1954,7 +1960,8 @@ def Fe_WPL(cf, ds):
             "standard_name": "surface_upward_latent_heat_flux",
             descr_level: "WPL corrected"}
     for item in ["instrument", "height", "serial_number"]:
-        attr[item] = Fe["Attr"][item]
+        if item in Fe["Attr"]:
+            attr[item] = Fe["Attr"][item]
     variable = {"Label": "Fe", "Data": Fe_wpl_data, "Flag": Fe_wpl_flag, "Attr": attr}
     pfp_utils.CreateVariable(ds, variable)
     variable = {"Label": "Fe_PFP", "Data": Fe_wpl_data, "Flag": Fe_wpl_flag, "Attr": attr}
@@ -1998,7 +2005,8 @@ def FhvtoFh(cf, ds, Tv_in = "Tv_SONIC_Av"):
     attr = {"group_name": "flux", "long_name": "Sensible heat flux", "units": "W/m^2",
                     "standard_name": "surface_upward_sensible_heat_flux"}
     for item in ["instrument", "height", "serial_number"]:
-        attr[item] = wT["Attr"][item]
+        if item in wT["Attr"]:
+            attr[item] = wT["Attr"][item]
     flag = numpy.where(numpy.ma.getmaskarray(Fh) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "Fh", "Data": Fh, "Flag": flag, "Attr": attr})
     pfp_utils.CreateVariable(ds, {"Label": "Fh_PFP", "Data": Fh, "Flag": flag, "Attr": attr})
