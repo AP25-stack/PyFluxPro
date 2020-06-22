@@ -16,8 +16,8 @@ level = fingerprint
         name = Fe
         lower = -200
         upper = 600
-    [[Fc]]
-        name = Fc
+    [[Fco2]]
+        name = Fco2
         lower = -40
         upper = 20
     [[Fsu]]
@@ -37,7 +37,7 @@ level = fingerprint
         lower = -200
         upper = 1000
     [[H2O]]
-        name = Ah
+        name = AH
         lower = 0
         upper = 40
     [[CO2]]
@@ -82,12 +82,12 @@ level = fingerprint
         upper = 105
 [Plots]
     [[Composite fingerprint]]
-        variables = Fsd,Ta,H2O,Fe,Fc
+        variables = Fsd,Ta,H2O,Fe,Fco2
     [[Radiation fingerprint]]
         variables = Fsd,Fsu,Fld,Flu,Fn
     [[Meteorology fingerprint]]
         variables = Ta,H2O,CO2,Ws,Wd
     [[Flux fingerprint]]
-        variables = ustar,Fh,Fe,Fc,Fa
+        variables = ustar,Fh,Fe,Fco2,Fa
     [[Soil fingerprint]]
         variables = Fg,Ts,Sws,Precip,ps

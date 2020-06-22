@@ -21,7 +21,7 @@ logger = logging.getLogger("pfp_log")
 def get_data_dict(ds,configs_dict):
     data = {}
     # NOTE: series are ndarrays not masked arrays
-    Fc,Fc_flag,a = pfp_utils.GetSeries(ds,"Fc")
+    Fc,Fc_flag,a = pfp_utils.GetSeries(ds,"Fco2")
     target = configs_dict["target"]
     ER,ER_flag,a = pfp_utils.GetSeries(ds,target)
     Fsd,Fsd_flag,a = pfp_utils.GetSeries(ds,"Fsd")
@@ -313,7 +313,7 @@ def rpLT_createdict(cf, ds, l6_info, output, called_by, flag_code):
     descr_level = "description_" + ds.globalattributes["nc_level"]
     # create the LT settings directory
     if called_by not in list(l6_info.keys()):
-        l6_info[called_by] = {"outputs": {}, "info": {"source": "Fc", "target": "ER"}, "gui": {}}
+        l6_info[called_by] = {"outputs": {}, "info": {"source": "Fco2", "target": "ER"}, "gui": {}}
     # get the info section
     rpLT_createdict_info(cf, ds, l6_info[called_by], called_by)
     if ds.returncodes["value"] != 0:
@@ -410,7 +410,7 @@ def rpLT_createdict_outputs(cf, erlt, target, called_by, flag_code):
         # get the target
         sl = [section, target, called_by, output]
         eo[output]["target"] = pfp_utils.get_keyvaluefromcf(cf, sl, "target", default=target)
-        eo[output]["source"] = pfp_utils.get_keyvaluefromcf(cf, sl, "source", default="Fc")
+        eo[output]["source"] = pfp_utils.get_keyvaluefromcf(cf, sl, "source", default="Fco2")
         # add the flag_code
         eo[output]["flag_code"] = flag_code
         # list of drivers

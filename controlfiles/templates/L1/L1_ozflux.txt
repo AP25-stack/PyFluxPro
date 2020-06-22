@@ -5,7 +5,6 @@ level = L1
     in_headerrow = 2
     in_firstdatarow = 5
     out_filename = Right click to browse (*.nc)
-
 [Global]
     acknowledgement = '''This work used eddy covariance data collected by the TERN-OzFlux facility. OzFlux
 would like to acknowledge the financial support of the Australian Federal Government via
@@ -37,17 +36,7 @@ Fund.'''
     tower_height = 
     vegetation = 
     altitude = <altitude>m
-
 [Variables]
-    [[xlDateTime]]
-        [[[xl]]]
-            sheet = slow_flux
-            name = TIMESTAMP
-        [[[Attr]]]
-            long_name = Date/time in Excel format
-            units = days since 1899-12-31 00:00:00 +9:30
-            standard_name = not defined
-            cf_role = timeseries_id
     [[Fn_NR]]
         [[[xl]]]
             sheet = slow_rad
@@ -58,7 +47,7 @@ Fund.'''
             long_name = Net radiation (NRLite)
             serial_number = 
             standard_name = surface_net_downwawrd_radiative_flux
-            units = W/m2
+            units = W/m^2
     [[Fld]]
         [[[xl]]]
             sheet = slow_rad
@@ -69,7 +58,7 @@ Fund.'''
             long_name = Down-welling long wave
             serial_number = 
             standard_name = surface_downwelling_longwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[Flu]]
         [[[xl]]]
             sheet = slow_rad
@@ -80,7 +69,7 @@ Fund.'''
             long_name = Up-welling long wave
             serial_number = 
             standard_name = surface_upwelling_longwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[Fsu]]
         [[[xl]]]
             sheet = slow_rad
@@ -91,7 +80,7 @@ Fund.'''
             long_name = Up-welling short wave
             serial_number = 
             standard_name = surface_upwelling_shortwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[Fsd]]
         [[[xl]]]
             sheet = slow_rad
@@ -102,7 +91,7 @@ Fund.'''
             long_name = Down-welling short wave
             serial_number = 
             standard_name = surface_downwelling_shortwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[UzT]]
         [[[xl]]]
             sheet = slow_flux
@@ -113,7 +102,7 @@ Fund.'''
             long_name = Covariance of Uz and T
             serial_number = 
             standard_name = not defined
-            units = mC/s
+            units = m.degC/s
     [[UxT]]
         [[[xl]]]
             sheet = slow_flux
@@ -124,7 +113,7 @@ Fund.'''
             long_name = Covariance of Ux and T
             serial_number = 
             standard_name = not defined
-            units = mC/s
+            units = m.degC/s
     [[UyT]]
         [[[xl]]]
             sheet = slow_flux
@@ -135,7 +124,7 @@ Fund.'''
             long_name = Covariance of Uy and T
             serial_number = 
             standard_name = not defined
-            units = mC/s
+            units = m.degC/s
     [[UzA]]
         [[[xl]]]
             sheet = slow_flux
@@ -146,7 +135,7 @@ Fund.'''
             long_name = Covariance of Uz and H2O
             serial_number = 
             standard_name = not defined
-            units = g/m2/s
+            units = g/m^2/s
     [[UxA]]
         [[[xl]]]
             sheet = slow_flux
@@ -157,7 +146,7 @@ Fund.'''
             long_name = Covariance of Ux and H2O
             serial_number = 
             standard_name = not defined
-            units = g/m2/s
+            units = g/m^2/s
     [[UyA]]
         [[[xl]]]
             sheet = slow_flux
@@ -168,7 +157,7 @@ Fund.'''
             long_name = Covariance of Uy and H2O
             serial_number = 
             standard_name = not defined
-            units = g/m2/s
+            units = g/m^2/s
     [[UzC]]
         [[[xl]]]
             sheet = slow_flux
@@ -179,7 +168,7 @@ Fund.'''
             long_name = Covariance of Uz and CO2
             serial_number = 
             standard_name = not defined
-            units = mg/m2/s
+            units = mg/m^2/s
     [[UxC]]
         [[[xl]]]
             sheet = slow_flux
@@ -190,7 +179,7 @@ Fund.'''
             long_name = Covariance of Ux and CO2
             serial_number = 
             standard_name = not defined
-            units = mg/m2/s
+            units = mg/m^2/s
     [[UyC]]
         [[[xl]]]
             sheet = slow_flux
@@ -201,7 +190,7 @@ Fund.'''
             long_name = Covariance of Uy and CO2
             serial_number = 
             standard_name = not defined
-            units = mg/m2/s
+            units = mg/m^2/s
     [[UxUz]]
         [[[xl]]]
             sheet = slow_flux
@@ -212,7 +201,7 @@ Fund.'''
             long_name = Covariance of Ux and Uz
             serial_number = 
             standard_name = not defined
-            units = m2/s2
+            units = m^2/s^2
     [[UyUz]]
         [[[xl]]]
             sheet = slow_flux
@@ -223,7 +212,7 @@ Fund.'''
             long_name = Covariance of Uy and Uz
             serial_number = 
             standard_name = not defined
-            units = m2/s2
+            units = m^2/s^2
     [[UxUy]]
         [[[xl]]]
             sheet = slow_flux
@@ -234,7 +223,7 @@ Fund.'''
             long_name = Covariance of Ux and Uy
             serial_number = 
             standard_name = not defined
-            units = m2/s2
+            units = m^2/s^2
     [[UzUz]]
         [[[xl]]]
             sheet = slow_flux
@@ -245,7 +234,7 @@ Fund.'''
             long_name = Vertical wind speed (CSAT coordinates), variance
             serial_number = 
             standard_name = not defined
-            units = m2/s2
+            units = m^2/s^2
     [[UxUx]]
         [[[xl]]]
             sheet = slow_flux
@@ -256,7 +245,7 @@ Fund.'''
             long_name = Longitudinal wind speed (CSAT coordinates), variance
             serial_number = 
             standard_name = not defined
-            units = m2/s2
+            units = m^2/s^2
     [[UyUy]]
         [[[xl]]]
             sheet = slow_flux
@@ -267,7 +256,7 @@ Fund.'''
             long_name = Lateral wind speed component (CSAT coordinates), variance
             serial_number = 
             standard_name = not defined
-            units = m2/s2
+            units = m^2/s^2
     [[Tv_SONIC_Av]]
         [[[xl]]]
             sheet = slow_met
@@ -278,7 +267,7 @@ Fund.'''
             long_name = Virtual air temperature
             serial_number = 
             standard_name = virtual_temperature
-            units = C
+            units = degC
     [[Tv_SONIC_Vr]]
         [[[xl]]]
             sheet = slow_flux
@@ -289,7 +278,7 @@ Fund.'''
             long_name = Variance of virtual temperature from SONIC
             serial_number = 
             standard_name = 
-            units = C2
+            units = degC^2
     [[CO2_IRGA_Av]]
         [[[xl]]]
             sheet = slow_met
@@ -300,7 +289,7 @@ Fund.'''
             long_name = CO2 concentration, average
             serial_number = 
             standard_name = mass_concentration_of_carbon_dioxide_in_air
-            units = mg/m3
+            units = mg/m^3
     [[CO2_IRGA_Vr]]
         [[[xl]]]
             sheet = slow_flux
@@ -311,7 +300,7 @@ Fund.'''
             long_name = CO2 concentration, variance
             serial_number = 
             standard_name = not defined
-            units = (mg/m3)2
+            units = mg^2/m^6
     [[Ah_IRGA_Av]]
         [[[xl]]]
             sheet = slow_met
@@ -322,7 +311,7 @@ Fund.'''
             long_name = Absolute humidity, average
             serial_number = 
             standard_name = mass_concentration_of_water_vapor_in_air
-            units = g/m3
+            units = g/m^3
     [[Ah_IRGA_Vr]]
         [[[xl]]]
             sheet = slow_flux
@@ -333,7 +322,7 @@ Fund.'''
             long_name = Absolute humidity, variance
             serial_number = 
             standard_name = not defined
-            units = (g/m3)2
+            units = g^2/m^6
     [[Ta_<inst>_<height>m]]
         [[[xl]]]
             sheet = slow_met
@@ -344,7 +333,7 @@ Fund.'''
             long_name = Air temperature, average
             serial_number = 
             standard_name = air_temperature
-            units = C
+            units = degC
     [[RH_<inst>_<height>m]]
         [[[xl]]]
             sheet = slow_met
@@ -355,7 +344,7 @@ Fund.'''
             long_name = Relative humidity, average
             serial_number = 
             standard_name = 
-            units = %
+            units = percent
     [[Ah_<inst>_<height>m]]
         [[[xl]]]
             sheet = slow_met
@@ -366,7 +355,7 @@ Fund.'''
             long_name = Absolute humidity, average
             serial_number = 
             standard_name = mass_concentration_of_water_vapor_in_air
-            units = g/m3
+            units = g/m^3
     [[Ux]]
         [[[xl]]]
             sheet = slow_met
@@ -421,7 +410,7 @@ Fund.'''
             long_name = Wind direction
             serial_number = 
             standard_name = wind_from_direction
-            units = deg
+            units = degrees
     [[Ws_<inst>_Av]]
         [[[xl]]]
             sheet = slow_met
@@ -443,7 +432,7 @@ Fund.'''
             long_name = Wind direction
             serial_number = 
             standard_name = wind_from_direction
-            units = deg
+            units = degrees
     [[Precip]]
         [[[xl]]]
             sheet = slow_met
@@ -476,7 +465,7 @@ Fund.'''
             long_name = Ground heat flux, sensor 1a
             serial_number = 
             standard_name = downward_heat_flux_in_soil
-            units = W/m2
+            units = W/m^2
     [[Fg_<depth>cmb]]
         [[[xl]]]
             sheet = slow_flux
@@ -487,7 +476,7 @@ Fund.'''
             long_name = Ground heat flux, sensor 1b
             serial_number = 
             standard_name = downward_heat_flux_in_soil
-            units = W/m2
+            units = W/m^2
     [[Fg_<depth>cmc]]
         [[[xl]]]
             sheet = slow_flux
@@ -498,7 +487,7 @@ Fund.'''
             long_name = Ground heat flux, sensor 1c
             serial_number = 
             standard_name = downward_heat_flux_in_soil
-            units = W/m2
+            units = W/m^2
     [[Sws_<depth>cma]]
         [[[xl]]]
             sheet = slow_met
@@ -509,7 +498,7 @@ Fund.'''
             long_name = Soil water fraction, sensor 1a
             serial_number = 
             standard_name = soil_moisture_content
-            units = m3/m3
+            units = m^3/m^3
     [[Sws_<depth>cmb]]
         [[[xl]]]
             sheet = slow_met
@@ -520,7 +509,7 @@ Fund.'''
             long_name = Soil water fraction, sensor 1b
             serial_number = 
             standard_name = soil_moisture_content
-            units = m3/m3
+            units = m^3/m^3
     [[Sws_<depth>cmc]]
         [[[xl]]]
             sheet = slow_met
@@ -531,7 +520,7 @@ Fund.'''
             long_name = Soil water fraction, sensor 1c
             serial_number = 
             standard_name = soil_moisture_content
-            units = m3/m3
+            units = m^3/m^3
     [[Ts_<depth>cma]]
         [[[xl]]]
             sheet = slow_met
@@ -542,7 +531,7 @@ Fund.'''
             long_name = Soil temperature, sensor 1a
             serial_number = 
             standard_name = soil_temperature
-            units = C
+            units = degC
     [[Ts_<depth>cmb]]
         [[[xl]]]
             sheet = slow_met
@@ -553,7 +542,7 @@ Fund.'''
             long_name = Soil temperature, sensor 1b
             serial_number = 
             standard_name = soil_temperature
-            units = C
+            units = degC
     [[Ts_<depth>cmc]]
         [[[xl]]]
             sheet = slow_met
@@ -564,7 +553,7 @@ Fund.'''
             long_name = Soil temperature, sensor 1c
             serial_number = 
             standard_name = soil_temperature
-            units = C
+            units = degC
     [[Diag_SONIC]]
         [[[xl]]]
             sheet = slow_flux
@@ -617,4 +606,4 @@ Fund.'''
             long_name = Panel temperature at logger
             serial_number = 
             standard_name = not defined
-            units = C
+            units = degC

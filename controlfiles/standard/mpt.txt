@@ -27,9 +27,9 @@ level = mpt
 
 [Variables]
     [[NEE]]
-        name = Fc
+        name = Fco2
     [[VPD]]
-        name = Ta
+        name = VPD
     [[USTAR]]
         name = ustar
     [[TA]]

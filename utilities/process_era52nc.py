@@ -306,7 +306,8 @@ for n, era5_name in enumerate(era5_files):
         # get the downwelling solar radiation at the tower time step
         Fsd_era5_tts = coef_tts*numpy.sin(numpy.deg2rad(alt_solar_tts))
         flag = numpy.zeros(len(Fsd_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Downwelling short wave radiation",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Down-welling shortwave radiation", 
+                                                 group_name = "radiation", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fsd",Fsd_era5_tts,flag,attr)
 
         # === NET-SHORTWAVE Fn_sw === #
@@ -339,13 +340,15 @@ for n, era5_name in enumerate(era5_files):
         # get the downwelling solar radiation at the tower time step
         Fn_sw_era5_tts = coef_tts*numpy.sin(numpy.deg2rad(alt_solar_tts))
         flag = numpy.zeros(len(Fn_sw_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Net short wave radiation",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Net shortwave radiation", 
+                                                 group_name = "radiation", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fn_sw",Fn_sw_era5_tts,flag,attr)
 
         # === UPWELLING-SHORTWAVE Fsu === #
         Fsu_era5_tts = Fsd_era5_tts - Fn_sw_era5_tts
         flag = numpy.zeros(len(Fsu_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Upwelling short wave radiation",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Up-welling shortwave radiation", 
+                                                 group_name = "radiation", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fsu",Fsu_era5_tts,flag,attr)
 
         # === DOWNWELLING LONGWAVE Fld === #
@@ -371,7 +374,8 @@ for n, era5_name in enumerate(era5_files):
         # get the downwelling longwave at the tower time step
         #Fld_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(Fld_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Downwelling long wave radiation",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Down-welling longwave radiation", 
+                                                 group_name = "radiation", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fld",Fld_era5_tts,flag,attr)
 
         # === NET-LONGWAVE Fn_lw === #
@@ -399,19 +403,22 @@ for n, era5_name in enumerate(era5_files):
         # get the net longwave at the tower time step
         #Fn_lw_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(Fn_lw_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Net long wave radiation",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Net longwave radiation", 
+                                                 group_name = "radiation", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fn_lw",Fn_lw_era5_tts,flag,attr)
 
         # === UPWELLING-LONGWAVE Flu === #
         Flu_era5_tts = Fld_era5_tts - Fn_lw_era5_tts
         flag = numpy.zeros(len(Flu_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Upwelling long wave radiation",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Up-welling longwave radiation", 
+                                                 group_name = "radiation", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Flu",Flu_era5_tts,flag,attr)
 
         # === NET RADIATION Fn === #
         Fn_era5_tts = (Fsd_era5_tts - Fsu_era5_tts) + (Fld_era5_tts - Flu_era5_tts)
         flag = numpy.zeros(len(Fn_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Net all wave radiation",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Net radiation", 
+                                                 group_name = "radiation", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fn",Fn_era5_tts,flag,attr)
 
         # === SENSIBLE HEAT FLUX Fh === #
@@ -439,7 +446,8 @@ for n, era5_name in enumerate(era5_files):
         # get the net longwave at the tower time step
         #Fh_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(Fh_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Sensible heat flux",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Sensible heat flux", 
+                                                 group_name = "flux", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fh",Fh_era5_tts,flag,attr)
 
         # === LATENT HEAT FLUX Fh === #
@@ -467,20 +475,23 @@ for n, era5_name in enumerate(era5_files):
         # get the net longwave at the tower time step
         #Fe_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(Fe_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Latent heat flux",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Latent heat flux", 
+                                                 group_name = "flux", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fe",Fe_era5_tts,flag,attr)
 
         # === GROUND HEAT FLUX Fg = Fn - Fh - Fe === #
         # get Fg as residual
         Fg_era5_tts = Fn_era5_tts - Fh_era5_tts - Fe_era5_tts
         flag = numpy.zeros(len(Fg_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Ground heat flux",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Ground heat flux", 
+                                                 group_name = "soil", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fg",Fg_era5_tts,flag,attr)
         # === AVAILABLE ENERGY Fa = Fn - Fg === #
         # and then Fa
         Fa_era5_tts = Fn_era5_tts - Fg_era5_tts
         flag = numpy.zeros(len(Fa_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Available energy",units="W/m2")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Available energy", 
+                                                 group_name = "flux", units="W/m^2")
         pfp_utils.CreateSeries(ds_era5,"Fa",Fa_era5_tts,flag,attr)
 
         # === AIR PRESSURE ps === #
@@ -499,7 +510,8 @@ for n, era5_name in enumerate(era5_files):
         # get the air pressure at the tower time step
         #ps_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(ps_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Surface pressure",units="kPa")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Surface air pressure", 
+                                                 group_name = "meteorology", units="kPa")
         pfp_utils.CreateSeries(ds_era5,"ps",ps_era5_tts,flag,attr)
 
         # === TEMPERATURE Ta === #
@@ -518,7 +530,8 @@ for n, era5_name in enumerate(era5_files):
         # get the air temperature at the tower time step
         #Ta_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(Ta_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Air temperature",units="C")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Air temperature", 
+                                                 group_name = "meteorology", units="degC")
         pfp_utils.CreateSeries(ds_era5,"Ta",Ta_era5_tts,flag,attr)
 
         # === DEWPOINT TEMPERATURE Td === #
@@ -540,29 +553,33 @@ for n, era5_name in enumerate(era5_files):
 
         # === RELATIVE HUMIDITY RH === #
         # get the relative humidity
-        es_era5_tts = mf.es(Ta_era5_tts)
-        e_era5_tts = mf.es(Td_era5_tts)
+        es_era5_tts = mf.VPsat(Ta_era5_tts)
+        e_era5_tts = mf.VPsat(Td_era5_tts)
         VPD_era5_tts = es_era5_tts - e_era5_tts
         flag = numpy.zeros(len(VPD_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Vapour pressure deficit",units="kPa")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Vapour pressure deficit", 
+                                                 group_name = "meteorology", units="kPa")
         pfp_utils.CreateSeries(ds_era5,"VPD",VPD_era5_tts,flag,attr)
         RH_era5_tts = float(100)*e_era5_tts/es_era5_tts
         flag = numpy.zeros(len(RH_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity",units="percent")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity", 
+                                                 group_name = "meteorology", units="percent")
         pfp_utils.CreateSeries(ds_era5,"RH",RH_era5_tts,flag,attr)
 
         # === ABSOLUTE HUMIDITY Ah === #
         # get the absolute humidity
-        Ah_era5_tts = mf.absolutehumidityfromRH(Ta_era5_tts,RH_era5_tts)
+        Ah_era5_tts = mf.absolutehumidityfromrelativehumidity(Ta_era5_tts,RH_era5_tts)
         flag = numpy.zeros(len(Ah_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity",units="g/m3")
-        pfp_utils.CreateSeries(ds_era5,"Ah",Ah_era5_tts,flag,attr)
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity", 
+                                                 group_name = "meteorology", units="g/m^3")
+        pfp_utils.CreateSeries(ds_era5,"AH",Ah_era5_tts,flag,attr)
 
         # === SPECIFIC HUMIDITY Ah === #
         # get the specific humidity
         q_era5_tts = mf.specifichumidityfromRH(RH_era5_tts,Ta_era5_tts,ps_era5_tts)
         flag = numpy.zeros(len(q_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Specific humidity",units="kg/kg")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Specific humidity", 
+                                                 group_name = "meteorology", units="kg/kg")
         pfp_utils.CreateSeries(ds_era5,"SH",q_era5_tts,flag,attr)
 
         # === ATMOSPHERIC BOUNDARY LAYER HEIGHT Habl === #
@@ -581,7 +598,8 @@ for n, era5_name in enumerate(era5_files):
         # get the boundary layer height at the tower time step
         #Habl_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(Habl_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Boundary layer height",units="m")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Boundary layer height", 
+                                                 group_name = "meteorology", units="m")
         pfp_utils.CreateSeries(ds_era5,"Habl",Habl_era5_tts,flag,attr)
 
         # === PRECIPITATION Precip === #
@@ -599,7 +617,8 @@ for n, era5_name in enumerate(era5_files):
         if len(idx) != 0:
            Precip_era5_tts[idx] = Precip_era5_1hr
         flag = numpy.zeros(len(Precip_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Precipitation",units="mm")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Precipitation", 
+                                                 group_name = "meteorology", units="mm")
         pfp_utils.CreateSeries(ds_era5,"Precip",Precip_era5_tts,flag,attr)
 
         # === SOIL MOISTURE Sws === #
@@ -613,7 +632,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Sws_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Sws_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil moisture level 1: 0 to 7 cm",units="frac")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil water content, layer 1: 0 to 7 cm", 
+                                                 group_name = "soil", units="m^3/m^3")
         pfp_utils.CreateSeries(ds_era5,"Sws",Sws_era5_tts,flag,attr)
         # LEVEL2: 
         Sws_3d = era5_file.variables["swvl2"][:,:,:]
@@ -623,7 +643,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Sws_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Sws_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil moisture level 2: 7 to 28 cm",units="frac")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil water content, layer 2: 7 to 28 cm", 
+                                                 group_name = "soil", units="m^3/m^3")
         pfp_utils.CreateSeries(ds_era5,"Sws2",Sws_era5_tts,flag,attr)
         # LEVEL3: 
         Sws_3d = era5_file.variables["swvl3"][:,:,:]
@@ -633,7 +654,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Sws_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Sws_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil moisture level 3: 28 to 100 cm",units="frac")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil water content, layer 3: 28 to 100 cm", 
+                                                 group_name = "soil", units="m^3/m^3")
         pfp_utils.CreateSeries(ds_era5,"Sws3",Sws_era5_tts,flag,attr)
         # LEVEL4: 
         Sws_3d = era5_file.variables["swvl4"][:,:,:]
@@ -643,7 +665,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Sws_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Sws_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil moisture level 4: 100 to 289 cm",units="frac")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil water content, layer 4: 100 to 289 cm", 
+                                                 group_name = "soil", units="m^3/m^3")
         pfp_utils.CreateSeries(ds_era5,"Sws4",Sws_era5_tts,flag,attr)
 
         # === SOIL TEMPERATURE Ts === #
@@ -657,7 +680,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Ts_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Ts_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature level 1: 0 to 7 cm",units="C")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature, layer 1: 0 to 7 cm", 
+                                                 group_name = "soil", units="degC")
         pfp_utils.CreateSeries(ds_era5,"Ts",Ts_era5_tts,flag,attr)
         # LEVEL2: 
         # Interpolate the 1 hourly soil temperature to the tower time step
@@ -669,7 +693,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Ts_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Ts_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature level 2: 7 to 28 cm",units="C")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature, layer 2: 7 to 28 cm", 
+                                                 group_name = "soil", units="degC")
         pfp_utils.CreateSeries(ds_era5,"Ts2",Ts_era5_tts,flag,attr)
         # LEVEL3: 
         # Interpolate the 1 hourly soil temperature to the tower time step
@@ -681,7 +706,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Ts_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Ts_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature level 3: 28 to 100 cm",units="C")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature, layer 3: 28 to 100 cm", 
+                                                 group_name = "soil", units="degC")
         pfp_utils.CreateSeries(ds_era5,"Ts3",Ts_era5_tts,flag,attr)
         # LEVEL4: 
         # Interpolate the 1 hourly soil temperature to the tower time step
@@ -693,7 +719,8 @@ for n, era5_name in enumerate(era5_files):
         # get the coefficient at the tower time step
         Ts_era5_tts = int_fn(era5_time_tts) 
         flag = numpy.zeros(len(Ts_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature level 4: 100 to 289 cm",units="C")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Soil temperature, layer 4: 100 to 289 cm", 
+                                                 group_name = "soil", units="degC")
         pfp_utils.CreateSeries(ds_era5,"Ts4",Ts_era5_tts,flag,attr)
 
         # === U-WIND COMPONENT U === #
@@ -713,7 +740,8 @@ for n, era5_name in enumerate(era5_files):
         # get the soil moisture at the tower time step
         #U_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(U_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="U component of wind speed",units="m/s")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Along wind velocity component", 
+                                                 group_name = "meteorology", units="m/s")
         pfp_utils.CreateSeries(ds_era5,"U",U_era5_tts,flag,attr)
 
         # === V-WIND COMPONENT V === #
@@ -731,20 +759,23 @@ for n, era5_name in enumerate(era5_files):
         # get the soil moisture at the tower time step
         #V_era5_tts = s(era5_time_tts)
         flag = numpy.zeros(len(V_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="V component of wind speed",units="m/s")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Across wind velocity component", 
+                                                 group_name = "meteorology", units="m/s")
         pfp_utils.CreateSeries(ds_era5,"V",V_era5_tts,flag,attr)
 
         # === WIND SPEED Ws and WIND DIRECTION Wd === #
         # now get the wind speed and direction
         Ws_era5_tts = numpy.sqrt(U_era5_tts*U_era5_tts + V_era5_tts*V_era5_tts)
         flag = numpy.zeros(len(Ws_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Wind speed",units="m/s")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Wind speed", 
+                                                 group_name = "meteorology", units="m/s")
         pfp_utils.CreateSeries(ds_era5,"Ws",Ws_era5_tts,flag,attr)
         Wd_era5_tts = float(270) - numpy.arctan2(V_era5_tts,U_era5_tts)*float(180)/numpy.pi
         idx = numpy.where(Wd_era5_tts>360)[0]
         if len(idx)>0: Wd_era5_tts[idx] = Wd_era5_tts[idx] - float(360)
         flag = numpy.zeros(len(Wd_era5_tts),dtype=numpy.int32)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Wind direction",units="deg")
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Wind direction", 
+                                                 group_name = "meteorology", units="degrees")
         pfp_utils.CreateSeries(ds_era5,"Wd",Wd_era5_tts,flag,attr)
 
         # === WRITE OUTPUT FILE FOR THE SITE

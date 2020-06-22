@@ -323,13 +323,13 @@ def plot_LLparams(LT_results,LL_results):
 def plot_LTparams_ER(ldt,ER,ER_LT,LT_results):
     fig, axs = plt.subplots(3,1,sharex=True,figsize=(24,6))
     axs[0].plot(LT_results["mid_date"],LT_results["rb"],'bo')
-    axs[0].set_ylabel("rb (umol/m2/s)")
+    axs[0].set_ylabel("rb (umol/m^2/s)")
     axs[1].plot(LT_results["mid_date"],LT_results["E0"],'bo')
     axs[1].set_ylabel("E0 (C)")
     axs[2].plot(ldt,ER,'bo')
     axs[2].plot(ldt,ER_LT,'r--')
     axs[2].axhline(y=0,linewidth=4,color="r")
-    axs[2].set_ylabel("ER (umol/m2/s)")
+    axs[2].set_ylabel("ER (umol/m^2/s)")
     plt.tight_layout()
     plt.draw()
 
@@ -401,7 +401,7 @@ def rpLL_createdict_info(cf, ds, erll, called_by):
     erll["info"]["enddate"] = ldt[-1].strftime("%Y-%m-%d %H:%M")
     erll["info"]["called_by"] = called_by
     erll["info"]["time_step"] = time_step
-    erll["info"]["source"] = "Fc"
+    erll["info"]["source"] = "Fco2"
     erll["info"]["target"] = "ER"
     # check to see if this is a batch or an interactive run
     call_mode = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "call_mode", default="interactive")
@@ -451,7 +451,7 @@ def rpLL_createdict_outputs(cf, erll, target, called_by, flag_code):
         # get the target
         sl = [section, target, called_by, output]
         eo[output]["target"] = pfp_utils.get_keyvaluefromcf(cf, sl, "target", default=target)
-        eo[output]["source"] = pfp_utils.get_keyvaluefromcf(cf, sl, "source", default="Fc")
+        eo[output]["source"] = pfp_utils.get_keyvaluefromcf(cf, sl, "source", default="Fco2")
         # add the flag_code
         eo[output]["flag_code"] = flag_code
         # list of drivers

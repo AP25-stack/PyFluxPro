@@ -308,8 +308,8 @@ def compare_eddypro():
     Fh_ep = pfp_utils.GetVariable(ds_ep,'Fh',start=si_ep,end=ei_ep)
     Fe_of = pfp_utils.GetVariable(ds_of,'Fe',start=si_of,end=ei_of)
     Fe_ep = pfp_utils.GetVariable(ds_ep,'Fe',start=si_ep,end=ei_ep)
-    Fc_of = pfp_utils.GetVariable(ds_of,'Fc',start=si_of,end=ei_of)
-    Fc_ep = pfp_utils.GetVariable(ds_ep,'Fc',start=si_ep,end=ei_ep)
+    Fc_of = pfp_utils.GetVariable(ds_of,'Fco2',start=si_of,end=ei_of)
+    Fc_ep = pfp_utils.GetVariable(ds_ep,'Fco2',start=si_ep,end=ei_ep)
     # copy the range check values from the OFQC attributes to the EP attributes
     for of, ep in zip([us_of, Fh_of, Fe_of, Fc_of], [us_ep, Fh_ep, Fe_ep, Fc_ep]):
         for item in ["rangecheck_upper", "rangecheck_lower"]:
@@ -324,9 +324,9 @@ def compare_eddypro():
     plt.ion()
     fig = plt.figure(1,figsize=(8,8))
     pfp_plot.xyplot(us_ep["Data"],us_of["Data"],sub=[2,2,1],regr=2,xlabel='u*_EP (m/s)',ylabel='u*_OF (m/s)')
-    pfp_plot.xyplot(Fh_ep["Data"],Fh_of["Data"],sub=[2,2,2],regr=2,xlabel='Fh_EP (W/m2)',ylabel='Fh_OF (W/m2)')
-    pfp_plot.xyplot(Fe_ep["Data"],Fe_of["Data"],sub=[2,2,3],regr=2,xlabel='Fe_EP (W/m2)',ylabel='Fe_OF (W/m2)')
-    pfp_plot.xyplot(Fc_ep["Data"],Fc_of["Data"],sub=[2,2,4],regr=2,xlabel='Fc_EP (umol/m2/s)',ylabel='Fc_OF (umol/m2/s)')
+    pfp_plot.xyplot(Fh_ep["Data"],Fh_of["Data"],sub=[2,2,2],regr=2,xlabel='Fh_EP (W/m^2)',ylabel='Fh_OF (W/m^2)')
+    pfp_plot.xyplot(Fe_ep["Data"],Fe_of["Data"],sub=[2,2,3],regr=2,xlabel='Fe_EP (W/m^2)',ylabel='Fe_OF (W/m^2)')
+    pfp_plot.xyplot(Fc_ep["Data"],Fc_of["Data"],sub=[2,2,4],regr=2,xlabel='Fc_EP (umol/m^2/s)',ylabel='Fc_OF (umol/m^2/s)')
     plt.tight_layout()
     plt.draw()
     plt.ioff()

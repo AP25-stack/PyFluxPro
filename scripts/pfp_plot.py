@@ -145,7 +145,7 @@ def plot_fcvsustar(ds):
         start = datetime.datetime(year, 1, 1, 0, 30, 0)
         end = datetime.datetime(year+1, 1, 1, 0, 0, 0)
         # get the variables from the data structure
-        Fc = pfp_utils.GetVariable(ds, "Fc", start=start, end=end)
+        Fc = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
         Fsd = pfp_utils.GetVariable(ds, "Fsd", start=start, end=end)
         ustar = pfp_utils.GetVariable(ds, "ustar", start=start, end=end)
         # get the observations and night time filters
@@ -208,7 +208,7 @@ def plot_fcvsustar(ds):
                 fig.delaxes(axs[row, col])
                 continue
             # get the variables from the data structure
-            Fc = pfp_utils.GetVariable(ds, "Fc", start=start, end=end)
+            Fc = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
             Fsd = pfp_utils.GetVariable(ds, "Fsd", start=start, end=end)
             ustar = pfp_utils.GetVariable(ds, "ustar", start=start, end=end)
             # get the observations and night time filters
@@ -317,7 +317,7 @@ def plot_fingerprint(cf):
     """ Do a fingerprint plot"""
     # set up some variable aliases
     aliases = {"CO2":["CO2", "Cc"], "Cc":["Cc", "CO2"],
-               "H2O":["H2O", "Ah"], "Ah":["Ah", "H2O"]}
+               "H2O":["H2O", "AH"], "AH":["AH", "H2O"]}
     # read the input files
     ds = pltfingerprint_readncfiles(cf)
     # create a dictionary to hold the fingerprint plot information
@@ -598,7 +598,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     fig = plt.figure(nFig, figsize=(8, 8))
     fig.canvas.set_window_title("Surface Energy Balance")
     plt.figtext(0.5, 0.95, plot_title, horizontalalignment='center', size=16)
-    xyplot(Fa_SEB, FhpFe_SEB, sub=[2,2,1], regr=1, title="All hours", xlabel='Fa (W/m2)', ylabel='Fh+Fe (W/m2)')
+    xyplot(Fa_SEB, FhpFe_SEB, sub=[2,2,1], regr=1, title="All hours", xlabel='Fa (W/m^2)', ylabel='Fh+Fe (W/m^2)')
     # scatter plot of (Fh+Fe) versus Fa, 24 hour averages
     mask = numpy.ma.mask_or(daily["Fa"]["Data"].mask, daily["Fe"]["Data"].mask)
     mask = numpy.ma.mask_or(mask, daily["Fh"]["Data"].mask)
@@ -610,7 +610,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     Fh_daily_avg = numpy.ma.average(Fh_daily, axis=1)
     FhpFe_daily_avg = Fh_daily_avg + Fe_daily_avg
     xyplot(Fa_daily_avg, FhpFe_daily_avg, sub=[2,2,2], regr=1, thru0=1,
-           title="Daily Average", xlabel="Fa (W/m2)", ylabel="Fh+Fe (W/m2)")
+           title="Daily Average", xlabel="Fa (W/m^2)", ylabel="Fh+Fe (W/m^2)")
     # scatter plot of (Fh+Fe) versus Fa, day time
     day_mask = (data["Fsd"]["Data"] >= 10)
     Fa_day = numpy.ma.masked_where(day_mask == False, Fa_30min)
@@ -622,7 +622,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     Fe_day = numpy.ma.array(Fe_day, mask=mask)
     Fh_day = numpy.ma.array(Fh_day, mask=mask)
     FhpFe_day = Fh_day + Fe_day
-    xyplot(Fa_day, FhpFe_day, sub=[2,2,3], regr=1, title="Day", xlabel="Fa (W/m2)", ylabel="Fh+Fe (W/m2)")
+    xyplot(Fa_day, FhpFe_day, sub=[2,2,3], regr=1, title="Day", xlabel="Fa (W/m^2)", ylabel="Fh+Fe (W/m^2)")
     # scatter plot of (Fh+Fe) versus Fa, night time
     night_mask = (data["Fsd"]["Data"] < 10)
     Fa_night = numpy.ma.masked_where(night_mask==False, Fa_30min)
@@ -634,7 +634,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     Fe_night = numpy.ma.array(Fe_night, mask=mask)
     Fh_night = numpy.ma.array(Fh_night, mask=mask)
     FhpFe_night = Fh_night + Fe_night
-    xyplot(Fa_night, FhpFe_night, sub=[2,2,4], regr=1, title="Night", xlabel="Fa (W/m2)", ylabel="Fh+Fe (W/m2)")
+    xyplot(Fa_night, FhpFe_night, sub=[2,2,4], regr=1, title="Night", xlabel="Fa (W/m^2)", ylabel="Fh+Fe (W/m^2)")
     # hard copy of plot
     fig.savefig(figure_name, format='png')
     # draw the plot on the screen
@@ -643,7 +643,7 @@ def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
 
 def plot_quickcheck_get_seb(daily):
     # get the SEB ratio
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
     Fa_daily = daily["Fa"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
@@ -674,7 +674,7 @@ def plot_quickcheck_get_seb(daily):
 
 def plot_quickcheck_get_ef(daily):
     # get the EF
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
     Fa_daily = daily["Fa"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
@@ -700,7 +700,7 @@ def plot_quickcheck_get_ef(daily):
 
 def plot_quickcheck_get_br(daily):
     # get the BR
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
     Fh_daily = daily["Fh"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
@@ -726,9 +726,9 @@ def plot_quickcheck_get_br(daily):
 
 def plot_quickcheck_get_wue(daily):
     # get the Wue
-    # get the daytime data, defined by Fsd>10 W/m2
+    # get the daytime data, defined by Fsd>10 W/m^2
     nm = daily["night_mask"]["Data"]
-    Fc_daily = daily["Fc"]["Data"]
+    Fc_daily = daily["Fco2"]["Data"]
     Fe_daily = daily["Fe"]["Data"]
     Fe_day = numpy.ma.masked_where(nm == True, Fe_daily)
     Fc_day = numpy.ma.masked_where(nm == True, Fc_daily)
@@ -820,7 +820,7 @@ def plot_quickcheck(cf):
     data["Minute"]["Data"] = numpy.array([d.minute for d in DateTime])
     # now do the data we want to plot
     data_list = ["Fsd", "Fsu", "Fld", "Flu", "Fn",
-                 "Fg", "Fa", "Fe", "Fh", "Fc", "ustar",
+                 "Fg", "Fa", "Fe", "Fh", "Fco2", "ustar",
                  "Ta", "H2O", "CO2", "Precip", "Ws",
                  "Sws", "Ts"]
     for label in data_list:
@@ -908,7 +908,7 @@ def plot_quickcheck(cf):
     fig.canvas.set_window_title("Daily Average Fluxes")
     plt.figtext(0.5, 0.95, plot_title, horizontalalignment="center", size=16)
     plt.figtext(0.5, 0.90, "Day time data points only", horizontalalignment="center", size=14)
-    tsplot3_list = ["Fsd", "Fa", "Fe", "Fh", "Fc"]
+    tsplot3_list = ["Fsd", "Fa", "Fe", "Fh", "Fco2"]
     nplots = len(tsplot3_list)
     for nrow, label in enumerate(tsplot3_list):
         daily[label]["Avg"], daily[label]["Count"] = plot_quickcheck_get_avg(daily, label, filter_type="day")
@@ -959,7 +959,7 @@ def plot_quickcheck(cf):
     # month labels
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     # variable labels
-    labels = ["Fsd", "Fsu", "Fa", "Fn", "Fg", "Ta", "Ts", "Fh", "Fe", "Fc"]
+    labels = ["Fsd", "Fsu", "Fa", "Fn", "Fg", "Ta", "Ts", "Fh", "Fe", "Fco2"]
     # get the colour map, points will be coloured according to the percentage of good data
     cm = plt.cm.get_cmap("RdYlBu")
     # 12 plots per page, 1 for each month

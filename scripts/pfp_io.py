@@ -369,7 +369,7 @@ def read_eddypro_full(csvname):
     variable["Flag"] = numpy.array(Fe_flag_list,dtype=numpy.int32)
     variable["Attr"] = pfp_utils.MakeAttributeDictionary()
     pfp_utils.CreateVariable(ds, variable)
-    variable = {"Label":"Fc"}
+    variable = {"Label":"Fco2"}
     variable["Data"] = numpy.array(Fc_data_list,dtype=numpy.float64)
     variable["Flag"] = numpy.array(Fc_flag_list,dtype=numpy.int32)
     variable["Attr"] = pfp_utils.MakeAttributeDictionary()
@@ -439,10 +439,10 @@ def write_csv_reddyproc(cf):
     # this could be done better, pete!
     for series in series_list:
         if series=="NEE":
-            if data[series]["Attr"]["units"] in ["mg/m2/s","mgCO2/m2/s"]:
-                data[series]["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
+            if data[series]["Attr"]["units"] in ["mg/m^2/s","mgCO2/m2/s"]:
+                data[series]["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
                 data[series]["Attr"]["units"] = "umolm-2s-1"
-            elif data[series]["Attr"]["units"]=='umol/m2/s':
+            elif data[series]["Attr"]["units"]=='umol/m^2/s':
                 data[series]["Attr"]["units"] = "umolm-2s-1"
             else:
                 msg = " REddyProc output: unrecognised units for "+series+", returning ..."
@@ -455,7 +455,7 @@ def write_csv_reddyproc(cf):
         if series=="rH" and data[series]["Attr"]["units"] in ["fraction","frac"]:
             idx = numpy.where(data[series]["Data"]!=c.missing_value)[0]
             data[series]["Data"][idx] = float(100)*data[series]["Data"][idx]
-            data[series]["Attr"]["units"] = "%"
+            data[series]["Attr"]["units"] = "percent"
         if series=="VPD" and data[series]["Attr"]["units"]=="kPa":
             idx = numpy.where(data[series]["Data"]!=c.missing_value)[0]
             data[series]["Data"][idx] = float(10)*data[series]["Data"][idx]
@@ -732,10 +732,12 @@ def write_csv_ecostress(cf):
             data[label]["Attr"]["fmt"] = strfmt
     # adjust units as required
     # GPP
-    data["GPP"]["Data"] = pfp_mf.Fc_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
-    data["GPP"]["Attr"]["units"] = "gC/m2/s"
+    data["GPP"]["Data"] = pfp_mf.Fco2_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
+    data["GPP"]["Attr"]["units"] = "g/m^2/s"
+    data["GPP"]["Attr"]["long_name"] = "Gross Primary Productivity"
+    data["GPP"]["Attr"]["description_L6"] = "Expressed as grams Carbon"
     # SWC
-    data["SWC"]["Attr"]["units"] = "m3/m3"
+    data["SWC"]["Attr"]["units"] = "m^3/m^3"
     # add the QC flags for Fh, Fe, Fg, GPP, Ta, T2, VPD, Fn
     # for Fh, Fe, Fg, Fn, Ta, T2 and VPD QC flag is:
     #  a) 0 for observation
@@ -962,11 +964,9 @@ def ExcelToDataStructures(xl_data, l1_info):
         for xl_label in xl_labels:
             nc_label = l1ire["xl_sheets"][xl_sheet][xl_label]
             col = headers.index(xl_label)
-            logger.info(str(nc_label) +' '+ str(xl_label) +' '+ str(xl_sheet) +' '+ str(col))
             values = numpy.array(active_sheet.col_values(col)[fdr:ldr])
             types = numpy.array(active_sheet.col_types(col)[fdr:ldr])
             mode = scipy.stats.mode(types, nan_policy='propagate')
-            logger.info(str(xl_label) +' '+ str(mode[0][0]) +' '+ str((mode[1][0])))
             if mode[0][0] == 3 and 100*mode[1][0]/nrecs > 75:
                 # time stamp (Excel cell type = 3)
                 msg = " Got time stamp " + xl_label + " from sheet " + xl_sheet
@@ -1007,10 +1007,11 @@ def write_csv_fluxnet(cf):
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     # Tumbarumba doesn't have RH in the netCDF files
     if "RH" not in list(ds.series.keys()):
-        Ah,f,a = pfp_utils.GetSeriesasMA(ds,'Ah')
+        AH,f,a = pfp_utils.GetSeriesasMA(ds,'AH')
         Ta,f,a = pfp_utils.GetSeriesasMA(ds,'Ta')
-        RH = pfp_mf.RHfromabsolutehumidity(Ah, Ta)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Relative humidity',units='%',standard_name='relative_humidity')
+        RH = pfp_mf.relativehumidityfromabsolutehumidity(AH, Ta)
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity", units="percent",
+                                                 standard_name='relative_humidity')
         flag = numpy.where(numpy.ma.getmaskarray(RH)==True,ones,zeros)
         pfp_utils.CreateSeries(ds,"RH",RH,flag,attr)
     ts = int(ds.globalattributes["time_step"])
@@ -1116,16 +1117,16 @@ def write_csv_fluxnet(cf):
         data[series]["fmt"] = strfmt
     #adjust units if required
     for series in series_list:
-        if series=="FC" and data[series]["Attr"]["units"]=='mg/m2/s':
-            data[series]["Data"] = pfp_mf.Fc_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
-            data[series]["Attr"]["units"] = "umol/m2/s"
-        if series=="CO2" and data[series]["Attr"]["units"]=='mg/m3':
+        if series=="FC" and data[series]["Attr"]["units"]=='mg/m^2/s':
+            data[series]["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
+            data[series]["Attr"]["units"] = "umol/m^2/s"
+        if series=="CO2" and data[series]["Attr"]["units"]=='mg/m^3':
             CO2 = data["CO2"]["Data"]
             TA = data["TA"]["Data"]
             PA = data["PA"]["Data"]
             data[series]["Data"] = pfp_mf.co2_ppmfrommgCO2pm3(CO2,TA,PA)
             data[series]["Attr"]["units"] = "umol/mol"
-        if series=="H2O" and data[series]["Attr"]["units"]=='g/m3':
+        if series=="H2O" and data[series]["Attr"]["units"]=='g/m^3':
             H2O = data["H2O"]["Data"]
             TA = data["TA"]["Data"]
             PA = data["PA"]["Data"]
@@ -1133,7 +1134,7 @@ def write_csv_fluxnet(cf):
             data[series]["Attr"]["units"] = "mmol/mol"
         if series=="RH" and data[series]["Attr"]["units"] in ["fraction","frac"]:
             data[series]["Data"] = float(100)*data[series]["Data"]
-            data[series]["Attr"]["units"] = "%"
+            data[series]["Attr"]["units"] = "percent"
     # write the general information to csv file
     for item in cf["General"]:
         writer.writerow([item,str(cf['General'][item])])
@@ -1168,7 +1169,9 @@ def get_controlfilecontents(ControlFileName, mode="verbose"):
     if mode != "quiet":
         logger.info(" Processing the control file")
     if len(ControlFileName) != 0:
-        cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False)
+        #cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False)
+        cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False,
+                       write_empty_values=True)
         cf["controlfile_name"] = ControlFileName
     else:
         cf = ConfigObj()
@@ -1309,8 +1312,8 @@ def NetCDFConcatenate(info):
     # and make sure we have all of the meteorological variables
     pfp_ts.CalculateMeteorologicalVariables(ds_out, info)
     # check units of Fc and convert if necessary
-    Fc_list = ["Fc", "Fc_single", "Fc_profile", "Fc_storage"]
-    pfp_utils.CheckUnits(ds_out, Fc_list, "umol/m2/s", convert_units=True)
+    Fco2_list = ["Fco2", "Fco2_single", "Fco2_profile", "Fco2_storage"]
+    pfp_utils.CheckUnits(ds_out, Fco2_list, "umol/m^2/s", convert_units=True)
     # check missing data and QC flags are consistent
     pfp_utils.CheckQCFlags(ds_out)
     # update the coverage statistics
@@ -1389,7 +1392,7 @@ def netcdf_concatenate_create_ds_out(data, info):
                 dout["Flag"][indsa] = din["Flag"][indsb]
                 # copy the variable attributes but only if they don't already exist
                 netcdf_concatenate_variable_attributes(dout["Attr"], din["Attr"], info)
-    # update the global attributes
+    # update thdoute global attributes
     ds_out.globalattributes["nc_nrecs"] = nrecs
     return ds_out
 
@@ -1408,10 +1411,22 @@ def netcdf_concatenate_variable_attributes(attr_out, attr_in, info):
     Author: PRI
     Date: November 2019
     """
-    inc = info["NetCDFConcatenate"]
+    #inc = info["NetCDFConcatenate"]
+    #for attr in attr_in:
+        #if attr in inc["attributes"]:
+            #attr_out[attr] = attr_in[attr]
     for attr in attr_in:
-        if attr in inc["attributes"]:
-            attr_out[attr] = attr_in[attr]
+        # check we want this attribute
+        if attr not in info["NetCDFConcatenate"]["attributes"]:
+            continue
+        # skip if attribute empty
+        if len(str(attr_in[attr])) == 0:
+            continue
+        # this accepts the first non-empty attribute value
+        #if attr not in attr_out:
+            #attr_out[attr] = attr_in[attr]
+        # this accepts the last non-empty attribute value
+        attr_out[attr] = attr_in[attr]
     return
 
 def netcdf_concatenate_read_input_files(info):
@@ -1901,13 +1916,13 @@ def nc_write_series(ncFile, ds, outputlist=None, ndims=3):
             ncVar[:] = pfp_utils.convert_anglestring(str(ds.globalattributes["latitude"]))
             setattr(ncVar,'long_name','latitude')
             setattr(ncVar,'standard_name','latitude')
-            setattr(ncVar,'units','degrees north')
+            setattr(ncVar,'units','degrees')
         if "longitude" not in outputlist:
             ncVar = ncFile.createVariable("longitude","d",("longitude",))
             ncVar[:] = pfp_utils.convert_anglestring(str(ds.globalattributes["longitude"]))
             setattr(ncVar,'long_name','longitude')
             setattr(ncVar,'standard_name','longitude')
-            setattr(ncVar,'units','degrees east')
+            setattr(ncVar,'units','degrees')
     # now make sure the date and time series are in outputlist
     datetimelist = ['xlDateTime','Year','Month','Day','Hour','Minute','Second','Hdh','Ddd']
     # and write them to the netCDF file
@@ -1964,7 +1979,7 @@ def nc_write_var(ncFile, ds, ThisOne, dim):
     # write the attributes
     vattrs = sorted(list(ds.series[ThisOne]["Attr"].keys()))
     for item in vattrs:
-        if item != "_FillValue":
+        if len(str(ds.series[ThisOne]["Attr"][item])) != 0:
             attr = str(ds.series[ThisOne]["Attr"][item])
             ncVar.setncattr(item, attr)
     # make sure the missing_value attribute is written
