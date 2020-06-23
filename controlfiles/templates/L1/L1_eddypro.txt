@@ -5,7 +5,6 @@ level = L1
     in_headerrow = 2
     in_firstdatarow = 4
     out_filename = Right click to browse (*.nc)
-
 [Global]
     acknowledgement = 
     contact = 
@@ -33,32 +32,7 @@ level = L1
     tower_height = <tower_height>m
     vegetation = 
     altitude = <altitude>m
-
 [Variables]
-    [[DateTime]]
-        [[[Attr]]]
-            long_name = Date/time in Excel format
-            units = days since 1899-12-31 00:00:00 -5:00
-            standard_name = not defined
-            cf_role = timeseries_id
-        [[[Function]]]
-            func = DateTimeFromExcelDateAndTime(Date,Time)
-    [[Date]]
-        [[[xl]]]
-            sheet = full_output
-            name = date
-        [[[Attr]]]
-            long_name = Date from full_output file
-            standard_name = 
-            units = 
-    [[Time]]
-        [[[xl]]]
-            sheet = full_output
-            name = time
-        [[[Attr]]]
-            long_name = Time from full_output file
-            standard_name = 
-            units = 
     [[Fn]]
         [[[xl]]]
             sheet = biomet
@@ -69,7 +43,7 @@ level = L1
             long_name = Net radiation (CNR1 4 components)
             serial_number = 
             standard_name = surface_net_downwawrd_radiative_flux
-            units = W/m2
+            units = W/m^2
     [[Fld]]
         [[[xl]]]
             sheet = biomet
@@ -80,7 +54,7 @@ level = L1
             long_name = Down-welling long wave radiation
             serial_number = 
             standard_name = surface_downwelling_longwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[Flu]]
         [[[xl]]]
             sheet = biomet
@@ -91,7 +65,7 @@ level = L1
             long_name = Up-welling long wave radiation
             serial_number = 
             standard_name = surface_upwelling_longwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[Fsu]]
         [[[xl]]]
             sheet = biomet
@@ -102,7 +76,7 @@ level = L1
             long_name = Up-welling short wave radiation
             serial_number = 
             standard_name = surface_upwelling_shortwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[Fsd]]
         [[[xl]]]
             sheet = biomet
@@ -113,7 +87,7 @@ level = L1
             long_name = Down-welling short wave radiation
             serial_number = 
             standard_name = surface_downwelling_shortwave_flux_in_air
-            units = W/m2
+            units = W/m^2
     [[Fm]]
         [[[xl]]]
             sheet = full_output
@@ -124,7 +98,7 @@ level = L1
             long_name = Momentum flux
             serial_number = 
             standard_name = 
-            units = kg/m2
+            units = kg/m/s^2
     [[Fm_EPFlag]]
         [[[xl]]]
             sheet = full_output
@@ -146,7 +120,7 @@ level = L1
             long_name = Sensible heat flux
             serial_number = 
             standard_name = 
-            units = W/m2
+            units = W/m^2
     [[Fh_EPFlag]]
         [[[xl]]]
             sheet = full_output
@@ -168,7 +142,7 @@ level = L1
             long_name = Latent heat flux
             serial_number = 
             standard_name = 
-            units = W/m2
+            units = W/m^2
     [[Fe_EPFlag]]
         [[[xl]]]
             sheet = full_output
@@ -190,7 +164,7 @@ level = L1
             long_name = Carbon dioxide flux
             serial_number = 
             standard_name = 
-            units = umol/m2/s
+            units = umol/m^2/s
     [[Fc_EPFlag]]
         [[[xl]]]
             sheet = full_output
@@ -236,7 +210,7 @@ level = L1
             long_name = Variance of virtual temperature from SONIC
             serial_number = 
             standard_name = 
-            units = C2
+            units = K^2
     [[CO2_IRGA_Av]]
         [[[xl]]]
             sheet = full_output
@@ -258,7 +232,7 @@ level = L1
             long_name = CO2 concentration, variance
             serial_number = 
             standard_name = not defined
-            units = (mmol/m3)2
+            units = umol^2/mol^2
     [[H2O_IRGA_Av]]
         [[[xl]]]
             sheet = full_output
@@ -280,7 +254,7 @@ level = L1
             long_name = H2O concentration, variance
             serial_number = 
             standard_name = not defined
-            units = (mmol/m3)2
+            units = mmol^2/mol^2
     [[RH_IRGA_Av]]
         [[[xl]]]
             sheet = full_output
@@ -291,7 +265,7 @@ level = L1
             long_name = Relative humidity, average
             serial_number = 
             standard_name = 
-            units = %
+            units = percent
     [[RH_<inst>_<height>m]]
         [[[xl]]]
             sheet = biomet
@@ -302,7 +276,7 @@ level = L1
             long_name = Relative humidity, average
             serial_number = 
             standard_name = 
-            units = %
+            units = percent
     [[Ta_<inst>_<height>m]]
         [[[xl]]]
             sheet = biomet
@@ -337,7 +311,7 @@ level = L1
             long_name = Variance of longitudinal component of wind velocity
             serial_number = 
             standard_name = 
-            units = (m/s)2
+            units = m^2/s^2
     [[V_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -359,7 +333,7 @@ level = L1
             long_name = Variance of lateral component of wind velocity
             serial_number = 
             standard_name = 
-            units = (m/s)2
+            units = m^2/s^2
     [[W_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -381,7 +355,7 @@ level = L1
             long_name = Variance of veritcal component of wind velocity
             serial_number = 
             standard_name = 
-            units = (m/s)2
+            units = m^2/s^2
     [[Ws_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -403,7 +377,7 @@ level = L1
             long_name = Wind direction, true, degrees from North
             serial_number = 
             standard_name = wind_from_direction
-            units = deg
+            units = degrees
     [[Ws_<inst>_Av]]
         [[[xl]]]
             sheet = biomet
@@ -425,7 +399,7 @@ level = L1
             long_name = Wind direction, true, in degrees from North
             serial_number = 
             standard_name = wind_from_direction
-            units = deg
+            units = degrees
     [[Precip]]
         [[[xl]]]
             sheet = biomet
@@ -460,7 +434,7 @@ level = L1
             long_name = Ground heat flux, sensor 1a
             serial_number = 
             standard_name = downward_heat_flux_in_soil
-            units = W/m2
+            units = W/m^2
     [[Fg_<depth>cmb]]
         [[[xl]]]
             sheet = biomet
@@ -471,7 +445,7 @@ level = L1
             long_name = Ground heat flux, sensor 1b
             serial_number = 
             standard_name = downward_heat_flux_in_soil
-            units = W/m2
+            units = W/m^2
     [[Sws_<depth>cma]]
         [[[xl]]]
             sheet = biomet
@@ -482,7 +456,7 @@ level = L1
             long_name = Soil water fraction, sensor <depth>cma
             serial_number = 
             standard_name = soil_moisture_content
-            units = m3/m3
+            units = m^3/m^3
     [[Sws_<depth>cmb]]
         [[[xl]]]
             sheet = biomet
@@ -493,7 +467,7 @@ level = L1
             long_name = Soil water fraction, sensor <depth>cmb
             serial_number = 
             standard_name = soil_moisture_content
-            units = m3/m3
+            units = m^3/m^3
     [[Ts_<depth>cma]]
         [[[xl]]]
             sheet = biomet

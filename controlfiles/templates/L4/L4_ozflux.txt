@@ -8,24 +8,22 @@ level = L4
     access = Right click to browse
     era5 = Right click to browse
     climatology = Right click to browse
-
 [Options]
     MaxGapInterpolate = 3
-
 [Drivers]
-    [[Ah]]
+    [[AH]]
         [[[GapFillFromAlternate]]]
-            [[[[Ah_aws]]]]
+            [[[[AH_aws]]]]
                 source = aws
-            [[[[Ah_access]]]]
+            [[[[AH_access]]]]
                 source = access
-            [[[[Ah_era5]]]]
+            [[[[AH_era5]]]]
                 source = era5
         [[[GapFillFromClimatology]]]
-            [[[[Ah_cli]]]]
+            [[[[AH_cli]]]]
                 method = interpolated daily
         [[[MergeSeries]]]
-            source = Ah,Ah_aws,Ah_access,Ah_era5,Ah_cli
+            source = AH,AH_aws,AH_access,AH_era5,AH_cli
     [[CO2]]
         [[[GapFillFromClimatology]]]
             [[[[CO2_cli]]]]

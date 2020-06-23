@@ -40,9 +40,9 @@ def fit(temp_df):
     temp_df = temp_df.astype(np.float64)
 
     ### Calculate null model SSE for operational (b) and diagnostic (a) model
-    SSE_null_b=((temp_df['Fc']-temp_df['Fc'].mean())**2).sum() # b model SSE
-    alpha0,alpha1=stats.linregress(temp_df['ustar'],temp_df['Fc'])[:2] # a model regression
-    SSE_null_a=((temp_df['Fc']-(temp_df['ustar']*alpha0+alpha1))**2).sum() # a model SSE
+    SSE_null_b=((temp_df['Fco2']-temp_df['Fco2'].mean())**2).sum() # b model SSE
+    alpha0,alpha1=stats.linregress(temp_df['ustar'],temp_df['Fco2'])[:2] # a model regression
+    SSE_null_a=((temp_df['Fco2']-(temp_df['ustar']*alpha0+alpha1))**2).sum() # a model SSE
 
     ### Create empty array to hold f statistics
     f_a_array=np.empty(50)
@@ -58,18 +58,18 @@ def fit(temp_df):
         # Operational (b) model
         temp_df['ustar_alt']=temp_df['ustar'] # Add dummy variable to df
         temp_df['ustar_alt'].iloc[i+1:]=temp_df['ustar_alt'].iloc[i]
-        reg_params=np.linalg.lstsq(temp_df[['int','ustar_alt']],temp_df['Fc'],rcond=None)[0] # Do linear regression
+        reg_params=np.linalg.lstsq(temp_df[['int','ustar_alt']],temp_df['Fco2'],rcond=None)[0] # Do linear regression
         yHat=reg_params[0]+reg_params[1]*temp_df['ustar_alt'] # Calculate the predicted values for y
-        SSE_full=((temp_df['Fc']-yHat)**2).sum() # Calculate SSE
+        SSE_full=((temp_df['Fco2']-yHat)**2).sum() # Calculate SSE
         f_b_array[i]=(SSE_null_b-SSE_full)/(SSE_full/(50-2)) # Calculate and store F-score
 
         # Diagnostic (a) model
         temp_df['ustar_alt1']=temp_df['ustar']
         temp_df['ustar_alt1'].iloc[i+1:]=temp_df['ustar_alt1'].iloc[i]
         temp_df['ustar_alt2']=(temp_df['ustar']-temp_df['ustar'].iloc[i])*np.concatenate([np.zeros(i+1),np.ones(50-(i+1))])
-        reg_params=np.linalg.lstsq(temp_df[['int','ustar_alt1','ustar_alt2']],temp_df['Fc'],rcond=None)[0] # Do piecewise linear regression (multiple regression with dummy)
+        reg_params=np.linalg.lstsq(temp_df[['int','ustar_alt1','ustar_alt2']],temp_df['Fco2'],rcond=None)[0] # Do piecewise linear regression (multiple regression with dummy)
         yHat=reg_params[0]+reg_params[1]*temp_df['ustar_alt1']+reg_params[2]*temp_df['ustar_alt2'] # Calculate the predicted values for y
-        SSE_full=((temp_df['Fc']-yHat)**2).sum() # Calculate SSE
+        SSE_full=((temp_df['Fco2']-yHat)**2).sum() # Calculate SSE
         f_a_array[i]=(SSE_null_a-SSE_full)/(SSE_full/(50-2)) # Calculate and store F-score
 
     # Get max f-score, associated change point and ustar value
@@ -91,7 +91,7 @@ def fit(temp_df):
     # b model
     temp_df['ustar_alt']=temp_df['ustar']
     temp_df['ustar_alt'].iloc[change_point_b+1:]=ustar_threshold_b
-    reg_params=np.linalg.lstsq(temp_df[['int','ustar_alt']],temp_df['Fc'],rcond=None)[0]
+    reg_params=np.linalg.lstsq(temp_df[['int','ustar_alt']],temp_df['Fco2'],rcond=None)[0]
     b0=reg_params[0]
     b1=reg_params[1]
 
@@ -100,7 +100,7 @@ def fit(temp_df):
     temp_df['ustar_alt1'].iloc[change_point_a+1:]=temp_df['ustar_alt1'].iloc[change_point_a]
     temp_df['ustar_alt2']=(temp_df['ustar']-temp_df['ustar'].iloc[change_point_a])*np.concatenate([np.zeros(change_point_a+1),np.ones(50-(change_point_a+1))])
     #use statsmodels
-    resols=sm.ols(formula="Fc ~ ustar_alt1 + ustar_alt2", data=temp_df).fit()
+    resols=sm.ols(formula="Fco2 ~ ustar_alt1 + ustar_alt2", data=temp_df).fit()
     a0=resols.params[0]
     a1=resols.params[1]
     a2=resols.params[2]
@@ -163,7 +163,7 @@ def cpd1_main(cf):
             if i==1: logger.info(' Analysing '+str(d['num_bootstraps'])+' bootstraps')
 
         # Create nocturnal dataframe (drop all records where any one of the variables is NaN)
-        temp_df = df[['Fc','Ta','ustar','Year']][df['Fsd'] < d['radiation_threshold']].dropna(how = 'any',axis=0)
+        temp_df = df[['Fco2','Ta','ustar','Year']][df['Fsd'] < d['radiation_threshold']].dropna(how = 'any',axis=0)
 
         # Arrange data into seasons
         # try: may be insufficient data, needs to be handled; if insufficient on first pass then return empty,otherwise next pass
@@ -368,7 +368,7 @@ def plot_fits(temp_df,stats_df,d):
     # Now plot
     fig=plt.figure(d["nFig"],figsize=(12,8))
     fig.patch.set_facecolor('white')
-    plt.plot(temp_df['ustar'],temp_df['Fc'],'bo')
+    plt.plot(temp_df['ustar'],temp_df['Fco2'],'bo')
     plt.plot(temp_df['ustar'],temp_df['yHat_b'],color='red')
     plt.plot(temp_df['ustar'],temp_df['yHat_a'],color='green')
     plt.title('Year: '+str(stats_df.name[0])+', Season: '+str(stats_df.name[1])+', T class: '+str(stats_df.name[2])+'\n',fontsize=22)
@@ -533,8 +533,8 @@ def sort(df, flux_period, years_index, i):
 
     # Create a df containing count stats for the variables for all available years
     years_df = pd.DataFrame(index=years_index)
-    years_df['Fc_count'] = df['Fc'].groupby([lambda x: x.year]).count()
-    years_df['seasons'] = [years_df.loc[j, 'Fc_count']/(bin_size//2)-1 for j in years_df.index]
+    years_df['Fco2_count'] = df['Fco2'].groupby([lambda x: x.year]).count()
+    years_df['seasons'] = [years_df.loc[j, 'Fco2_count']/(bin_size//2)-1 for j in years_df.index]
     years_df['seasons'].fillna(0, inplace=True)
     years_df['seasons'] = np.where(years_df['seasons'] < 0, 0, years_df['seasons'])
     years_df['seasons'] = years_df['seasons'].astype(int)
@@ -604,7 +604,7 @@ def sort(df, flux_period, years_index, i):
     seasons_df.index.names = ['year','season','T_class','bin']
     seasons_df = seasons_df.groupby(level=['year','season','T_class','bin']).mean()
     seasons_df = seasons_df.reset_index(level = ['bin'], drop = True)
-    seasons_df = seasons_df[['ustar','Fc']]
+    seasons_df = seasons_df[['ustar','Fco2']]
 
     return years_df, seasons_df, results_df
 #------------------------------------------------------------------------------

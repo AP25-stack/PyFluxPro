@@ -2,13 +2,12 @@ import constants as c
 import numpy
 from pfp_utils import SeriestoMA, MAtoSeries
 
-def absolutehumidityfromRH(Ta,RH):
+def absolutehumidityfromrelativehumidity(Ta,RH):
     # convert to masked arrays
     RH, WasND = SeriestoMA(RH)
     Ta, dummy = SeriestoMA(Ta)
     # do the job
-    VPsat = es(Ta)
-    vp = RH * VPsat / float(100)
+    vp = RH * VPsat(Ta) / float(100)
     ah = float(1000000) * vp / ((Ta + 273.15) * c.Rv)
     # convert back to ndarray if input is not a masked array
     if WasND: ah, _ = MAtoSeries(ah)
@@ -46,7 +45,7 @@ def co2_mgCO2pm3fromppm(c_ppm,T,p):
          CO2_ppm (input) - CO2 concentration, umol/mol
          T (input) - air temperature, C
          p (input) - air pressure, kPa
-        Returns the CO2 concentration in mg/m3.
+        Returns the CO2 concentration in mg/m^3.
     """
     # convert to masked array if required
     c_ppm, WasND = SeriestoMA(c_ppm)
@@ -62,14 +61,14 @@ def co2_mgCO2pm3fromppm(c_ppm,T,p):
 
 def co2_umolpm3fromppm(c_ppm, T, p):
     """
-     Convert CO2 concentration units of umol/mol (ppm) to umol/m3
+     Convert CO2 concentration units of umol/mol (ppm) to umol/m^3
         Usage:
          CO2_umolpm3 = co2_umolpm3fromppm(CO2_ppm, T, p)
          where
          CO2_ppm (input) - CO2 concentration, umol/mol
          T (input) - air temperature, C
          p (input) - air pressure, kPa
-        Returns the CO2 concentration in umol/m3.
+        Returns the CO2 concentration in umol/m^3.
     """
     # convert to masked array if required
     c_ppm, WasND = SeriestoMA(c_ppm)
@@ -114,20 +113,20 @@ def densitywatervapour(Ta,vp):
     rhow = vp*1000/((Ta+273.15)*c.Rv)
     return rhow
 
-def es(T):
+def VPsat(T):
     # Saturation vapour pressure.
     #  T is the air temperature, C
-    #  es is the saturation vapour pressure in kPa
+    #  VPsat is the saturation vapour pressure in kPa
     return 0.6106 * numpy.exp(17.27 * T / (T + 237.3))
 
-def Fc_gCpm2psfromumolpm2ps(Fc_umolpm2ps):
+def Fco2_gCpm2psfromumolpm2ps(Fc_umolpm2ps):
     """
-    Convert Fc in units of umol/m2/s to units of gC/m2/s
+    Convert Fco2 in units of umol/m^2/s to units of g/m^2/s (C, not CO2)
     Usage:
-     Fc_mgpm2ps = Fc_gCpm2psfromumolpm2ps(Fc_umolpm2ps)
+     Fco2_mgpm2ps = Fco2_gCpm2psfromumolpm2ps(Fc_umolpm2ps)
      where:
-      Fc_umolpm2ps (input) - CO2 flux in units of umol/m2/s
-    Returns the CO2 flux in units of gC/m2/s
+      Fco2_umolpm2ps (input) - CO2 flux in units of umol/m^2/s
+    Returns the CO2 flux in units of g/m^2/s (C, not CO2)
     """
     # convert to masked array
     Fc_umolpm2ps, WasND = SeriestoMA(Fc_umolpm2ps)
@@ -137,13 +136,13 @@ def Fc_gCpm2psfromumolpm2ps(Fc_umolpm2ps):
     if WasND: Fc_gCpm2ps, _ = MAtoSeries(Fc_gCpm2ps)
     return Fc_gCpm2ps
 
-def Fc_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps):
+def Fco2_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps):
     """
-    Convert Fc in units of umol/m2/s to units of mgCO2/m2/s
+    Convert Fc in units of umol/m^2/s to units of mgCO2/m2/s
     Usage:
-     Fc_mgCO2pm2ps = Fc_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps)
+     Fc_mgCO2pm2ps = Fco2_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps)
      where:
-      Fc_umolpm2ps (input) - CO2 flux in units of umol/m2/s
+      Fc_umolpm2ps (input) - CO2 flux in units of umol/m^2/s
     Returns the CO2 flux in units of mgCO2/m2/s
     """
     # convert to masked array
@@ -154,14 +153,14 @@ def Fc_mgCO2pm2psfromumolpm2ps(Fc_umolpm2ps):
     if WasND: Fc_mgCO2pm2ps, _ = MAtoSeries(Fc_mgCO2pm2ps)
     return Fc_mgCO2pm2ps
 
-def Fc_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps):
+def Fco2_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps):
     """
-    Convert Fc in units of mg/m2/s to units of umol/m2/s
+    Convert Fc in units of mg/m^2/s to units of umol/m^2/s
     Usage:
-     Fc_umolpm2ps = Fc_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps)
+     Fc_umolpm2ps = Fco2_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps)
      where:
-      Fc_mgpm2ps (input) - CO2 flux in units of mg/m2/s
-    Returns the CO2 flux in units of umol/m2/s
+      Fc_mgpm2ps (input) - CO2 flux in units of mg/m^2/s
+    Returns the CO2 flux in units of umol/m^2/s
     """
     # convert to masked array
     Fc_mgpm2ps, WasND = SeriestoMA(Fc_mgpm2ps)
@@ -173,11 +172,11 @@ def Fc_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps):
 
 def h2o_mmolpmolfromgpm3(h_gpm3,T,p):
     """
-     Convert H2O concentration units of g/m3 to mmol/mol.
+     Convert H2O concentration units of g/m^3 to mmol/mol.
         Usage:
          H2O_mmolpmol = h2o_mmolpmolfromgpm3(H2O_gpm3, T, p)
          where
-         H2O_gpm3 (input) - H2O concentration, g/m3
+         H2O_gpm3 (input) - H2O concentration, g/m^3
          T (input) - air temperature, C
          p (input) - air pressure, kPa
         Returns the H2O concentration in mmol/mol.
@@ -194,14 +193,14 @@ def h2o_mmolpmolfromgpm3(h_gpm3,T,p):
 
 def h2o_gpm3frommmolpmol(h_mmpm,T,p):
     """
-     Convert H2O concentration units of mmol/mol to g/m3.
+     Convert H2O concentration units of mmol/mol to g/m^3.
         Usage:
          H2O_gpm3 = h2o_gpm3frommmolpmol(H2O_mmolpmol, T, p)
          where
          H2O_mmolpmol (input) - H2O concentration, mmol/mol
          T (input) - air temperature, C
          p (input) - air pressure, kPa
-        Returns the H2O concentration in g/m3.
+        Returns the H2O concentration in g/m^3.
     """
     # convert to masked arrays
     h_mmpm, WasND = SeriestoMA(h_mmpm)
@@ -228,10 +227,10 @@ def mixingratio(ps,vp):
     #  mr - mixing ratio, kg/kg
     return 0.622*vp/(ps- vp)
 
-def molen(T,Ah,p,ustar,heatflux,fluxtype='sensible'):
+def molen(T,AH,p,ustar,heatflux,fluxtype='sensible'):
     # Calculate the Monin-Obukhov length
     ustar = numpy.ma.sqrt(numpy.square(ustar))    # force the sign of ustar to be positive
-    vp = vapourpressure(Ah,T)       # calculate the vapour pressure
+    vp = vapourpressure(AH,T)       # calculate the vapour pressure
     mr = mixingratio(p,vp)          # calculate the mixing ratio
     Tv = theta(T,p)                 # calculate potential temperature
     Tvp = virtualtheta(Tv,mr)
@@ -243,35 +242,33 @@ def molen(T,Ah,p,ustar,heatflux,fluxtype='sensible'):
         raise Exception(" meteorologicalfunctions.molen: unkown value for fluxtype (="+str(fluxtype)+") encountered")
     return L
 
-def qfromrh(RH, T, p):
+def specifichumidityfromrelativehumidity(RH, T, p):
     # Specific humidity (kg/kg) from relative humidity, temperature and pressure
-    #  RH is the relative humidity, %
-    #  T is the air temperature, C
+    #  RH is the relative humidity, percent
+    #  T is the air temperature, degC
     #  p is the atmospheric pressure, kPa
-    qRH = (c.Mv / c.Md) * (0.01 * RH * es(T) / p)
-    return qRH
+    SH = (c.Mv / c.Md) * (0.01 * RH * VPsat(T) / p)
+    return SH
 
-def qsat(esat,ps):
-    return 0.622 * (esat / ps)
+def SHsat(vpsat, ps):
+    return 0.622 * (vpsat / ps)
 
-def RHfromabsolutehumidity(Ah,Ta):
+def relativehumidityfromabsolutehumidity(AH, Ta):
     # Relative humidity from absolute humidity
-    #  Ta is the air temperature, C
-    #  Ah is the absolute humidity, g/m3
-    #  RH is the relative humidity, %
+    #  Ta is the air temperature, degC
+    #  AH is the absolute humidity, g/m^3
+    #  RH is the relative humidity, percent
     # convert to masked arrays
-    Ah, WasND = SeriestoMA(Ah)
+    AH, WasND = SeriestoMA(AH)
     Ta, dummy = SeriestoMA(Ta)
     # do the job
-    VPsat = es(Ta)
-    #vp = Ah * ((Ta+273.15)*c.Rv)/float(1000000)
-    vp = vapourpressure(Ah,Ta)
-    RH = float(100)*vp/VPsat
+    VP = vapourpressure(AH, Ta)
+    RH = float(100)*VP/VPsat(Ta)
     # convert back to ndarray if input is not a masked array
     if WasND: RH, _ = MAtoSeries(RH)
     return RH
 
-def RHfromdewpoint(Td,Ta):
+def relativehumidityfromdewpoint(Td,Ta):
     # Relative humidity from dew point temperature
     #  Ta is the air temperature, C
     #  Td is the dew point temperature, C
@@ -285,18 +282,17 @@ def RHfromdewpoint(Td,Ta):
     if WasND: RH, _ = MAtoSeries(RH)
     return RH
 
-def RHfromspecifichumidity(q,Ta,ps):
+def relativehumidityfromspecifichumidity(SH,Ta,ps):
     # Relative humidity from specific humidity
-    #  q is the specific humidity, kg/kg
+    #  SH is the specific humidity, kg/kg
     #  Ta is the air temperature, C
     #  ps is the pressure, kPa
     #  RH is the relative humidity, %
     # convert to masked arrays
-    q, WasND = SeriestoMA(q)
+    SH, WasND = SeriestoMA(SH)
     Ta, dummy = SeriestoMA(Ta)
     # do the job
-    VPsat = es(Ta)
-    RH = float(100)*q*(c.Md/c.Mv)*ps/VPsat
+    RH = float(100)*SH*(c.Md/c.Mv)*ps/VPsat(Ta)
     # convert back to ndarray if input is not a masked array
     if WasND: RH, _ = MAtoSeries(RH)
     return RH
@@ -322,39 +318,39 @@ def specificheatcapacitydryair(Tv):
     cpd = float(1005)+((Tv+23.12)**2)/float(3364)
     return cpd
 
-def specificheatcapacitywatervapour(Ta, Ah):
+def specificheatcapacitywatervapour(Ta, AH):
     '''
     Specific heat capacity of water vapour at constant pressure.
     USEAGE:
-     cpv = pfp_mf.specificheatcapacitywatervapour(Ta,Ah)
+     cpv = pfp_mf.specificheatcapacitywatervapour(Ta,AH)
     INPUT:
      Ta - air temperature, C
-     Ah - absolute humidity, %
+     AH - absolute humidity, %
     OUTPUT:
      cpv - specific heat capacity of water vapour at constant pressure, J/kg/K
     SOURCE:
      EddyPro source code
     '''
-    RH = RHfromabsolutehumidity(Ah,Ta)
+    RH = relativehumidityfromabsolutehumidity(AH,Ta)
     cpv = float(1859)+0.13*RH+(0.193+0.0056*RH)*Ta+(0.001+0.00005*RH)*Ta**2
     return cpv
 
-def specificheatmoistair(q):
+def specificheatmoistair(SH):
     # Calculate Cp of moist air, from Stull 1988
     #  Cp - specific heat of dry air at constant pressure, J/kg-K
-    #  q - specific humidity
+    #  SH - specific humidity
     # Returns
     #  Cpm - specific heat of moist air at constant pressure, J/kg-K
-    Cpm = c.Cpd * (1 + 0.84 * q)
+    Cpm = c.Cpd * (1 + 0.84 * SH)
     return Cpm
 
 def specifichumidity(mr):
     # Calculate specific humidity from mixing ratio
     #  mr - mixing ration, kg/kg
     # Returns
-    #  q = specific humidity, kg/kg
-    q = mr/(1+mr)
-    return q
+    #  SH = specific humidity, kg/kg
+    SH = mr/(1+mr)
+    return SH
 
 def specifichumidityfromRH(RH, T, p):
     # Specific humidity (kg/kg) from relative humidity, temperature and pressure
@@ -362,20 +358,30 @@ def specifichumidityfromRH(RH, T, p):
     #  T is the air temperature, C
     #  p is the atmospheric pressure, kPa
     # Returns
-    #  q = specific humidity, kg/kg
-    q = (c.Mv / c.Md) * (0.01 * RH * es(T) / p)
-    return q
+    #  SH = specific humidity, kg/kg
+    SH = (c.Mv / c.Md) * (0.01 * RH * VPsat(T) / p)
+    return SH
 
-def tafromtv(Tv,q):
+def tafromtv(Tv,SH):
     # Calculate air temperature from virtual temperature using formula
     # from Campbell Scientific CSAT manual.
     # NOTE: this differs from the usual definition by using 0.51 not 0.61
     #  Tv - virtual temperature, C
-    #  q - specific humidity, kg/kg
+    #  SH - specific humidity, kg/kg
     # Returns
     #  Ta - air temperature, C
-    Ta = ((Tv+273.15)/(1+0.51*q))-273.15
+    Ta = ((Tv+273.15)/(1+0.51*SH))-273.15
     return Ta
+
+def tvfromta(Ta, mr):
+    # Calculate virtual temperature from air temperature using formula
+    # from Stull 1988.
+    #  Ta - virtual temperature, C
+    #  mr - H2O mixing ratio
+    # Returns
+    #  Tv - virtual temperature, C
+    Tv = ((Ta + 273.15)*(1 + 0.61*mr)) - 273.15
+    return Tv
 
 def theta(T,p):
     # Calculate potential temperature from air temperature and pressure
@@ -385,13 +391,13 @@ def theta(T,p):
     #  theta - potential temperature, K
     return (T+273.15)*(100/p)**0.286
 
-def vapourpressure(Ah,Ta):
+def vapourpressure(AH,Ta):
     # Calculate vapour pressure from absolute humidity and temperature
-    #  Ah - absolute humidity, g/m3
+    #  AH - absolute humidity, g/m^3
     #  Ta - air temperature, C
     # Returns
     #  vp - vapour pressure, kPa
-    vp = 0.000001*Ah*(Ta+273.15)*c.R/c.Mv
+    vp = 0.000001*AH*(Ta+273.15)*c.R/c.Mv
     return vp
 
 def virtualtheta(theta_in, mr):

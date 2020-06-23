@@ -21,16 +21,16 @@
         AltVar = Fe
     [[Fh]]
         AltVar = Fh
-    [[Fc]]
-        AltVar = Fc
+    [[Fco2]]
+        AltVar = Fco2
     [[ustar]]
         AltVar = ustar
     [[Ta]]
         AltVar = Ta
     [[H2O]]
-        AltVar = Ah
+        AltVar = AH
     [[CO2]]
-        AltVar = Cc
+        AltVar = CO2
     [[Precip]]
         AltVar = Precip
     [[Ws]]

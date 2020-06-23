@@ -5,10 +5,8 @@ level = L4
     out_filename = Right click to browse
     plot_path = Right click to browse
     era5 = Right click to browse
-
 [Options]
     MaxGapInterpolate = 3
-
 [Drivers]
     [[Fld]]
         [[[GapFillFromAlternate]]]

@@ -553,8 +553,8 @@ for n, era5_name in enumerate(era5_files):
 
         # === RELATIVE HUMIDITY RH === #
         # get the relative humidity
-        es_era5_tts = mf.es(Ta_era5_tts)
-        e_era5_tts = mf.es(Td_era5_tts)
+        es_era5_tts = mf.VPsat(Ta_era5_tts)
+        e_era5_tts = mf.VPsat(Td_era5_tts)
         VPD_era5_tts = es_era5_tts - e_era5_tts
         flag = numpy.zeros(len(VPD_era5_tts),dtype=numpy.int32)
         attr = pfp_utils.MakeAttributeDictionary(long_name="Vapour pressure deficit", 
@@ -568,7 +568,7 @@ for n, era5_name in enumerate(era5_files):
 
         # === ABSOLUTE HUMIDITY Ah === #
         # get the absolute humidity
-        Ah_era5_tts = mf.absolutehumidityfromRH(Ta_era5_tts,RH_era5_tts)
+        Ah_era5_tts = mf.absolutehumidityfromrelativehumidity(Ta_era5_tts,RH_era5_tts)
         flag = numpy.zeros(len(Ah_era5_tts),dtype=numpy.int32)
         attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity", 
                                                  group_name = "meteorology", units="g/m^3")

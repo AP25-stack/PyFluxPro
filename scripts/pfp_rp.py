@@ -72,9 +72,9 @@ def CalculateNEE(cf, ds, l6_info):
     # get the incoming shortwave radiation
     Fsd, _, _ = pfp_utils.GetSeriesasMA(ds, "Fsd")
     for label in list(l6_info["NetEcosystemExchange"].keys()):
-        if "Fc" not in l6_info["NetEcosystemExchange"][label] and "ER" not in l6_info["NetEcosystemExchange"][label]:
+        if "Fco2" not in l6_info["NetEcosystemExchange"][label] and "ER" not in l6_info["NetEcosystemExchange"][label]:
             continue
-        Fc_label = l6_info["NetEcosystemExchange"][label]["Fc"]
+        Fc_label = l6_info["NetEcosystemExchange"][label]["Fco2"]
         ER_label = l6_info["NetEcosystemExchange"][label]["ER"]
         output_label = l6_info["NetEcosystemExchange"][label]["output"]
         Fc, Fc_flag, Fc_attr = pfp_utils.GetSeriesasMA(ds, Fc_label)
@@ -205,7 +205,7 @@ def ERUsingLasslop(ds, l6_info):
     _, f, _ = pfp_utils.GetSeriesasMA(ds, "ustar")
     idx = numpy.where(f != 0)[0]
     indicator[idx] = numpy.int(0)
-    Fc, f, Fc_attr = pfp_utils.GetSeriesasMA(ds, "Fc")
+    Fc, f, Fc_attr = pfp_utils.GetSeriesasMA(ds, "Fco2")
     idx = numpy.where(f != 0)[0]
     indicator[idx] = numpy.int(0)
     indicator_night = numpy.copy(indicator)
@@ -272,13 +272,13 @@ def ERUsingLasslop(ds, l6_info):
     # get ER, GPP and NEE using Lasslop
     D0 = LL_results["D0"]
     rb = LL_results["rb_tts"]
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "Base respiration at Tref from Lloyd-Taylor method used in Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
     pfp_utils.CreateSeries(ds,"rb_LL",rb,flag,attr)
     E0 = LL_results["E0_tts"]
-    units = "C"
+    units = "degC"
     long_name = "Activation energy from Lloyd-Taylor method used in Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -299,7 +299,7 @@ def ERUsingLasslop(ds, l6_info):
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
     pfp_utils.CreateSeries(ds,"alpha_LL",alpha,flag,attr)
     beta = LL_results["beta_tts"]
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "Maximum CO2 uptake at light saturation"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -311,7 +311,7 @@ def ERUsingLasslop(ds, l6_info):
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
     pfp_utils.CreateSeries(ds,"k_LL",k,flag,attr)
     GPP_LL = pfp_rpLL.GPP_RHLRC_D(Fsd,D,alpha,beta,k,D0)
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "GPP modelled by Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -319,7 +319,7 @@ def ERUsingLasslop(ds, l6_info):
     # NEE
     data = {"Fsd":Fsd,"T":T,"D":D}
     NEE_LL = pfp_rpLL.NEE_RHLRC_D([Fsd,D,T],alpha,beta,k,D0,rb,E0)
-    units = "umol/m2/s"
+    units = "umol/m^2/s"
     long_name = "NEE modelled by Lasslop et al (2010)"
     attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,units=units)
     flag = numpy.zeros(nrecs, dtype=numpy.int32)
@@ -349,7 +349,7 @@ def ERUsingLloydTaylor(cf, ds, l6_info):
         return
     logger.info("Estimating ER using Lloyd-Taylor")
     long_name = "Ecosystem respiration modelled by Lloyd-Taylor"
-    ER_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name, units="umol/m2/s")
+    ER_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name, units="umol/m^2/s")
     ts = int(ds.globalattributes["time_step"])
     site_name = ds.globalattributes["site_name"]
     ldt = ds.series["DateTime"]["Data"]
@@ -582,7 +582,7 @@ def GetERFromFc(cf, ds):
     Date: October 2015
     """
     ER = {"Label": "ER"}
-    Fc = pfp_utils.GetVariable(ds, "Fc")
+    Fc = pfp_utils.GetVariable(ds, "Fco2")
     # get a copy of the Fc flag and make the attribute dictionary
     ER["Flag"] = numpy.array(Fc["Flag"])
     # make the ER attribute dictionary
@@ -1323,12 +1323,12 @@ def L6_summary_createseriesdict(cf,ds):
     for item in sdl["h2o"]:
         series_dict["daily"][item] = {"operator":"sum","format":"0.00"}
         series_dict["cumulative"][item] = {"operator":"sum","format":"0.00"}
-    if "Ah" in list(ds.series.keys()):
-        series_dict["daily"]["Ah"] = {"operator":"average","format":"0.00"}
+    if "AH" in list(ds.series.keys()):
+        series_dict["daily"]["AH"] = {"operator":"average","format":"0.00"}
     if "CO2" in list(ds.series.keys()):
         series_dict["daily"]["CO2"] = {"operator":"average","format":"0.0"}
-    if "Fc" in list(ds.series.keys()):
-        series_dict["daily"]["Fc"] = {"operator":"average","format":"0.00"}
+    if "Fco2" in list(ds.series.keys()):
+        series_dict["daily"]["Fco2"] = {"operator":"average","format":"0.00"}
     if "Fe" in list(ds.series.keys()):
         series_dict["daily"]["Fe"] = {"operator":"average","format":"0.0"}
     if "Fh" in list(ds.series.keys()):
@@ -1406,8 +1406,8 @@ def L6_summary_daily(ds, series_dict):
         daily_dict["variables"][item] = {"data":[],"attr":{}}
         variable = pfp_utils.GetVariable(ds, item, start=si, end=ei)
         if item in series_dict["lists"]["co2"]:
-            variable = pfp_utils.convert_units_func(ds, variable, "gC/m2")
-            daily_dict["variables"][item]["attr"]["units"] = "gC/m2"
+            variable = pfp_utils.convert_units_func(ds, variable, "g/m^2")
+            daily_dict["variables"][item]["attr"]["units"] = "g/m^2"
         else:
             daily_dict["variables"][item]["attr"]["units"] = variable["Attr"]["units"]
         data_2d = variable["Data"].reshape(nDays, ntsInDay)
@@ -1562,8 +1562,8 @@ def L6_summary_monthly(ds,series_dict):
             if item not in list(ds.series.keys()): continue
             variable = pfp_utils.GetVariable(ds, item, start=si, end=ei)
             if item in series_dict["lists"]["co2"]:
-                variable = pfp_utils.convert_units_func(ds, variable, "gC/m2")
-                monthly_dict["variables"][item]["attr"]["units"] = "gC/m2"
+                variable = pfp_utils.convert_units_func(ds, variable, "g/m^2")
+                monthly_dict["variables"][item]["attr"]["units"] = "g/m^2"
             else:
                 monthly_dict["variables"][item]["attr"]["units"] = variable["Attr"]["units"]
             if series_dict["monthly"][item]["operator"].lower()=="average":
@@ -1645,8 +1645,8 @@ def L6_summary_annual(ds, series_dict):
             if item not in list(ds.series.keys()): continue
             variable = pfp_utils.GetVariable(ds, item, start=si, end=ei)
             if item in series_dict["lists"]["co2"]:
-                variable = pfp_utils.convert_units_func(ds, variable, "gC/m2")
-                annual_dict["variables"][item]["attr"]["units"] = "gC/m2"
+                variable = pfp_utils.convert_units_func(ds, variable, "g/m^2")
+                annual_dict["variables"][item]["attr"]["units"] = "g/m^2"
             else:
                 annual_dict["variables"][item]["attr"]["units"] = variable["Attr"]["units"]
             if series_dict["annual"][item]["operator"].lower()=="average":
@@ -1713,8 +1713,8 @@ def L6_summary_annual(ds, series_dict):
             #cdyr["variables"][item] = {"data":[],"attr":{}}
             #variable = pfp_utils.GetVariable(ds, item, start=si, end=ei)
             #if item in series_dict["lists"]["co2"]:
-                #variable = pfp_utils.convert_units_func(ds, variable, "gC/m2")
-                #cdyr["variables"][item]["attr"]["units"] = "gC/m2"
+                #variable = pfp_utils.convert_units_func(ds, variable, "g/m^2")
+                #cdyr["variables"][item]["attr"]["units"] = "g/m^2"
             #else:
                 #cdyr["variables"][item]["attr"]["units"] = variable["Attr"]["units"]
             #cdyr["variables"][item]["data"] = numpy.ma.cumsum(variable["Data"])
@@ -1762,8 +1762,8 @@ def L6_summary_cumulative(ds, series_dict):
             cdyr["variables"][item] = {"data":[], "attr":{}}
             variable = pfp_utils.GetVariable(ds, item, start=si, end=ei)
             if item in series_dict["lists"]["co2"]:
-                variable = pfp_utils.convert_units_func(ds, variable, "gC/m2")
-                cdyr["variables"][item]["attr"]["units"] = "gC/m2"
+                variable = pfp_utils.convert_units_func(ds, variable, "g/m^2")
+                cdyr["variables"][item]["attr"]["units"] = "g/m^2"
             else:
                 cdyr["variables"][item]["attr"]["units"] = variable["Attr"]["units"]
             cdyr["variables"][item]["data"] = numpy.ma.cumsum(variable["Data"])
@@ -1787,8 +1787,8 @@ def L6_summary_cumulative(ds, series_dict):
         cdyr["variables"][item] = {"data":[],"attr":{}}
         variable = pfp_utils.GetVariable(ds, item)
         if item in series_dict["lists"]["co2"]:
-            variable = pfp_utils.convert_units_func(ds, variable, "gC/m2")
-            cdyr["variables"][item]["attr"]["units"] = "gC/m2"
+            variable = pfp_utils.convert_units_func(ds, variable, "g/m^2")
+            cdyr["variables"][item]["attr"]["units"] = "g/m^2"
         else:
             cdyr["variables"][item]["attr"]["units"] = variable["Attr"]["units"]
         cdyr["variables"][item]["data"] = numpy.ma.cumsum(variable["Data"])
@@ -1908,8 +1908,8 @@ def rpNEE_createdict(cf, ds, info, label):
     info[label]["output"] = label
     # CO2 flux
     sl = ["NetEcosystemExchange", label]
-    opt = pfp_utils.get_keyvaluefromcf(cf, sl, "Fc", default="Fc")
-    info[label]["Fc"] = opt
+    opt = pfp_utils.get_keyvaluefromcf(cf, sl, "Fco2", default="Fco2")
+    info[label]["Fco2"] = opt
     Fc = pfp_utils.GetVariable(ds, opt)
     # ecosystem respiration
     default = label.replace("NEE", "ER")
@@ -1958,7 +1958,7 @@ def rpSOLO_createdict(cf, ds, l6_info, output, called_by, flag_code):
     descr_level = "description_" + ds.globalattributes["nc_level"]
     # create the dictionary keys for this series
     if called_by not in list(l6_info.keys()):
-        l6_info[called_by] = {"outputs": {}, "info": {"source": "Fc", "target": "ER"}, "gui": {}}
+        l6_info[called_by] = {"outputs": {}, "info": {"source": "Fco2", "target": "ER"}, "gui": {}}
         # only need to create the ["info"] dictionary on the first pass
         pfp_gf.gfSOLO_createdict_info(cf, ds, l6_info, called_by)
         if ds.returncodes["value"] != 0:

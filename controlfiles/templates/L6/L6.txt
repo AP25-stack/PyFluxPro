@@ -42,13 +42,13 @@ Fund.'''
             source = ER,ER_LL_all
 [NetEcosystemExchange]
     [[NEE_SOLO]]
-        Fc = Fc
+        Fco2 = Fco2
         ER = ER_SOLO
     [[NEE_LT]]
-        Fc = Fc
+        Fco2 = Fco2
         ER = ER_LT
     [[NEE_LL]]
-        Fc = Fc
+        Fco2 = Fco2
         ER = ER_LL
 [GrossPrimaryProductivity]
     [[GPP_SOLO]]

@@ -8,24 +8,23 @@ level = L3
     UseL2Fluxes = Yes
     zms =
     CO2Units = umol/mol
-    FcUnits = umol/m2/s
+    Fco2Units = umol/m^2/s
 [Soil]
     FgDepth =
     BulkDensity =
     OrganicContent =
     SwsDefault =
     SwsSeries = Sws
-
-[variables]
+[Variables]
     [[Fn]]
         [[[MergeSeries]]]
             source = Fn_4cmpt,Fn
         [[[RangeCheck]]]
             lower = -150
             upper = 1100
-    [[Fc]]
+    [[Fco2]]
         [[[MergeSeries]]]
-            source = Fc_EF
+            source = Fco2_EF
         [[[RangeCheck]]]
             lower = -50
             upper = 50
@@ -105,13 +104,13 @@ level = L3
     [[Radiative fluxes]]
         variables = Fsd,Fsu,Fld,Flu,Fn
     [[Turbulent fluxes]]
-        variables = Fh,Fe,Fc,ustar,Fm
+        variables = Fh,Fe,Fco2,ustar,Fm
     [[Fh diagnostics]]
         variables = Fh,Fh_EF,Fh_EF_QC,W_SONIC_Sd,Tv_SONIC_Sd
     [[Fe diagnostics]]
         variables = Fe,Fe_EF,Fe_EF_QC,W_SONIC_Sd,H2O_IRGA_Sd,CO2_IRGA_Sd
-    [[Fc diagnostics]]
-        variables = Fc,Fc_EF,Fc_EF_QC,W_SONIC_Sd,H2O_IRGA_Sd,CO2_IRGA_Sd
+    [[Fco2 diagnostics]]
+        variables = Fco2,Fco2_EF,Fco2_EF_QC,W_SONIC_Sd,H2O_IRGA_Sd,CO2_IRGA_Sd
     [[Air temperature, humidity and CO2]]
         variables = Ta,Ta_<inst>_<height>m,RH,RH_<inst>_<height>m,CO2_IRGA_Av
     [[Soil temperature]]

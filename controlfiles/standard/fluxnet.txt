@@ -15,8 +15,8 @@
         name = ps
     [[Ta]]
         name = Ta
-    [[Ah]]
-        name = Ah
+    [[AH]]
+        name = AH
     [[RH]]
         name = RH
     [[CO2]]
@@ -35,8 +35,7 @@
         name = Fh
     [[Fe]]
         name = Fe
-    [[Fc]]
-        name = Fc
+    [[Fco2]]
+        name = Fco2
     [[ustar]]
         name = ustar
-

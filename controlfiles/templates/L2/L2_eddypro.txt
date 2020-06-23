@@ -3,7 +3,7 @@ level = L2
     file_path = Right click to browse
     in_filename = Right click to browse (*.nc)
     out_filename = Right click to browse (*.nc)
-
+    plot_path = Right click to browse
 [Variables]
     [[Fn]]
         [[[RangeCheck]]]
@@ -55,13 +55,13 @@ level = L2
         [[[RangeCheck]]]
             lower = -0.5
             upper = 1.5
-    [[Fc]]
+    [[Fco2]]
         [[[RangeCheck]]]
             lower = -50
             upper = 50
         [[[DependencyCheck]]]
-            source = Fc_EPFlag,W_SONIC_Vr,H2O_IRGA_Vr,CO2_IRGA_Vr
-    [[Fc_EPFlag]]
+            source = Fco2_EPFlag,W_SONIC_Vr,H2O_IRGA_Vr,CO2_IRGA_Vr
+    [[Fco2_EPFlag]]
         [[[RangeCheck]]]
             lower = -0.5
             upper = 1.5
@@ -179,12 +179,11 @@ level = L2
         [[[RangeCheck]]]
             lower = -10
             upper = 60
-
 [Plots]
     [[Radiative fluxes]]
         variables = Fsd,Fsu,Fld,Flu,Fn
     [[Turbulent fluxes]]
-        variables = Fm,ustar,Fh,Fe,Fc
+        variables = Fm,ustar,Fh,Fe,Fco2
     [[Air temperature, humidity and CO2]]
         variables = Ta_<inst>_<height>m,Tv_SONIC_Av,RH_<inst>_<height>m,RH_IRGA_Av,CO2_IRGA_Av,Precip
     [[Soil water content & rain]]
@@ -196,4 +195,4 @@ level = L2
     [[Pressure, wind speed, wind direction & rainfall]]
         variables = ps,Ws_SONIC_Av,U_SONIC_Av,V_SONIC_Av,W_SONIC_Av,Wd_SONIC_Av,Precip
     [[CO2 flux diagnostics]]
-        variables = Fc,H2O_IRGA_Av,H2O_IRGA_Vr,CO2_IRGA_Av,CO2_IRGA_Vr,Precip
+        variables = Fco2,H2O_IRGA_Av,H2O_IRGA_Vr,CO2_IRGA_Av,CO2_IRGA_Vr,Precip

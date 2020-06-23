@@ -3,8 +3,8 @@
     Num_bootstraps = 100
 
 [Variables]
-    [[Fc]]
-        name = Fc
+    [[Fco2]]
+        name = Fco2
     [[Ta]]
         name = Ta
     [[ustar]]
