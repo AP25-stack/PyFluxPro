@@ -881,7 +881,7 @@ def CombineSeries(cf, ds, label, convert_units=False, save_originals=False, mode
     Author: PRI
     Date: October 2019
     """
-    if label not in cf["Variables"]:
+    if (label not in cf["Variables"]):
         if mode != "quiet":
             msg = " CombineSeries: Variable " + label + " not found in control file"
             msg += ", skipping ..."
@@ -892,10 +892,12 @@ def CombineSeries(cf, ds, label, convert_units=False, save_originals=False, mode
     elif "AverageSeries" in cf["Variables"][label]:
         AverageSeriesByElements(cf, ds, label)
     else:
-        msg = " CombineSeries: Neither MergeSeries nor AverageSeries "
-        msg += " option given for variable " + label
-        msg += ", skipping ..."
-        logger.warning(msg)
+        if mode != "quiet":
+            msg = " CombineSeries: Neither MergeSeries nor AverageSeries "
+            msg += " option given for variable " + label
+            msg += ", skipping ..."
+            logger.warning(msg)
+        pass
     return
 
 def CoordRotation2D(cf, ds):
