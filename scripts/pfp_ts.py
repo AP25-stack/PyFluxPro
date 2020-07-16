@@ -892,10 +892,12 @@ def CombineSeries(cf, ds, label, convert_units=False, save_originals=False, mode
     elif "AverageSeries" in cf["Variables"][label]:
         AverageSeriesByElements(cf, ds, label)
     else:
-        msg = " CombineSeries: Neither MergeSeries nor AverageSeries "
-        msg += " option given for variable " + label
-        msg += ", skipping ..."
-        logger.warning(msg)
+        if mode != "quiet":
+            msg = " CombineSeries: Neither MergeSeries nor AverageSeries "
+            msg += " option given for variable " + label
+            msg += ", skipping ..."
+            logger.warning(msg)
+        pass
     return
 
 def CoordRotation2D(cf, ds):
