@@ -469,6 +469,7 @@ def ParseL1ControlFile(cf):
         for item in ["long_name", "units"]:
             if item not in list(l1ire["Variables"][label]["Attr"].keys()):
                 msg = " Skipping " + label + " (subsection '" + item + "' not found)"
+
                 logger.warning(msg)
                 ok = False
         if not ok:
@@ -1671,6 +1672,8 @@ def l4_update_cfg_syntax(cfg):
                             cfg4 = cfg[key1][key2][key3][key4.lower()]
                             cfg4 = parse_cfg_variables_value(key3, cfg4)
                             cfg[key1][key2][key3][key4.lower()] = cfg4
+        elif key1 in ["GUI"]:
+            continue
         else:
             del cfg[key1]
     return cfg
@@ -1917,6 +1920,8 @@ def l5_update_cfg_syntax(cfg):
                             cfg4 = cfg3[key4.lower()]
                             cfg4 = parse_cfg_variables_value(key3, cfg4)
                             cfg[key1][key2][key3][key4.lower()] = cfg4
+        elif key1 in ["GUI"]:
+            continue
         else:
             del cfg[key1]
     return cfg
@@ -2143,6 +2148,8 @@ def l6_update_cfg_syntax(cfg):
                     cfg3 = cfg[key1][key2][key3]
                     cfg3 = parse_cfg_values(key3, cfg3, strip_list)
                     cfg[key1][key2][key3] = cfg3
+        elif key1 in ["GUI"]:
+            continue
         else:
             del cfg[key1]
     return cfg
