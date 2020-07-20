@@ -11,11 +11,8 @@ import matplotlib.pyplot as plt
 import numpy
 import pylab
 import xlwt
-<<<<<<< HEAD
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
-=======
->>>>>>> 827839305b7c1723f50e70958ee571ef90f87863
 # PFP modules
 if not os.path.exists("../scripts/"):
     print("portal_audit: the scripts directory is missing")
@@ -35,14 +32,10 @@ def do_audit_analysis(base_path):
                  "end_date": datetime.datetime(2000,1,1,0,0)}
     n = 0
     for site in sites:
-<<<<<<< HEAD
         #portal_dir = os.path.join(base_path, site, "Data", "Processed")
         portal_dir = os.path.join(base_path, site, "Data", "All")
-=======
-        portal_dir = os.path.join(base_path, site, "Data", "Processed")
->>>>>>> 827839305b7c1723f50e70958ee571ef90f87863
         file_mask = os.path.join(portal_dir, "*.nc")
-        files = glob.glob(file_mask)
+        files = sorted(glob.glob(file_mask))
         l3_name = os.path.join(portal_dir, site + "_L3.nc")
         if os.path.isfile(l3_name):
             print("Processing ", site)
@@ -121,8 +114,4 @@ fig.tight_layout()
 
 plt.show()
 
-<<<<<<< HEAD
 print("All done")
-=======
-print("All done")
->>>>>>> 827839305b7c1723f50e70958ee571ef90f87863
