@@ -58,6 +58,8 @@ def cpd2_main(cf):
             names[item] = cf["Variables"][item]["name"]
         else:
             names[item] = item
+        msg = " CPD (Barr): Using variable " + names[item] + " for " + item
+        logger.info(msg)
     # read the netcdf file
     logger.info(" Reading netCDF file " + file_in)
     ds = pfp_io.nc_read_series(file_in)
@@ -91,6 +93,12 @@ def cpd2_main(cf):
             Fc = pfp_utils.PadVariable(Fc, start, end, out_type="nan")
             ustar = pfp_utils.PadVariable(ustar, start, end, out_type="nan")
             Ta = pfp_utils.PadVariable(Ta, start, end, out_type="nan")
+        # get the day/night indicator, fNight is 1 for night time, 0 for day time
+        if apply_storage:
+            label = cf["Variables"]["Fco2"]["name"]
+            msg = " CPD2: Applying Fco2_storage to " + label
+            logger.info(msg)
+            pfp_ts.CorrectFco2ForStorage(cf, ds, Fco2_out=label, Fco2_in=label, Fco2_storage_in="Fco2_storage")
         # get the day/night indicator, fNight is 1 for night time, 0 for day time
         fNight = numpy.where(Fsd["Data"] < Fsd_threshold, 1, 0)
         # get a time series

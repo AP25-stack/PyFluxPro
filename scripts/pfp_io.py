@@ -1,6 +1,5 @@
 # Python modules
 from collections import OrderedDict
-import ast
 import copy
 import csv
 import datetime
@@ -18,15 +17,13 @@ import scipy.stats
 import xlrd
 import xlwt
 import xlsxwriter
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtWidgets
 # PFP modules
 import cfg
 import constants as c
 import meteorologicalfunctions as pfp_mf
 import pfp_cfg
 import pfp_ck
-import pfp_compliance
-import pfp_func
 import pfp_ts
 import pfp_utils
 
@@ -298,12 +295,21 @@ def nc_2xls(ncfilename,outputlist=None):
     # xlwt seems to only handle 225 columns
     if nRecs<65535 and nCols<220:
         # write the variables to the Excel 97/2003 file
-        xlfilename= ncfilename.replace('.nc','.xls')
-        xl_write_series(ds,xlfilename,outputlist=outputlist)
+        xlsfilename= ncfilename.replace(".nc", ".xls")
+        if os.path.isfile(xlsfilename):
+            file_path = os.path.split(xlsfilename)
+            xlsfilename = get_output_filename_dialog(file_path=file_path[0], ext="*.xls")
+            if len(xlsfilename) == 0: return
+        xl_write_series(ds, xlsfilename, outputlist=outputlist)
     else:
         # write the variables to the Excel 2010 file
-        xlsxfilename= ncfilename.replace('.nc','.xlsx')
+        xlsxfilename= ncfilename.replace(".nc", ".xlsx")
+        if os.path.isfile(xlsxfilename):
+            file_path = os.path.split(xlsxfilename)
+            xlsxfilename = get_output_filename_dialog(file_path=file_path[0], ext="*.xlsx")
+            if len(xlsxfilename) == 0: return
         xlsx_write_series(ds,xlsxfilename,outputlist=outputlist)
+    return
 
 def read_eddypro_full(csvname):
     ds = DataStructure()
@@ -377,8 +383,22 @@ def read_eddypro_full(csvname):
 
     return ds
 
-def write_csv_reddyproc(cf):
-    # this needs to be re-written!
+def write_tsv_reddyproc(cf):
+    """
+    Purpose:
+     Write an input file for the REddyProc R scripts using data from an
+     OzFlux-style netCDF file.
+     REddyProc will only read tab separated value files, not comma separated
+     value files.  The default extension for the output file is ".tsv".
+    Usage:
+     pfp_io.write_tsv_reddyproc(cfg)
+     where cfg is a control file.
+    Side effects:
+     Produces a text file (tab separated values) in the same folder as the
+     input file.
+    Author: PRI
+    Date: Back in the day
+    """
     # get the file names
     file_path = cf["Files"]["file_path"]
     nc_name = cf["Files"]["in_filename"]
@@ -403,10 +423,9 @@ def write_csv_reddyproc(cf):
     # get the start and end indices for whole days
     start_date = dt[0]
     end_date = dt[-1]
-    #si = pfp_utils.GetDateIndex(dt,str(start_date),ts=ts,default=0,match='startnextday')
-    #ei = pfp_utils.GetDateIndex(dt,str(end_date),ts=ts,default=len(dt)-1,match='endpreviousday')
-    si = pfp_utils.GetDateIndex(dt,str(start_date),ts=ts,default=0)
-    ei = pfp_utils.GetDateIndex(dt,str(end_date),ts=ts,default=len(dt)-1)
+    si = pfp_utils.GetDateIndex(dt,str(start_date),ts=ts,default=0,match='startnextday')
+    ei = pfp_utils.GetDateIndex(dt,str(end_date),ts=ts,default=len(dt)-1,match='endpreviousday')
+    dt = dt[si:ei+1]
     # get the date and time data
     Year = numpy.array([d.year for d in dt])
     Ddd = numpy.array([d.timetuple().tm_yday + d.hour/float(24) + d.minute/float(1440) for d in dt])
@@ -439,7 +458,7 @@ def write_csv_reddyproc(cf):
     # this could be done better, pete!
     for series in series_list:
         if series=="NEE":
-            if data[series]["Attr"]["units"] in ["mg/m^2/s","mgCO2/m2/s"]:
+            if data[series]["Attr"]["units"] in ["mg/m^2/s","mgCO2/m^2/s"]:
                 data[series]["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(data[series]["Data"])
                 data[series]["Attr"]["units"] = "umolm-2s-1"
             elif data[series]["Attr"]["units"]=='umol/m^2/s':
@@ -701,7 +720,6 @@ def write_csv_ecostress(cf):
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     ts = int(ds.globalattributes["time_step"])
-    ts_delta = datetime.timedelta(minutes=ts)
     # get the datetime series
     dt = ds.series["DateTime"]["Data"]
     # get the data
@@ -732,10 +750,8 @@ def write_csv_ecostress(cf):
             data[label]["Attr"]["fmt"] = strfmt
     # adjust units as required
     # GPP
-    data["GPP"]["Data"] = pfp_mf.Fco2_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
-    data["GPP"]["Attr"]["units"] = "g/m^2/s"
-    data["GPP"]["Attr"]["long_name"] = "Gross Primary Productivity"
-    data["GPP"]["Attr"]["description_L6"] = "Expressed as grams Carbon"
+    data["GPP"]["Data"] = pfp_mf.Fc_gCpm2psfromumolpm2ps(data["GPP"]["Data"])
+    data["GPP"]["Attr"]["units"] = "gC/m^2/s"
     # SWC
     data["SWC"]["Attr"]["units"] = "m^3/m^3"
     # add the QC flags for Fh, Fe, Fg, GPP, Ta, T2, VPD, Fn
@@ -835,8 +851,9 @@ def xl2nc(cf,InLevel):
     pfp_ts.get_synthetic_fsd(ds)
     # write the data to the netCDF file
     outfilename = get_outfilenamefromcf(cf)
-    ncFile = nc_open_write(outfilename)
-    nc_write_series(ncFile,ds)
+    nc_file = nc_open_write(outfilename)
+    if nc_file is None: return 0
+    nc_write_series(nc_file,ds)
     return 1
 
 def write_csv_ep_biomet(cf):
@@ -950,7 +967,7 @@ def ExcelToDataStructures(xl_data, l1_info):
     # header row
     hdr = int(l1ire["Files"]["in_headerrow"])
     xl_datemode = l1ire["Global"]["xl_datemode"]
-    xl_sheets = list(xl_data.keys())
+    xl_sheets = sorted(list(xl_data.keys()))
     # read each sheet to a data structure
     ds = {}
     for xl_sheet in xl_sheets:
@@ -979,6 +996,8 @@ def ExcelToDataStructures(xl_data, l1_info):
         pfp_utils.CreateVariable(ds[xl_sheet], var)
         # now do the rest of the variables for this sheet
         xl_labels = list(l1ire["xl_sheets"][xl_sheet]["xl_labels"].keys())
+        nc_labels = [l1ire["xl_sheets"][xl_sheet]["xl_labels"][l] for l in xl_labels]
+        xl_labels = [x for _,x in sorted(zip(nc_labels, xl_labels))]
         for xl_label in xl_labels:
             # get the netCDF variable name
             nc_label = l1ire["xl_sheets"][xl_sheet]["xl_labels"][xl_label]
@@ -1028,8 +1047,7 @@ def write_csv_fluxnet(cf):
         AH,f,a = pfp_utils.GetSeriesasMA(ds,'AH')
         Ta,f,a = pfp_utils.GetSeriesasMA(ds,'Ta')
         RH = pfp_mf.relativehumidityfromabsolutehumidity(AH, Ta)
-        attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity", units="percent",
-                                                 standard_name='relative_humidity')
+        attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity", units="percent",standard_name='relative_humidity')
         flag = numpy.where(numpy.ma.getmaskarray(RH)==True,ones,zeros)
         pfp_utils.CreateSeries(ds,"RH",RH,flag,attr)
     ts = int(ds.globalattributes["time_step"])
@@ -1187,9 +1205,7 @@ def get_controlfilecontents(ControlFileName, mode="verbose"):
     if mode != "quiet":
         logger.info(" Processing the control file")
     if len(ControlFileName) != 0:
-        #cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False)
-        cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False,
-                       write_empty_values=True)
+        cf = ConfigObj(ControlFileName, indent_type="    ", list_values=False)
         cf["controlfile_name"] = ControlFileName
     else:
         cf = ConfigObj()
@@ -1220,6 +1236,10 @@ def get_filename_dialog(file_path='.', title='Choose a file', ext="*.*"):
     Date: Back in the day
     """
     file_name = QtWidgets.QFileDialog.getOpenFileName(caption=title, directory=file_path, filter=ext)[0]
+    return str(file_name)
+
+def get_output_filename_dialog(file_path=".", title="Choose an output file ...", ext="*.*"):
+    file_name = QtWidgets.QFileDialog.getSaveFileName(caption=title, directory=file_path, filter=ext)[0]
     return str(file_name)
 
 def get_infilenamefromcf(cf):
@@ -1342,6 +1362,7 @@ def NetCDFConcatenate(info):
     logger.info(" Writing data to " + os.path.split(inc["out_file_name"])[1])
     # write the concatenated data structure to file
     nc_file = nc_open_write(inc["out_file_name"])
+    if nc_file is None: return
     nc_write_series(nc_file, ds_out, ndims=inc["NumberOfDimensions"])
     return
 
@@ -1429,22 +1450,10 @@ def netcdf_concatenate_variable_attributes(attr_out, attr_in, info):
     Author: PRI
     Date: November 2019
     """
-    #inc = info["NetCDFConcatenate"]
-    #for attr in attr_in:
-        #if attr in inc["attributes"]:
-            #attr_out[attr] = attr_in[attr]
+    inc = info["NetCDFConcatenate"]
     for attr in attr_in:
-        # check we want this attribute
-        if attr not in info["NetCDFConcatenate"]["attributes"]:
-            continue
-        # skip if attribute empty
-        if len(str(attr_in[attr])) == 0:
-            continue
-        # this accepts the first non-empty attribute value
-        #if attr not in attr_out:
-            #attr_out[attr] = attr_in[attr]
-        # this accepts the last non-empty attribute value
-        attr_out[attr] = attr_in[attr]
+        if attr in inc["attributes"]:
+            attr_out[attr] = attr_in[attr]
     return
 
 def netcdf_concatenate_read_input_files(info):
@@ -1577,8 +1586,9 @@ def ncsplit_run(split_gui):
     ds_out.globalattributes["start_date"] = str(ldt_out[0])
     ds_out.globalattributes["end_date"] = str(ldt_out[-1])
     # write the output data structure to a netCDF file
-    ncFile = nc_open_write(outfilename)
-    nc_write_series(ncFile, ds_out)
+    nc_file = nc_open_write(outfilename)
+    if nc_file is None: return
+    nc_write_series(nc_file, ds_out)
     msg = " Finished splitting " + os.path.basename(infilename)
     logger.info(msg)
 
@@ -1783,8 +1793,8 @@ def nc_open_write(ncFullName,nctype='NETCDF4'):
     try:
         ncFile = netCDF4.Dataset(ncFullName,'w',format=nctype)
     except:
-        logger.error(' Unable to open netCDF file '+ncFullName+' for writing')
-        ncFile = ''
+        logger.error(" Unable to open netCDF file " + file_name[1] + " for writing")
+        ncFile = None
     return ncFile
 
 def nc_write_data(nc_obj, data_dict):
@@ -1934,13 +1944,13 @@ def nc_write_series(ncFile, ds, outputlist=None, ndims=3):
             ncVar[:] = pfp_utils.convert_anglestring(str(ds.globalattributes["latitude"]))
             setattr(ncVar,'long_name','latitude')
             setattr(ncVar,'standard_name','latitude')
-            setattr(ncVar,'units','degrees')
+            setattr(ncVar,'units','degrees north')
         if "longitude" not in outputlist:
             ncVar = ncFile.createVariable("longitude","d",("longitude",))
             ncVar[:] = pfp_utils.convert_anglestring(str(ds.globalattributes["longitude"]))
             setattr(ncVar,'long_name','longitude')
             setattr(ncVar,'standard_name','longitude')
-            setattr(ncVar,'units','degrees')
+            setattr(ncVar,'units','degrees east')
     # now make sure the date and time series are in outputlist
     datetimelist = ['xlDateTime','Year','Month','Day','Hour','Minute','Second','Hdh','Ddd']
     # and write them to the netCDF file
@@ -1997,7 +2007,7 @@ def nc_write_var(ncFile, ds, ThisOne, dim):
     # write the attributes
     vattrs = sorted(list(ds.series[ThisOne]["Attr"].keys()))
     for item in vattrs:
-        if len(str(ds.series[ThisOne]["Attr"][item])) != 0:
+        if item != "_FillValue":
             attr = str(ds.series[ThisOne]["Attr"][item])
             ncVar.setncattr(item, attr)
     # make sure the missing_value attribute is written
@@ -2309,7 +2319,6 @@ def xl_write_data(xl_sheet, data, xlCol=0):
     series_list = list(data.keys())
     xl_sheet.write(1,xlCol,data["DateTime"]["attr"]["units"])
     nrows = len(data["DateTime"]["data"])
-    ncols = len(series_list)
     d_xf = xlwt.easyxf(num_format_str=data["DateTime"]["attr"]["format"])
     for j in range(nrows):
         xl_sheet.write(j+2,xlCol,data["DateTime"]["data"][j],d_xf)

@@ -707,6 +707,11 @@ def gfMDS_createdict(cf, ds, l5_info, label, called_by, flag_code):
     Author: PRI
     Date: May 2018
     """
+    nrecs = int(ds.globalattributes["nc_nrecs"])
+    # make the L5 "description" attrubute for the target variable
+    descr_level = "description_" + ds.globalattributes["nc_level"]
+    ds.series[label]["Attr"][descr_level] = ""
+    # create the solo settings directory
     if called_by not in l5_info:
         l5_info[called_by] = {"outputs": {}, "info": {}}
     # file path and input file name
@@ -1203,7 +1208,7 @@ def gfClimatology_interpolateddaily(ds, series, output, xlbook, flag_code):
 def gfClimatology_monthly(ds, series, output, xlbook):
     """ Gap fill using monthly climatology."""
     ldt = pfp_utils.GetVariable(ds, "DateTime")
-    Hdh = numpy.array([d.hour + d.minute/float(60) for d in ldt["Data"]])
+    Hdh = numpy.array([(d.hour + d.minute/float(60)) for d in ldt["Data"]])
     Month = numpy.array([d.month for d in ldt["Data"]])
     thissheet = xlbook.sheet_by_name(series)
     val1d = numpy.zeros_like(ds.series[series]["Data"])

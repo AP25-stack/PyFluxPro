@@ -1,8 +1,6 @@
 # standard modules
-import datetime
 import logging
 # 3rd party
-import dateutil
 import numpy
 # PFP modules
 import meteorologicalfunctions as pfp_mf
@@ -10,86 +8,135 @@ import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 
-def AhfromRH(ds, AH_out, RH_in, Ta_in):
+def Convert_fraction_to_percent(ds, RH_out, RH_in):
     """
     Purpose:
-     Function to calculate absolute humidity given relative humidity and
-     air temperature.  Absolute humidity is not calculated if any of the
-     input series are missing or if the specified output series already
-     exists in the data structure.
-     The calculated absolute humidity is created as a new series in the
-     data structure.
+     Function to convert RH in units of "frac" (0 to 1) to "percent" (1 to 100).
     Usage:
-     pfp_func.AhfromRH(ds,"AH_HMP_2m","RH_HMP_2m","Ta_HMP_2m")
+     pfp_func.Convert_fraction_to_percent(ds, RH_out, RH_in)
     Author: PRI
-    Date: September 2015
+    Date: August 2019
+    """
+    var_in = pfp_utils.GetVariable(ds, RH_in)
+    var_out = pfp_utils.convert_units_func(ds, var_in, "%", mode="quiet")
+    var_out["Label"] = RH_out
+    pfp_utils.CreateVariable(ds, var_out)
+    return 1
+
+def Convert_gH2Opm3_to_percent(ds, RH_out, AH_in, Ta_in):
+    """
+    Purpose:
+     Function to convert absolute humidity in units of g/m^3 to relative humidity in percent.
+    Usage:
+     pfp_func.Convert_gH2Opm3_to_percent(ds, RH_out, AH_in, Ta_in)
+    Author: PRI
+    Date: September 2020
     """
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
-    for item in [RH_in,Ta_in]:
-        if item not in list(ds.series.keys()):
-            msg = " AhfromRH: Requested series "+item+" not found, "+AH_out+" not calculated"
+    for item in [AH_in, Ta_in]:
+        if item not in ds.series.keys():
+            msg = " Requested series " + item + " not found, " + RH_out + " not calculated"
             logger.error(msg)
             return 0
-    if AH_out in list(ds.series.keys()):
-        msg = " AhfromRH: Output series "+AH_out+" already exists, skipping ..."
-        logger.error(msg)
-        return 0
-    RH_data,RH_flag,RH_attr = pfp_utils.GetSeriesasMA(ds,RH_in)
-    Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds,Ta_in)
-    AH_data = pfp_mf.absolutehumidityfromrelativehumidity(Ta_data,RH_data)
-    AH_attr = pfp_utils.MakeAttributeDictionary(long_name="Absolute humidity calculated from "+RH_in+" and "+Ta_in,
-                                              height=RH_attr["height"],
-                                              units="g/m^3")
-    flag = numpy.where(numpy.ma.getmaskarray(AH_data)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,AH_out,AH_data,flag,AH_attr)
+    AH = pfp_utils.GetVariable(ds, AH_in)
+    Ta = pfp_utils.GetVariable(ds, Ta_in)
+    RH = pfp_utils.GetVariable(ds, RH_out)
+    RH["Data"] = pfp_mf.relativehumidityfromabsolutehumidity(AH["Data"], Ta["Data"])
+    RH["Flag"] = numpy.where(numpy.ma.getmaskarray(RH["Data"]) == True, ones, zeros)
+    pfp_utils.CreateVariable(ds, RH)
     return 1
 
-def AhfromMR(ds, AH_out, MR_in, Ta_in, ps_in):
+def Convert_gH2Opm3_to_mmolpm3(ds, H2O_out, AH_in):
     """
     Purpose:
-     Function to calculate absolute humidity given the water vapour mixing
-     ratio, air temperature and pressure.  Absolute humidity is not calculated
-     if any of the input series are missing or if the specified output series
-     already exists in the data structure.
-     The calculated absolute humidity is created as a new series in the
-     data structure.
+     Calculate H2O molar density in mmol/m^3 from absolute humidity in g/m^3.
     Usage:
-     pfp_func.AhfromMR(ds,"AH_IRGA_Av","H2O_IRGA_Av","Ta_HMP_2m","ps")
+     pfp_func.Convert_gH2Opm3_to_mmolpm3(ds, MD_out, AH_in)
     Author: PRI
-    Date: September 2015
+    Date: September 2020
+    """
+    #nRecs = int(ds.globalattributes["nc_nrecs"])
+    #zeros = numpy.zeros(nRecs, dtype=numpy.int32)
+    #ones = numpy.ones(nRecs, dtype=numpy.int32)
+    #for item in [Ah_in]:
+        #if item not in ds.series.keys():
+            #msg = " Requested series " + item + " not found, " + MD_out + " not calculated"
+            #logger.error(msg)
+            #return 0
+    #Ah = pfp_utils.GetVariable(ds, Ah_in)
+    #MD = pfp_utils.GetVariable(ds, MD_out)
+    #MD["Data"] = pfp_mf.h2o_mmolpm3fromgpm3(Ah["Data"])
+    #MD["Flag"] = numpy.where(numpy.ma.getmaskarray(MD["Data"]) == True, ones, zeros)
+    #pfp_utils.CreateVariable(ds, MD)
+    #return 1
+    for item in [AH_in]:
+        if item not in ds.series.keys():
+            msg = " Requested series " + item + " not found, " + H2O_out + " not calculated"
+        logger.error(msg)
+        return 0
+    var_in = pfp_utils.GetVariable(ds, AH_in)
+    got_variance = False
+    if "Vr" in var_in["Label"] and ")2" in var_in["Attr"]["units"]:
+        got_variance = True
+        var_in["Data"] = numpy.ma.sqrt(var_in["Data"])
+        var_in["Attr"]["units"] = pfp_utils.units_variance_to_standard_deviation(var_in["Attr"]["units"])
+    var_out = pfp_utils.convert_units_func(ds, var_in, "mmol/m^3", mode="quiet")
+    var_out["Label"] = H2O_out
+    if got_variance:
+        var_out["Data"] = var_out["Data"]*var_out["Data"]
+        var_out["Attr"]["units"] = pfp_utils.units_standard_deviation_to_variance(var_out["Attr"]["units"])
+    pfp_utils.CreateVariable(ds, var_out)
+    return 1
+
+def Convert_gH2Opm3_to_mmolpmol(ds, MF_out, AH_in, Ta_in, ps_in):
+    """
+    Purpose:
+     Calculate H2O mole fraction in mml/mol from absolute humidity in g/m^3.
+    Usage:
+     pfp_func.Convert_gH2Opm3_to_mmolpmol(ds, MF_out, AH_in, Ta_in, ps_in)
+    Author: PRI
+    Date: August 2019
     """
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
-    for item in [MR_in,Ta_in,ps_in]:
-        if item not in list(ds.series.keys()):
-            msg = " AhfromMR: Requested series "+item+" not found, "+AH_out+" not calculated"
+    for item in [AH_in, Ta_in, ps_in]:
+        if item not in ds.series.keys():
+            msg = " Requested series " + item + " not found, " + MF_out + " not calculated"
             logger.error(msg)
             return 0
-    if AH_out in list(ds.series.keys()):
-        msg = " AhfromMR: Output series "+AH_out+" already exists, skipping ..."
-        logger.error(msg)
-        return 0
-    MR_data,MR_flag,MR_attr = pfp_utils.GetSeriesasMA(ds,MR_in)
-    Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds,Ta_in)
-    ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds,ps_in)
-    AH_data = pfp_mf.h2o_gpm3frommmolpmol(MR_data,Ta_data,ps_data)
-    long_name = "Absolute humidity calculated from "+MR_in+", "+Ta_in+" and "+ps_in
-    AH_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,
-                                              height=MR_attr["height"],
-                                              units="g/m^3")
-    flag = numpy.where(numpy.ma.getmaskarray(AH_data)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds,AH_out,AH_data,flag,AH_attr)
+    AH = pfp_utils.GetVariable(ds, AH_in)
+    Ta = pfp_utils.GetVariable(ds, Ta_in)
+    ps = pfp_utils.GetVariable(ds, ps_in)
+    MF = pfp_utils.GetVariable(ds, MF_out)
+    MF["Data"] = pfp_mf.h2o_mmolpmolfromgpm3(Ah["Data"], Ta["Data"], ps["Data"])
+    MF["Flag"] = numpy.where(numpy.ma.getmaskarray(MF["Data"]) == True, ones, zeros)
+    pfp_utils.CreateVariable(ds, MF)
     return 1
 
-def ConvertK2C(ds, T_out, T_in):
+def Convert_hPa_to_kPa(ds, ps_out, ps_in):
+    """
+    Purpose:
+     Function to convert pressure from hPa (mb) to kPa.
+    Usage:
+     pfp_func.ConverthPa2kPa(ds, ps_in, ps_out)
+    Author: PRI
+    Date: February 2018
+    """
+    var_in = pfp_utils.GetVariable(ds, ps_in)
+    var_out = pfp_utils.convert_units_func(ds, var_in, "kPa", mode="quiet")
+    var_out["Label"] = ps_out
+    pfp_utils.CreateVariable(ds, var_out)
+    return 1
+
+def Convert_K_to_C(ds, T_out, T_in):
     """
     Purpose:
      Function to convert temperature from K to C.
     Usage:
-     pfp_func.ConvertK2C(ds, T_out, T_in)
+     pfp_func.Convert_K_to_C(ds, T_out, T_in)
     Author: PRI
     Date: February 2018
     """
@@ -109,225 +156,150 @@ def ConvertK2C(ds, T_out, T_in):
     pfp_utils.CreateVariable(ds, var_out)
     return 1
 
-def ConvertPa2kPa(ds, ps_out, ps_in):
+def Convert_kgpm3_to_gpm3(ds, AH_out, AH_in):
     """
     Purpose:
-     Function to convert pressure from Pa to kPa.
+     Function to convert absolute humidity from kg/m^3 to g/m^3.
     Usage:
-     pfp_func.ConvertPa2kPa(ds, ps_out, ps_in)
+     pfp_func.Convertkgpm32gpm3(ds, Ah_out, Ah_in)
     Author: PRI
-    Date: February 2018
+    Date: August 2020
     """
-    var_in = pfp_utils.GetVariable(ds, ps_in)
-    var_out = pfp_utils.convert_units_func(ds, var_in, "kPa", mode="quiet")
-    var_out["Label"] = ps_out
+    var_in = pfp_utils.GetVariable(ds, AH_in)
+    var_out = pfp_utils.convert_units_func(ds, var_in, "g/m^3", mode="quiet")
+    var_out["Label"] = AH_out
     pfp_utils.CreateVariable(ds, var_out)
     return 1
 
-def ConverthPa2kPa(ds, ps_out, ps_in):
+def Convert_mmolpm3_to_gH2Opm3(ds, AH_out, H2O_in):
     """
     Purpose:
-     Function to convert pressure from hPa (mb) to kPa.
+     Function to convert mmol/m^3 (molar density) to g/m^3 (mass density).
     Usage:
-     pfp_func.ConverthPa2kPa(ds, ps_in, ps_out)
+     pfp_func.Convert_mmolpm3_to_gpm3(ds, AH_out, H2O_in)
     Author: PRI
-    Date: February 2018
+    Date: August 2020
     """
-    var_in = pfp_utils.GetVariable(ds, ps_in)
-    var_out = pfp_utils.convert_units_func(ds, var_in, "kPa", mode="quiet")
-    var_out["Label"] = ps_out
-    pfp_utils.CreateVariable(ds, var_out)
-    return 1
-
-def ConvertRHtoPercent(ds, RH_out, RH_in):
-    """
-    Purpose:
-     Function to convert RH in units of "frac" (0 to 1) to "percent" (1 to 100).
-    Usage:
-     pfp_func.ConvertRHtoPercent(ds, RH_out, RH_in)
-    Author: PRI
-    Date: August 2019
-    """
-    var_in = pfp_utils.GetVariable(ds, RH_in)
-    var_out = pfp_utils.convert_units_func(ds, var_in, "percent", mode="quiet")
-    var_out["Label"] = RH_out
-    pfp_utils.CreateVariable(ds, var_out)
-    return
-
-def ConvertPercent2m3pm3(ds, Sws_out, Sws_in):
-    """
-    Purpose:
-     Function to convert Sws in units of "percent" (1 to 100) to "frac" (0 to 1).
-    Usage:
-     pfp_func.ConvertPercent2m3pm3(ds, Sws_out, Sws_in)
-    Author: PRI
-    Date: April 2020
-    """
-    var_in = pfp_utils.GetVariable(ds, Sws_in)
-    var_out = pfp_utils.convert_units_func(ds, var_in, "m^3/m^3", mode="quiet")
-    var_out["Label"] = Sws_out
-    pfp_utils.CreateVariable(ds, var_out)
-    return
-
-def DateTimeFromDoY(ds, dt_out, Year_in, DoY_in, Hdh_in):
-    year,f,a = pfp_utils.GetSeriesasMA(ds,Year_in)
-    doy,f,a = pfp_utils.GetSeriesasMA(ds,DoY_in)
-    hdh,f,a = pfp_utils.GetSeriesasMA(ds,Hdh_in)
-    idx = numpy.ma.where((numpy.ma.getmaskarray(year)==False)&
-                         (numpy.ma.getmaskarray(doy)==False)&
-                         (numpy.ma.getmaskarray(hdh)==False))[0]
-    year = year[idx]
-    doy = doy[idx]
-    hdh = hdh[idx]
-    hour = numpy.array(hdh,dtype=numpy.integer)
-    minute = numpy.array((hdh-hour)*60,dtype=numpy.integer)
-    dt = [datetime.datetime(int(y),1,1,h,m)+datetime.timedelta(int(d)-1) for y,d,h,m in zip(year,doy,hour,minute)]
-    nRecs = len(dt)
-    ds.series[dt_out] = {}
-    ds.series[dt_out]["Data"] = dt
-    ds.series[dt_out]["Flag"] = numpy.zeros(len(dt),dtype=numpy.int32)
-    ds.series[dt_out]["Attr"] = {}
-    ds.series[dt_out]["Attr"]["long_name"] = "Datetime in local timezone"
-    ds.series[dt_out]["Attr"]["units"] = "None"
-    # now remove any "data"" from empty lines
-    series_list = list(ds.series.keys())
-    if dt_out in series_list: series_list.remove(dt_out)
-    for item in series_list:
-        ds.series[item]["Data"] = ds.series[item]["Data"][idx]
-        ds.series[item]["Flag"] = ds.series[item]["Flag"][idx]
-    ds.globalattributes["nc_nrecs"] = nRecs
-    return 1
-
-def DateTimeFromTimeStamp(ds, dt_out, TimeStamp_in, fmt=""):
-    if TimeStamp_in not in list(ds.series.keys()):
-        logger.error(" Required series "+TimeStamp_in+" not found")
-        return 0
-    TimeStamp = ds.series[TimeStamp_in]["Data"]
-    # guard against empty fields in what we assume is the datetime
-    idx = [i for i in range(len(TimeStamp)) if len(str(TimeStamp[i]))>0]
-    if len(fmt)==0:
-        dt = [dateutil.parser.parse(str(TimeStamp[i])) for i in idx]
-    else:
-        yearfirst = False
-        dayfirst = False
-        if fmt.index("Y") < fmt.index("D"): yearfirst = True
-        if fmt.index("D") < fmt.index("M"): dayfirst = True
-        dt = [dateutil.parser.parse(str(TimeStamp[i]),dayfirst=dayfirst,yearfirst=yearfirst)
-              for i in idx]
-    # we have finished with the timestamp so delete it from the data structure
-    del ds.series[TimeStamp_in]
-    nRecs = len(dt)
-    ds.series[dt_out] = {}
-    ds.series[dt_out]["Data"] = dt
-    ds.series[dt_out]["Flag"] = numpy.zeros(len(dt),dtype=numpy.int32)
-    ds.series[dt_out]["Attr"] = {}
-    ds.series[dt_out]["Attr"]["long_name"] = "Datetime in local timezone"
-    ds.series[dt_out]["Attr"]["units"] = "None"
-    # now remove any "data"" from empty lines
-    series_list = list(ds.series.keys())
-    if dt_out in series_list: series_list.remove(dt_out)
-    for item in series_list:
-        ds.series[item]["Data"] = ds.series[item]["Data"][idx]
-        ds.series[item]["Flag"] = ds.series[item]["Flag"][idx]
-    ds.globalattributes["nc_nrecs"] = nRecs
-    return 1
-
-def DateTimeFromExcelDateAndTime(ds, dt_out, xlDate, xlTime):
-    """ Get Datetime from Excel date and time fields."""
-    xldate = ds.series[xlDate]
-    xltime = ds.series[xlTime]
-    nrecs = len(xldate["Data"])
-    xldatetime = pfp_utils.CreateEmptyVariable("xlDateTime", nrecs)
-    xldatetime["Data"] = xldate["Data"] + xltime["Data"]
-    xldatetime["Attr"]["long_name"] = "Date/time in Excel format"
-    xldatetime["Attr"]["units"] = "days since 1899-12-31 00:00:00"
-    pfp_utils.CreateVariable(ds, xldatetime)
-    pfp_utils.get_datetimefromxldatetime(ds)
-    return 1
-
-def DateTimeFromDateAndTimeString(ds, dt_out, Date, Time):
-    if Date not in list(ds.series.keys()):
-        logger.error(" Requested date series "+Date+" not found")
-        return 0
-    if Time not in list(ds.series.keys()):
-        logger.error(" Requested time series "+Time+" not found")
-        return 0
-    DateString = ds.series[Date]["Data"]
-    TimeString = ds.series[Time]["Data"]
-    # guard against empty fields in what we assume is the datetime
-    idx = [i for i in range(len(DateString)) if len(str(DateString[i]))>0]
-    dt = [dateutil.parser.parse(str(DateString[i])+" "+str(TimeString[i])) for i in idx]
-    # we have finished with the date and time strings so delete them from the data structure
-    del ds.series[Date], ds.series[Time]
-    nRecs = len(dt)
-    ds.series[dt_out] = {}
-    ds.series[dt_out]["Data"] = dt
-    ds.series[dt_out]["Flag"] = numpy.zeros(len(dt),dtype=numpy.int32)
-    ds.series[dt_out]["Attr"] = {}
-    ds.series[dt_out]["Attr"]["long_name"] = "Datetime in local timezone"
-    ds.series[dt_out]["Attr"]["units"] = "None"
-    # now remove any "data"" from empty lines
-    series_list = list(ds.series.keys())
-    if dt_out in series_list: series_list.remove(dt_out)
-    for item in series_list:
-        ds.series[item]["Data"] = ds.series[item]["Data"][idx]
-        ds.series[item]["Flag"] = ds.series[item]["Flag"][idx]
-    ds.globalattributes["nc_nrecs"] = nRecs
-    return 1
-
-def MRfromAh(ds, MR_out, AH_in, Ta_in, ps_in):
-    """
-    Purpose:
-     Calculate H2O mixing ratio from absolute humidity (AH).
-    """
-    nRecs = int(ds.globalattributes["nc_nrecs"])
-    zeros = numpy.zeros(nRecs,dtype=numpy.int32)
-    ones = numpy.ones(nRecs,dtype=numpy.int32)
-    for item in [AH_in, Ta_in, ps_in]:
+    for item in [H2O_in]:
         if item not in list(ds.series.keys()):
-            msg = " MRfromAh: Requested series "+item+" not found, "+MR_out+" not calculated"
+            msg = " Requested series " + item + " not found, " + AH_out + " not calculated"
             logger.error(msg)
             return 0
-    if MR_out in list(ds.series.keys()):
-        msg = " MRfromAh: Output series "+MR_out+" already exists, skipping ..."
-        logger.error(msg)
-        return 0
-    AH_data,AH_flag,AH_attr = pfp_utils.GetSeriesasMA(ds, AH_in)
-    Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds, Ta_in)
-    ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds, ps_in)
-    MR_data = pfp_mf.h2o_mmolpmolfromgpm3(AH_data, Ta_data, ps_data)
-    MR_attr = pfp_utils.MakeAttributeDictionary(long_name="H2O mixing ratio calculated from "+AH_in+", "+Ta_in+" and "+ps_in,
-                                              height=AH_attr["height"],
-                                              units="mmol/mol")
-    flag = numpy.where(numpy.ma.getmaskarray(MR_data)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds, MR_out, MR_data, flag, MR_attr)
+    var_in = pfp_utils.GetVariable(ds, H2O_in)
+    got_variance = False
+    if "Vr" in var_in["Label"] and ")2" in var_in["Attr"]["units"]:
+        got_variance = True
+        var_in["Data"] = numpy.ma.sqrt(var_in["Data"])
+        var_in["Attr"]["units"] = pfp_utils.units_variance_to_standard_deviation(var_in["Attr"]["units"])
+    var_out = pfp_utils.convert_units_func(ds, var_in, "g/m^3", mode="quiet")
+    var_out["Label"] = AH_out
+    if got_variance:
+        var_out["Data"] = var_out["Data"]*var_out["Data"]
+        var_out["Attr"]["units"] = pfp_utils.units_standard_deviation_to_variance(var_out["Attr"]["units"])
+    pfp_utils.CreateVariable(ds, var_out)
     return 1
 
-def MRfromRH(ds, MR_out, RH_in, Ta_in, ps_in):
+def Convert_mmolpmol_to_gH2Opm3(ds, AH_out, MF_in, Ta_in, ps_in):
     """
     Purpose:
-     Calculate H2O mixing ratio from RH.
+     Function to calculate absolute humidity given the water vapour mole
+     fraction, air temperature and pressure.  Absolute humidity is not calculated
+     if any of the input series are missing or if the specified output series
+     already exists in the data structure.
+     The calculated absolute humidity is created as a new series in the
+     data structure.
+    Usage:
+     pfp_func.Convert_mmolpmol_to_gpm3(ds,"AH_IRGA_Av","H2O_IRGA_Av","Ta_HMP_2m","ps")
+    Author: PRI
+    Date: September 2015
+    """
+    nRecs = int(ds.globalattributes["nc_nrecs"])
+    zeros = numpy.zeros(nRecs, dtype=numpy.int32)
+    ones = numpy.ones(nRecs, dtype=numpy.int32)
+    for item in [MF_in, Ta_in, ps_in]:
+        if item not in list(ds.series.keys()):
+            msg = " Requested series " + item + " not found, " + AH_out + " not calculated"
+            logger.error(msg)
+        return 0
+    if AH_out in ds.series.keys():
+        msg = " Output series " + AH_out + " already exists, skipping ..."
+        logger.error(msg)
+        return 0
+    MF_data,MF_flag,MF_attr = pfp_utils.GetSeriesasMA(ds,MF_in)
+    Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds,Ta_in)
+    ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds,ps_in)
+    AH_data = pfp_mf.h2o_gpm3frommmolpmol(MF_data,Ta_data,ps_data)
+    long_name = "Absolute humidity calculated from " + MF_in + ", " + Ta_in + " and " + ps_in
+    AH_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,
+                                              height=MF_attr["height"],
+                                              units="g/m^3")
+    AH_flag = numpy.where(numpy.ma.getmaskarray(AH_data) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, AH_out, AH_data, AH_flag, AH_attr)
+    return 1
+
+def Convert_percent_to_mmolpmol(ds, MF_out, RH_in, Ta_in, ps_in):
+    """
+    Purpose:
+     Calculate H2O mole fraction from relative humidity (RH).
     """
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     for item in [RH_in, Ta_in, ps_in]:
         if item not in list(ds.series.keys()):
-            msg = " MRfromRH: Requested series "+item+" not found, "+MR_out+" not calculated"
+            msg = " Requested series " + item + " not found, " + MF_out + " not calculated"
             logger.error(msg)
             return 0
-    if MR_out in list(ds.series.keys()):
-        msg = " MRfromRH: Output series "+MR_out+" already exists, skipping ..."
+    if MF_out in list(ds.series.keys()):
+        msg = " Output series " + MF_out + " already exists, skipping ..."
+        logger.error(msg)
+        return 0
+    RH_data, RH_flag, RH_attr = pfp_utils.GetSeriesasMA(ds, RH_in)
+    Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds, Ta_in)
+    AH_data = pfp_mf.absolutehumidityfromrelativehumidity(Ta_data, RH_data)
+    ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds, ps_in)
+    MF_data = pfp_mf.h2o_mmolpmolfromgpm3(AH_data, Ta_data, ps_data)
+    long_name = "H2O mole fraction calculated from " + RH_in + ", " + Ta_in + " and " + ps_in
+    MF_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,
+                                              height=RH_attr["height"],
+                                              units="mmol/mol")
+    MF_flag = numpy.where(numpy.ma.getmaskarray(MF_data)==True,ones,zeros)
+    pfp_utils.CreateSeries(ds, MF_out, MF_data, MF_flag, MF_attr)
+    return 1
+
+def Convert_percent_to_gH2Opm3(ds, AH_out, RH_in, Ta_in):
+    """
+    Purpose:
+     Function to calculate absolute humidity given relative humidity and
+     air temperature.  Absolute humidity is not calculated if any of the
+     input series are missing or if the specified output series already
+     exists in the data structure.
+     The calculated absolute humidity is created as a new series in the
+     data structure.
+    Usage:
+     pfp_func.Convert_percent_to_gpm3(ds,"AH_HMP_2m","RH_HMP_2m","Ta_HMP_2m")
+    Author: PRI
+    Date: September 2015
+    """
+    nRecs = int(ds.globalattributes["nc_nrecs"])
+    zeros = numpy.zeros(nRecs,dtype=numpy.int32)
+    ones = numpy.ones(nRecs,dtype=numpy.int32)
+    for item in [RH_in, Ta_in]:
+        if item not in ds.series.keys():
+            msg = " Requested series " + item + " not found, " + AH_out + " not calculated"
+            logger.error(msg)
+            return 0
+    if AH_out in list(ds.series.keys()):
+        msg = " Output series " + AH_out + " already exists, skipping ..."
         logger.error(msg)
         return 0
     RH_data,RH_flag,RH_attr = pfp_utils.GetSeriesasMA(ds, RH_in)
     Ta_data,Ta_flag,Ta_attr = pfp_utils.GetSeriesasMA(ds, Ta_in)
     AH_data = pfp_mf.absolutehumidityfromrelativehumidity(Ta_data, RH_data)
-    ps_data,ps_flag,ps_attr = pfp_utils.GetSeriesasMA(ds, ps_in)
-    MR_data = pfp_mf.h2o_mmolpmolfromgpm3(AH_data, Ta_data, ps_data)
-    MR_attr = pfp_utils.MakeAttributeDictionary(long_name="H2O mixing ratio calculated from "+RH_in+", "+Ta_in+" and "+ps_in,
+    long_name = "Absolute humidity calculated from " + RH_in + " and " + Ta_in
+    AH_attr = pfp_utils.MakeAttributeDictionary(long_name=long_name,
                                               height=RH_attr["height"],
-                                              units="mmol/mol")
-    flag = numpy.where(numpy.ma.getmaskarray(MR_data)==True,ones,zeros)
-    pfp_utils.CreateSeries(ds, MR_out, MR_data, flag, MR_attr)
+                                                units="g/m^3")
+    flag = numpy.where(numpy.ma.getmaskarray(AH_data) == True, ones, zeros)
+    pfp_utils.CreateSeries(ds, AH_out, AH_data, flag, AH_attr)
     return 1

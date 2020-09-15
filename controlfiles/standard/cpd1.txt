@@ -7,7 +7,7 @@
 
 [Variables]
     [[Fco2]]
-        name = Fco2
+        name = Fco2_PFP
     [[Ta]]
         name = Ta
     [[ustar]]

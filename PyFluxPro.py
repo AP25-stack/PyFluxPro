@@ -16,8 +16,11 @@ if platform.system() == "Darwin":
 elif platform.system() == "Windows":
     # set backend to "QT5Agg" for Windows
     matplotlib.use("QT5Agg")
+elif platform.system() == "Linux":
+    # set backend to "QT5Agg" for Linux
+    matplotlib.use("QT5Agg")
 else:
-    # use whatever on Linux ...
+    # use whatever ...
     pass
 from PyQt5 import QtWidgets
 # PFP modules
@@ -99,24 +102,27 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.actionFileSaveAs = QtWidgets.QAction(self)
         self.actionFileSaveAs.setText("Save As...")
         self.actionFileSaveAs.setShortcut('Shift+Ctrl+S')
-        self.actionFileSplit = QtWidgets.QAction(self)
-        self.actionFileSplit.setText("Split")
-        self.actionFileQuit = QtWidgets.QAction(self)
-        self.actionFileQuit.setText("Quit")
-        self.actionFileQuit.setShortcut('Ctrl+Z')
+        # File menu items: menu actions for netCDF files
+        self.actionFileExplore = QtWidgets.QAction(self)
+        self.actionFileExplore.setText("Explore")
+        self.actionFileExplore.setShortcut('Ctrl+E')
         # File/Convert submenu
         self.actionFileConvertnc2biomet = QtWidgets.QAction(self)
         self.actionFileConvertnc2biomet.setText("nc to Biomet")
-        #self.actionFileConvertnc2ecostress = QtWidgets.QAction(self)
-        #self.actionFileConvertnc2ecostress.setText("nc to ECOSTRESS")
         self.actionFileConvertnc2xls = QtWidgets.QAction(self)
         self.actionFileConvertnc2xls.setText("nc to Excel")
-        #self.actionFileConvertnc2fluxnet = QtWidgets.QAction(self)
-        #self.actionFileConvertnc2fluxnet.setText("nc to FluxNet")
         self.actionFileConvertnc2reddyproc = QtWidgets.QAction(self)
         self.actionFileConvertnc2reddyproc.setText("nc to REddyProc")
         self.actionFileConvertncupdate = QtWidgets.QAction(self)
         self.actionFileConvertncupdate.setText("nc update")
+        # Edit menu items
+        self.actionFileSplit = QtWidgets.QAction(self)
+        self.actionFileSplit.setText("Split")
+        self.actionFileSplit.setShortcut('Ctrl+P')
+        # File menu item: Quit
+        self.actionFileQuit = QtWidgets.QAction(self)
+        self.actionFileQuit.setText("Quit")
+        self.actionFileQuit.setShortcut('Ctrl+Z')
         # Edit menu items
         self.actionEditPreferences = QtWidgets.QAction(self)
         self.actionEditPreferences.setText("Preferences...")
@@ -148,8 +154,6 @@ class pfp_main_ui(QtWidgets.QWidget):
         # File/Convert submenu
         self.menuFileConvert.addAction(self.actionFileConvertnc2xls)
         self.menuFileConvert.addAction(self.actionFileConvertnc2biomet)
-        #self.menuFileConvert.addAction(self.actionFileConvertnc2ecostress)
-        #self.menuFileConvert.addAction(self.actionFileConvertnc2fluxnet)
         self.menuFileConvert.addAction(self.actionFileConvertnc2reddyproc)
         self.menuFileConvert.addAction(self.actionFileConvertncupdate)
         # File menu
@@ -158,6 +162,7 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.menuFile.addAction(self.actionFileSaveAs)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.menuFileConvert.menuAction())
+        self.menuFile.addAction(self.actionFileExplore)
         self.menuFile.addAction(self.actionFileSplit)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionFileQuit)
@@ -216,6 +221,7 @@ class pfp_main_ui(QtWidgets.QWidget):
 
         # Connect signals to slots
         # File menu actions
+        self.actionFileExplore.triggered.connect(self.do_file_explore)
         self.actionFileConvertnc2biomet.triggered.connect(lambda:pfp_top_level.do_file_convert_nc2biomet(None, mode="standard"))
         self.actionFileConvertnc2xls.triggered.connect(pfp_top_level.do_file_convert_nc2xls)
         self.actionFileConvertnc2reddyproc.triggered.connect(lambda:pfp_top_level.do_file_convert_nc2reddyproc(None, mode="standard"))
@@ -321,8 +327,8 @@ class pfp_main_ui(QtWidgets.QWidget):
             self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2csv_fluxnet(self)
             self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
             self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
-        elif self.cfg["level"] in ["nc2tsv_reddyproc"]:
-            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2tsv_reddyproc(self)
+        elif self.cfg["level"] in ["nc2csv_reddyproc"]:
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_nc2csv_reddyproc(self)
             self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
             self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
         elif self.cfg["level"] in ["batch"]:
@@ -337,6 +343,16 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.tabs.setCurrentIndex(self.tabs.tab_index_all)
         if self.tabs.tab_dict[self.tabs.tab_index_all].cfg_changed:
             self.update_tab_text()
+        self.tabs.tab_index_all = self.tabs.tab_index_all + 1
+        return
+
+    def do_file_explore(self):
+        self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.file_explore(self)
+        self.tabs.cfg_dict[self.tabs.tab_index_all] = {}
+        # add a tab for the netCDF file contents
+        file_name = self.tabs.tab_dict[self.tabs.tab_index_all].file_name
+        self.tabs.addTab(self.tabs.tab_dict[self.tabs.tab_index_all], file_name)
+        self.tabs.setCurrentIndex(self.tabs.tab_index_all)
         self.tabs.tab_index_all = self.tabs.tab_index_all + 1
         return
 
@@ -582,9 +598,13 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.tabs.setCurrentIndex(0)
         # call the appropriate processing routine depending on the level
         self.tabs.tab_index_running = tab_index_current
-        if self.tabs.cfg_dict[tab_index_current]["level"] == "L1":
+        if self.tabs.cfg_dict[tab_index_current]["level"] == "batch":
+             # check the L1 control file to see if it is OK to run
+            if not pfp_compliance.check_batch_controlfile(cfg): return
+            pfp_top_level.do_run_batch(cfg)
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "L1":
             # check the L1 control file to see if it is OK to run
-            if not pfp_compliance.l1_check_controlfile(cfg): return
+            if not pfp_compliance.check_l1_controlfile(cfg): return
             pfp_top_level.do_run_l1(cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "L2":
             pfp_top_level.do_run_l2(cfg)
@@ -604,7 +624,7 @@ class pfp_main_ui(QtWidgets.QWidget):
             pfp_top_level.do_file_convert_nc2ecostress(cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_fluxnet":
             pfp_top_level.do_file_convert_nc2fluxnet(cfg)
-        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2tsv_reddyproc":
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "nc2csv_reddyproc":
             pfp_top_level.do_file_convert_nc2reddyproc(cfg, mode="custom")
         else:
             logger.error("Level not implemented yet ...")

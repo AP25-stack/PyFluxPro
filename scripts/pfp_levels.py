@@ -43,10 +43,10 @@ def l1qc(cf):
     # write the processing level to a global attribute
     ds.globalattributes["nc_level"] = "L1"
     # calculate variances from standard deviations and vice versa
-    pfp_ts.CalculateStandardDeviations(ds)
-    # create new variables using user defined functions
     pfp_ts.DoFunctions(ds, l1_info["read_excel"])
     # check missing data and QC flags are consistent
+    pfp_ts.CalculateStandardDeviations(ds)
+    # create new variables using user defined functions
     pfp_utils.CheckQCFlags(ds)
     return ds
 
@@ -99,7 +99,8 @@ def l3qc(cf, ds2):
     pfp_ck.do_linear(cf,ds3)
     # parse the control file for information on how the user wants to do the gap filling
     l3_info = pfp_compliance.ParseL3ControlFile(cf, ds3)
-    if ds3.returncodes["value"] != 0:
+    if l3_info["status"]["value"] != 0:
+        logger.error(l3_info["status"]["message"])
         return ds3
     # ************************
     # *** Merge humidities ***
@@ -157,7 +158,7 @@ def l3qc(cf, ds2):
     # calculate Fco2 storage term - single height only at present
     pfp_ts.CalculateFco2StorageSinglePoint(cf, ds3)
     # convert Fco2 and Fco2_storage units if required
-    #pfp_utils.ConvertFco2Units(cf, ds3)
+    pfp_utils.ConvertFco2Units(cf, ds3)
     Fco2_list = ["Fco2", "Fco2_single", "Fco2_profile", "Fco2_storage"]
     pfp_utils.CheckUnits(ds3, Fco2_list, "umol/m^2/s", convert_units=True)
     # merge Fco2 and Fco2_storage series if required

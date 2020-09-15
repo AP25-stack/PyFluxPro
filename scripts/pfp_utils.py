@@ -7,7 +7,6 @@ import logging
 import math
 import numbers
 import os
-#import platform
 import sys
 import time
 # third party modules
@@ -17,7 +16,6 @@ import netCDF4
 import numpy
 import pytz
 import xlrd
-#import xlwt
 # PFP modules
 import constants as c
 import meteorologicalfunctions as pfp_mf
@@ -257,7 +255,7 @@ def ConvertCO2Units(cf, ds, CO2='CO2'):
     else:
         logger.info(" CO2 concentration already in requested units")
 
-def ConvertFcUnits(cf, ds):
+def ConvertFco2Units(cf, ds):
     """
     Purpose:
      Convert CO2 flux units as required.
@@ -270,42 +268,42 @@ def ConvertFcUnits(cf, ds):
     """
     if 'Options' not in cf:
         return
-    if 'FcUnits' not in cf['Options']:
+    if 'Fco2Units' not in cf['Options']:
         return
     # get the Fc units requested by the user
-    Fc_units_out = get_keyvaluefromcf(cf, ['Options'], "FcUnits", default="umol/m^2/s")
+    Fco2_units_out = get_keyvaluefromcf(cf, ['Options'], "Fco2Units", default="umol/m^2/s")
     # get a list of Fc series
-    Fc_list = [label for label in list(ds.series.keys()) if label[0:4] == "Fco2"]
+    Fco2_list = [label for label in list(ds.series.keys()) if label[0:4] == "Fco2"]
     # convert units of Fc as required
     units_list = ["mg/m^2/s", "umol/m^2/s"]
-    for label in Fc_list:
-        # get the Fc variable
-        Fc = GetVariable(ds, label)
+    for label in Fco2_list:
+        # get the Fco2 variable
+        Fco2 = GetVariable(ds, label)
         # check the units, we only operate on what we know (LBYL)
-        if Fc["Attr"]["units"] not in units_list:
+        if Fco2["Attr"]["units"] not in units_list:
             Fc_list.remove(label)
             continue
-        Fc_units_in = Fc["Attr"]["units"]
+        Fco2_units_in = Fco2["Attr"]["units"]
         # check to see if we need to convert units
-        if Fc_units_in == Fc_units_out:
+        if Fco2_units_in == Fco2_units_out:
             # nothing to see here, folks
             continue
         # if we get here, we need to convert units
-        logger.info(" Converting "+label+" from "+Fc_units_in+" to "+Fc_units_out)
-        if Fc_units_out == "umol/m^2/s" and Fc_units_in == "mg/m^2/s":
-            Fc["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(Fc["Data"])
-            Fc["Attr"]["long_name"] = Fc["Attr"]["long_name"]+", converted to umol/m^2/s"
-            Fc["Attr"]["units"] = Fc_units_out
+        logger.info(" Converting "+label+" from "+Fco2_units_in+" to "+Fco2_units_out)
+        if Fco2_units_out == "umol/m^2/s" and Fco2_units_in == "mg/m^2/s":
+            Fco2["Data"] = pfp_mf.Fco2_umolpm2psfrommgCO2pm2ps(Fco2["Data"])
+            Fco2["Attr"]["long_name"] = Fco2["Attr"]["long_name"]+", converted to umol/m^2/s"
+            Fco2["Attr"]["units"] = Fco2_units_out
             #attr["standard_name"] = "surface_upward_mole_flux_of_carbon_dioxide"
-            CreateVariable(ds, Fc)
-        elif Fc_units_out == "mg/m^2/s" and Fc_units_in == "umol/m^2/s":
-            Fc["Data"] = pfp_mf.Fco2_mgCO2pm2psfromumolpm2ps(Fc["Data"])
-            Fc["Attr"]["long_name"] = Fc["Attr"]["long_name"]+", converted to mgCO2/m2/s"
-            Fc["Attr"]["units"] = Fc_units_out
+            CreateVariable(ds, Fco2)
+        elif Fco2_units_out == "mg/m^2/s" and Fco2_units_in == "umol/m^2/s":
+            Fco2["Data"] = pfp_mf.Fco2_mgCO2pm2psfromumolpm2ps(Fco2["Data"])
+            Fco2["Attr"]["long_name"] = Fco2["Attr"]["long_name"]+", converted to mgCO2/m2/s"
+            Fco2["Attr"]["units"] = Fco2_units_out
             #attr["standard_name"] = "not defined"
-            CreateVariable(ds, Fc)
+            CreateVariable(ds, Fco2)
         else:
-            logger.info('  ConvertFcUnits: input or output units for Fc unrecognised')
+            logger.info('  ConvertFco2Units: input or output units for Fc unrecognised')
     return
 
 def convert_units_func(ds, variable, new_units, mode="quiet"):
