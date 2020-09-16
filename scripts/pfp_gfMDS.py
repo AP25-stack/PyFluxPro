@@ -393,23 +393,12 @@ def gfMDS_plot(pd, ds, mds_label, l5_info, called_by):
     fig.savefig(figure_path, format='png')
     if pd["show_plots"]:
         plt.draw()
-        mypause(0.5)
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.close(fig)
         plt.ion()
     return
-
-def mypause(interval):
-    backend = plt.rcParams['backend']
-    if backend in matplotlib.rcsetup.interactive_bk:
-        figManager = matplotlib._pylab_helpers.Gcf.get_active()
-        if figManager is not None:
-            canvas = figManager.canvas
-            if canvas.figure.stale:
-                canvas.draw()
-            canvas.start_event_loop(interval)
-            return
 
 def gf_getdiurnalstats(DecHour, Data, ts):
     nInts = 24*int((60/ts)+0.5)

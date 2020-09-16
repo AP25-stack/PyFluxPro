@@ -284,7 +284,7 @@ def CalculateHumidities(ds):
     """
     if "AH" not in list(ds.series.keys()):
         if "SH" in list(ds.series.keys()):
-            AbsoluteHumidityFromSpecificHumidity(ds)    # calculate AH from SH
+            AbsoluteHumidityFromSpecificHumidity(ds)   # calculate AH from SH
         elif "RH" in list(ds.series.keys()):
             AbsoluteHumidityFromRelativeHumidity(ds)   # calculate AH from RH
     if "SH" not in list(ds.series.keys()):
@@ -400,7 +400,7 @@ def AbsoluteHumidityFromSpecificHumidity(ds):
 
 def RelativeHumidityFromSpecificHumidity(ds):
     """ Calculate relative humidity from specific humidity. """
-    logger.info(" Calculating relative humidity from specific humidity")
+    logger.info(' Calculating relative humidity from specific humidity')
     descr_level = "description_" + ds.globalattributes["nc_level"]
     Ta, Ta_flag, a = pfp_utils.GetSeriesasMA(ds, "Ta")
     ps, ps_flag, a = pfp_utils.GetSeriesasMA(ds, "ps")
@@ -427,7 +427,7 @@ def RelativeHumidityFromSpecificHumidity(ds):
 
 def RelativeHumidityFromAbsoluteHumidity(ds):
     """ Calculate relative humidity from absolute humidity. """
-    logger.info(" Calculating relative humidity from absolute humidity")
+    logger.info(' Calculating relative humidity from absolute humidity')
     descr_level = "description_" + ds.globalattributes["nc_level"]
     Ta,Ta_flag,a = pfp_utils.GetSeriesasMA(ds,"Ta")
     AH,AH_flag,a = pfp_utils.GetSeriesasMA(ds,"AH")
@@ -550,8 +550,8 @@ def SpecificHumidityFromRelativeHumidity(ds):
         attr["group_name"] = "meteorology"
         pfp_utils.CreateSeries(ds, "SH", SH_new, SH_new_flag, attr)
 
-def CalculateMeteorologicalVariables(ds, info, Ta_name="Ta", ps_name="ps", SH_name="SH",
-                                     AH_name="AH", RH_name="RH"):
+def CalculateMeteorologicalVariables(ds, info, Ta_name='Ta', Tv_name='Tv_SONIC_Av',
+                                     ps_name='ps', SH_name="SH",AH_name='AH', RH_name='RH'):
     """
         Add time series of meteorological variables based on fundamental
         relationships (Stull 1988)
@@ -799,7 +799,7 @@ def CheckCovarianceUnits(ds):
     Author: PRI
     Date: September 2015
     """
-    logger.info(" Checking covariance units")
+    logger.info(' Checking covariance units')
     co2_list = ["UxC", "UyC", "UzC"]
     h2o_list = ["UxA", "UyA", "UzA", "UxH", "UyH", "UzH"]
     for item in co2_list:
@@ -822,7 +822,7 @@ def CheckCovarianceUnits(ds):
             if "H" in item: item = item.replace("H","A")
             pfp_utils.CreateSeries(ds, item, data, flag, attr)
 
-def CombineSeries(cf, ds, label, convert_units=False, save_originals=False, mode="quiet"):
+def CombineSeries(cf, ds, labels, convert_units=False, save_originals=False, mode="quiet"):
     """
     Purpose:
      Combine two variables by merging or element-wise averaging.
@@ -879,22 +879,16 @@ def CoordRotation2D(cf, ds):
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     # get the raw wind velocity components
-    # longitudinal component in CSAT coordinate system
-    Ux = pfp_utils.GetVariable(ds, "Ux_SONIC_Av")
-    # lateral component in CSAT coordinate system
-    Uy = pfp_utils.GetVariable(ds, "Uy_SONIC_Av")
-    # vertical component in CSAT coordinate system
-    Uz = pfp_utils.GetVariable(ds, "Uz_SONIC_Av")
+    Ux = pfp_utils.GetVariable(ds, "Ux_SONIC_Av") # longitudinal component in CSAT coordinate system
+    Uy = pfp_utils.GetVariable(ds, "Uy_SONIC_Av") # lateral component in CSAT coordinate system
+    Uz = pfp_utils.GetVariable(ds, "Uz_SONIC_Av") # vertical component in CSAT coordinate system
     # get the raw covariances
     UxUz = pfp_utils.GetVariable(ds, "UxUz")      # covariance(Ux,Uz)
     UyUz = pfp_utils.GetVariable(ds, "UyUz")      # covariance(Uy,Uz)
     UxUy = pfp_utils.GetVariable(ds, "UxUy")      # covariance(Ux,Uy)
-    # variance(Uy)
-    UyUy = pfp_utils.GetVariable(ds, "Uy_SONIC_Vr")
-    # variance(Ux)
-    UxUx = pfp_utils.GetVariable(ds, "Ux_SONIC_Vr")
-    # variance(Uz)
-    UzUz = pfp_utils.GetVariable(ds, "Uz_SONIC_Vr")
+    UyUy = pfp_utils.GetVariable(ds, "Uy_SONIC_Vr")# variance(Uy)
+    UxUx = pfp_utils.GetVariable(ds, "Ux_SONIC_Vr")# variance(Ux)
+    UzUz = pfp_utils.GetVariable(ds, "Uz_SONIC_Vr")# variance(Uz)
     UzC = pfp_utils.GetVariable(ds, "UzC")        # covariance(Uz,C)
     UzA = pfp_utils.GetVariable(ds, "UzA")        # covariance(Uz,A)
     UzT = pfp_utils.GetVariable(ds, "UzT")        # covariance(Uz,T)

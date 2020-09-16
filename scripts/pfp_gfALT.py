@@ -973,21 +973,10 @@ def gfalternate_plotcomposite(data_dict, stat_dict, diel_avg, l4a, pd):
     if l4a["gui"]["show_plots"]:
         plt.draw()
         #plt.pause(1)
-        mypause(1)
+        pfp_utils.mypause(1)
         plt.ioff()
     else:
         plt.ion()
-
-def mypause(interval):
-    backend = plt.rcParams['backend']
-    if backend in matplotlib.rcsetup.interactive_bk:
-        figManager = matplotlib._pylab_helpers.Gcf.get_active()
-        if figManager is not None:
-            canvas = figManager.canvas
-            if canvas.figure.stale:
-                canvas.draw()
-            canvas.start_event_loop(interval)
-            return
 
 def gfalternate_plotcoveragelines(ds_tower, l4_info, called_by):
     """
@@ -1048,7 +1037,7 @@ def gfalternate_plotcoveragelines(ds_tower, l4_info, called_by):
     fig.tight_layout()
     if l4a["gui"]["show_plots"]:
         plt.draw()
-        mypause(1)
+        pfp_utils.mypause(1)
         plt.ioff()
     else:
         plt.ion()

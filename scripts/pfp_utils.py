@@ -281,7 +281,7 @@ def ConvertFco2Units(cf, ds):
         Fco2 = GetVariable(ds, label)
         # check the units, we only operate on what we know (LBYL)
         if Fco2["Attr"]["units"] not in units_list:
-            Fc_list.remove(label)
+            Fco2_list.remove(label)
             continue
         Fco2_units_in = Fco2["Attr"]["units"]
         # check to see if we need to convert units
@@ -3012,3 +3012,17 @@ def update_progress(progress):
     sys.stdout.write(text)
     sys.stdout.flush()
     return
+
+def mypause(interval):
+    import matplotlib
+    import matplotlib.pyplot as plt
+    import matplotlib.backends
+    backend = plt.rcParams['backend']
+    if backend in matplotlib.rcsetup.interactive_bk:
+        figManager = matplotlib._pylab_helpers.Gcf.get_active()
+        if figManager is not None:
+            canvas = figManager.canvas
+            if canvas.figure.stale:
+                canvas.draw()
+            canvas.start_event_loop(interval)
+            return

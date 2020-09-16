@@ -419,7 +419,7 @@ def plot_hist(S,mu,sig,crit_t,year,d):
     fig.savefig(plot_out_name)
     if d["show_plots"]:
         plt.draw()
-        mypause(0.5)
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.ion()
@@ -447,7 +447,7 @@ def plot_slopes(df,d):
     fig.savefig(plot_out_name)
     if d["show_plots"]:
         plt.draw()
-        mypause(0.5)
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.ion()
