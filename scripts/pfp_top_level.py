@@ -7,6 +7,7 @@ import netCDF4
 import matplotlib
 from PyQt5 import QtCore, QtWidgets, QtGui
 # PFP modules
+import pfp_batch
 import pfp_clim
 import pfp_compliance
 import pfp_cpd1
@@ -136,7 +137,8 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
      Convert a PFP-style netCDF file to an REddyProc CSV file.
     Usage:
     Side effects:
-     Creates a CSV file in the same directory as the netCDF file.
+     Creates a TSV (tab separated values) file in the same directory
+     as the netCDF file.
     Author: PRI
     Date: Back in the day
     Mods:
@@ -161,7 +163,7 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
                 # check that the netCDF file exists
                 if not os.path.exists(filename):
                     # return if no file chosen
-                    logger.info( " Write REddyProc CSV file: no input file chosen")
+                    logger.info( " Write REddyProc file: no input file chosen")
                     return
                 # add a [Files] section to the control file ...
                 if "Files" not in cfg:
@@ -173,7 +175,7 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
                 cfg["Files"]["out_filename"] = in_filename.replace(".nc", "_REddyProc.tsv")
             else:
                 # issue an error mesage and return if the standard control file does not exist
-                msg = " Write REddyProc CSV file: standard control file 'nc2tsv_reddyproc.txt' does not exist"
+                msg = " Write REddyProc file: standard control file 'nc2tsv_reddyproc.txt' does not exist"
                 logger.error(msg)
                 return
         elif cfg is not None and mode == "custom":
@@ -190,11 +192,12 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
         cfg["Options"]["call_mode"] = "interactive"
         cfg["Options"]["show_plots"] = "Yes"
         # do the business
-        result = pfp_io.write_csv_reddyproc(cfg)
+        result = pfp_io.write_tsv_reddyproc(cfg)
         # check everything went well
         if result == 1:
             # looks good
-            logger.info(" Finished converting netCDF file")
+            msg = " Finished writing REddyProc file " + cfg["Files"]["out_filename"]
+            logger.info(msg)
             logger.info("")
         else:
             # or not
@@ -203,7 +206,7 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
             logger.error("")
     except Exception:
         # tell the user if something goes wrong and put the exception in the log window
-        error_message = " Error converting to REddyProc format, see below for details ... "
+        error_message = " Error writing REddyProc file, see below for details ... "
         logger.error(error_message)
         error_message = traceback.format_exc()
         logger.error(error_message)
@@ -308,7 +311,6 @@ def do_file_convert_nc2fluxnet(cfg):
         error_message = traceback.format_exc()
         logger.error(error_message)
     return
-
 def do_file_convert_ncupdate():
     """
     Purpose:
@@ -323,8 +325,7 @@ def do_file_convert_ncupdate():
         file_names = QtWidgets.QFileDialog.getOpenFileNames(caption="Choose netCDF files", filter="*.nc")[0]
         if len(file_names) == 0: return
         # get the control file
-        #stdname = os.path.join("controlfiles", "standard", "nc_cleanup.txt")
-        stdname = os.path.join("controlfiles", "standard", "cfg_update.txt")
+        stdname = os.path.join("controlfiles", "standard", "nc_cleanup.txt")
         cfg = pfp_io.get_controlfilecontents(stdname)
         if len(cfg) == 0: return
         # loop over the selected files
@@ -398,6 +399,40 @@ def do_file_split_run(ui):
         error_message = traceback.format_exc()
         logger.error(error_message)
 # top level routines for the Run menu
+def do_run_batch(cfg):
+    """
+    Purpose:
+     Top level routine for running the batch processing.
+    Usage:
+     pfp_top_level.do_run_batch(cfg)
+     where cfg is a batch control exist
+    Side effects:
+     Creates netCDF files and plots as required.
+    Author: PRI
+    Date: September 2020
+    """
+    try:
+        logger.info("Starting batch processing")
+        pfp_batch.do_levels_batch(cfg)
+
+        #ds1 = pfp_levels.l1qc(cfg)
+        #if ds1.returncodes["value"] == 0:
+            #outfilename = pfp_io.get_outfilenamefromcf(cfg)
+            #nc_file = pfp_io.nc_open_write(outfilename)
+            #if nc_file is None: return
+            #pfp_io.nc_write_series(nc_file, ds1)
+            #logger.info("Finished L1 processing")
+        #else:
+            #msg = "An error occurred during L1 processing"
+            #logger.error(msg)
+        #logger.info("")
+
+    except Exception:
+        msg = " Error running batch processing, see below for details ..."
+        logger.error(msg)
+        error_message = traceback.format_exc()
+        logger.error(error_message)
+    return
 def do_run_l1(cfg):
     """
     Purpose:
@@ -416,8 +451,9 @@ def do_run_l1(cfg):
         ds1 = pfp_levels.l1qc(cfg)
         if ds1.returncodes["value"] == 0:
             outfilename = pfp_io.get_outfilenamefromcf(cfg)
-            ncFile = pfp_io.nc_open_write(outfilename)
-            pfp_io.nc_write_series(ncFile, ds1)
+            nc_file = pfp_io.nc_open_write(outfilename)
+            if nc_file is None: return
+            pfp_io.nc_write_series(nc_file, ds1)
             logger.info("Finished L1 processing")
         else:
             msg = "An error occurred during L1 processing"
@@ -457,6 +493,7 @@ def do_run_l2(cfg):
             return
         out_filepath = pfp_io.get_outfilenamefromcf(cfg)
         nc_file = pfp_io.nc_open_write(out_filepath)
+        if nc_file is None: return
         pfp_io.nc_write_series(nc_file, ds2)
         logger.info("Finished L2 processing")
         if "Plots" in list(cfg.keys()):
@@ -506,6 +543,7 @@ def do_run_l3(cfg):
             return
         out_filepath = pfp_io.get_outfilenamefromcf(cfg)
         nc_file = pfp_io.nc_open_write(out_filepath)
+        if nc_file is None: return
         pfp_io.nc_write_series(nc_file, ds3)
         logger.info("Finished L3 processing")
         if "Plots" in list(cfg.keys()):
@@ -560,6 +598,7 @@ def do_run_l4(main_gui, cfg):
             logger.info("Finished L4: " + sitename)
             out_filepath = pfp_io.get_outfilenamefromcf(cfg)
             nc_file = pfp_io.nc_open_write(out_filepath)
+            if nc_file is None: return
             pfp_io.nc_write_series(nc_file, ds4)         # save the L4 data
             logger.info("Finished saving L4 gap filled data")
         logger.info("")
@@ -602,6 +641,7 @@ def do_run_l5(main_gui, cfg):
             logger.info("Finished L5: "+sitename)
             out_filepath = pfp_io.get_outfilenamefromcf(cfg)
             nc_file = pfp_io.nc_open_write(out_filepath)
+            if nc_file is None: return
             pfp_io.nc_write_series(nc_file, ds5)
             logger.info("Finished saving L5 gap filled data")
         logger.info("")
@@ -645,6 +685,7 @@ def do_run_l6(main_gui, cfg):
             logger.info("Finished L6: "+sitename)
             out_filepath = pfp_io.get_outfilenamefromcf(cfg)
             nc_file = pfp_io.nc_open_write(out_filepath)
+            if nc_file is None: return
             pfp_io.nc_write_series(nc_file, ds6)
             logger.info("Finished saving L6 gap filled data")
         logger.info("")

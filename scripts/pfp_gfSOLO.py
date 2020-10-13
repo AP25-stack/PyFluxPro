@@ -65,11 +65,15 @@ def  gfSOLO_gui(main_gui, ds, l5_info, called_by):
     if l5_info[called_by]["info"]["called_by"] == "GapFillLongSOLO":
         main_gui.solo_gui.setWindowTitle("Gap fill using SOLO (long gaps)")
         main_gui.solo_gui.radioButton_Manual.setChecked(True)
+        main_gui.solo_gui.lineEdit_StartDate.setText(start_date)
+        main_gui.solo_gui.lineEdit_EndDate.setText(end_date)
         main_gui.solo_gui.lineEdit_MinPercent.setText("25")
         main_gui.solo_gui.lineEdit_Nodes.setText("Auto")
         main_gui.solo_gui.checkBox_AutoComplete.setChecked(True)
     elif l5_info[called_by]["info"]["called_by"] == "GapFillUsingSOLO":
         main_gui.solo_gui.setWindowTitle("Gap fill using SOLO (short gaps)")
+        main_gui.solo_gui.lineEdit_StartDate.setText("")
+        main_gui.solo_gui.lineEdit_EndDate.setText("")
         main_gui.solo_gui.radioButton_NumberMonths.setChecked(True)
         main_gui.solo_gui.lineEdit_NumberMonths.setText("2")
         main_gui.solo_gui.lineEdit_MinPercent.setText("25")
@@ -79,6 +83,8 @@ def  gfSOLO_gui(main_gui, ds, l5_info, called_by):
     elif l5_info[called_by]["info"]["called_by"] == "ERUsingSOLO":
         main_gui.solo_gui.setWindowTitle("ER using SOLO")
         main_gui.solo_gui.radioButton_Manual.setChecked(True)
+        main_gui.solo_gui.lineEdit_StartDate.setText(start_date)
+        main_gui.solo_gui.lineEdit_EndDate.setText(end_date)
         main_gui.solo_gui.lineEdit_Nodes.setText("1")
         main_gui.solo_gui.lineEdit_MinPercent.setText("10")
         main_gui.solo_gui.checkBox_AutoComplete.setChecked(True)
@@ -421,22 +427,10 @@ def gfSOLO_plot(pd, ds, drivers, target, output, l5s, si=0, ei=-1):
     # draw the plot on the screen
     if l5s["gui"]["show_plots"]:
         plt.draw()
-        #plt.pause(1)
-        mypause(1)
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.ion()
-
-def mypause(interval):
-    backend = plt.rcParams['backend']
-    if backend in matplotlib.rcsetup.interactive_bk:
-        figManager = matplotlib._pylab_helpers.Gcf.get_active()
-        if figManager is not None:
-            canvas = figManager.canvas
-            if canvas.figure.stale:
-                canvas.draw()
-            canvas.start_event_loop(interval)
-            return
 
 def gfSOLO_plotcoveragelines(ds, l5_info, called_by):
     """
@@ -496,7 +490,7 @@ def gfSOLO_plotcoveragelines(ds, l5_info, called_by):
     fig.tight_layout()
     if l5s["gui"]["show_plots"]:
         plt.draw()
-        mypause(1)
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.ion()
@@ -581,6 +575,7 @@ def gfSOLO_plotsummary(ds, solo):
     fig.savefig(figname, format="png")
     if solo["gui"]["show_plots"]:
         plt.draw()
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.ion()

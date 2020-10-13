@@ -33,7 +33,7 @@ def GapFillUsingMDS(ds, l5_info, called_by):
     nc_full_path = os.path.join(file_path, file_name)
     nc_name = os.path.split(nc_full_path)[1]
     # get some useful metadata
-    ts = int(ds.globalattributes["nc_nrecs"])
+    ts = int(ds.globalattributes["time_step"])
     site_name = ds.globalattributes["site_name"]
     level = ds.globalattributes["nc_level"]
     # define the MDS input file location
@@ -221,7 +221,7 @@ def gfMDS_make_data_array(ds, current_year, info):
     Date: May 2018
     """
     ldt = pfp_utils.GetVariable(ds, "DateTime")
-    nrecs = ds.globalattributes["nc_nrecs"]
+    nrecs = int(ds.globalattributes["nc_nrecs"])
     ts = int(ds.globalattributes["time_step"])
     start = datetime.datetime(current_year,1,1,0,30,0)
     end = datetime.datetime(current_year+1,1,1,0,0,0)
@@ -393,24 +393,12 @@ def gfMDS_plot(pd, ds, mds_label, l5_info, called_by):
     fig.savefig(figure_path, format='png')
     if pd["show_plots"]:
         plt.draw()
-        #plt.pause(1)
-        mypause(1)
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.close(fig)
         plt.ion()
     return
-
-def mypause(interval):
-    backend = plt.rcParams['backend']
-    if backend in matplotlib.rcsetup.interactive_bk:
-        figManager = matplotlib._pylab_helpers.Gcf.get_active()
-        if figManager is not None:
-            canvas = figManager.canvas
-            if canvas.figure.stale:
-                canvas.draw()
-            canvas.start_event_loop(interval)
-            return
 
 def gf_getdiurnalstats(DecHour, Data, ts):
     nInts = 24*int((60/ts)+0.5)

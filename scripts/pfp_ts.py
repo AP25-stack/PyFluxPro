@@ -1,5 +1,4 @@
 # standard
-import ast
 import copy
 import datetime
 import inspect
@@ -18,51 +17,6 @@ import pfp_utils
 import pysolar
 
 logger = logging.getLogger("pfp_log")
-
-def albedo(cf,ds):
-    """
-        Filter albedo measurements to:
-            high solar angle specified by periods between 10.00 and 14.00, inclusive
-            and
-            full sunlight in which Fsd > 290 W/m^2
-
-        Usage pfp_ts.albedo(ds)
-        ds: data structure
-        """
-    logger.info(' Applying albedo constraints')
-    nRecs = int(ds.globalattributes["nc_nrecs"])
-    zeros = numpy.zeros(nRecs,dtype=numpy.int32)
-    ones = numpy.ones(nRecs,dtype=numpy.int32)
-    if 'albedo' not in list(ds.series.keys()):
-        if 'Fsd' in list(ds.series.keys()) and 'Fsu' in list(ds.series.keys()):
-            Fsd,f,a = pfp_utils.GetSeriesasMA(ds,'Fsd')
-            Fsu,f,a = pfp_utils.GetSeriesasMA(ds,'Fsu')
-            albedo = Fsu / Fsd
-            attr = pfp_utils.MakeAttributeDictionary(long_name='solar albedo',units='none',standard_name='solar_albedo')
-            flag = numpy.where(numpy.ma.getmaskarray(albedo)==True,ones,zeros)
-            pfp_utils.CreateSeries(ds,'albedo',albedo,flag,attr)
-        else:
-            logger.warning('  Fsd or Fsu not in ds, albedo not calculated')
-            return
-    else:
-        albedo,f,a = pfp_utils.GetSeriesasMA(ds,'albedo')
-        if 'Fsd' in list(ds.series.keys()):
-            Fsd,f,a = pfp_utils.GetSeriesasMA(ds,'Fsd')
-        else:
-            Fsd,f,a = pfp_utils.GetSeriesasMA(ds,'Fn')
-
-    if pfp_utils.cfkeycheck(cf,ThisOne='albedo',key='Threshold'):
-        Fsdbase = float(cf['Variables']['albedo']['Threshold']['Fsd'])
-        ds.series['albedo']['Attr']['FsdCutoff'] = Fsdbase
-    else:
-        Fsdbase = 290.
-    index = numpy.ma.where((Fsd < Fsdbase) | (ds.series['Hdh']['Data'] < 10) | (ds.series['Hdh']['Data'] > 14))[0]
-    index1 = numpy.ma.where(Fsd < Fsdbase)[0]
-    index2 = numpy.ma.where((ds.series['Hdh']['Data'] < 10) | (ds.series['Hdh']['Data'] > 14))[0]
-    albedo[index] = numpy.float64(c.missing_value)
-    ds.series['albedo']['Flag'][index1] = numpy.int32(51)     # bad Fsd flag only if bad time flag not set
-    ds.series['albedo']['Flag'][index2] = numpy.int32(52)     # bad time flag
-    ds.series['albedo']['Data']=numpy.ma.filled(albedo,float(c.missing_value))
 
 def ApplyLinear(cf,ds,ThisOne):
     """
@@ -222,8 +176,7 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                if item in wT["Attr"]:
-                    attr[item] = wT["Attr"][item]
+                attr[item] = wT["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fhv) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fhv", "Data": Fhv, "Flag": flag, "Attr": attr})
         else:
@@ -238,8 +191,7 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "surface_upward_latent_heat_flux",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                if item in wA["Attr"]:
-                    attr[item] = wA["Attr"][item]
+                attr[item] = wA["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fe) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fe", "Data": Fe, "Flag": flag, "Attr": attr})
         else:
@@ -254,7 +206,6 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                if item in wC["Attr"]:
                     attr[item] = wC["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fco2) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fco2", "Data": Fco2, "Flag": flag, "Attr": attr})
@@ -273,8 +224,7 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                if item in uw["Attr"]:
-                    attr[item] = uw["Attr"][item]
+                attr[item] = uw["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(Fm) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "Fm", "Data": Fm, "Flag": flag, "Attr": attr})
             pfp_utils.CreateVariable(ds, {"Label": "Fm_PFP", "Data": Fm, "Flag": flag, "Attr": attr})
@@ -282,8 +232,7 @@ def CalculateFluxes(cf, ds):
                     "standard_name": "not defined",
                     descr_level: "Rotated to natural wind coordinates"}
             for item in ["instrument", "height", "serial_number"]:
-                if item in uw["Attr"]:
-                    attr[item] = uw["Attr"][item]
+                attr[item] = uw["Attr"][item]
             flag = numpy.where(numpy.ma.getmaskarray(us) == True, ones, zeros)
             pfp_utils.CreateVariable(ds, {"Label": "ustar", "Data": us, "Flag": flag, "Attr": attr})
             pfp_utils.CreateVariable(ds, {"Label": "ustar_PFP", "Data": us, "Flag": flag, "Attr": attr})
@@ -335,7 +284,7 @@ def CalculateHumidities(ds):
     """
     if "AH" not in list(ds.series.keys()):
         if "SH" in list(ds.series.keys()):
-            AbsoluteHumidityFromSpecificHumidity(ds)    # calculate AH from SH
+            AbsoluteHumidityFromSpecificHumidity(ds)   # calculate AH from SH
         elif "RH" in list(ds.series.keys()):
             AbsoluteHumidityFromRelativeHumidity(ds)   # calculate AH from RH
     if "SH" not in list(ds.series.keys()):
@@ -451,7 +400,7 @@ def AbsoluteHumidityFromSpecificHumidity(ds):
 
 def RelativeHumidityFromSpecificHumidity(ds):
     """ Calculate relative humidity from specific humidity. """
-    logger.info(" Calculating relative humidity from specific humidity")
+    logger.info(' Calculating relative humidity from specific humidity')
     descr_level = "description_" + ds.globalattributes["nc_level"]
     Ta, Ta_flag, a = pfp_utils.GetSeriesasMA(ds, "Ta")
     ps, ps_flag, a = pfp_utils.GetSeriesasMA(ds, "ps")
@@ -478,7 +427,7 @@ def RelativeHumidityFromSpecificHumidity(ds):
 
 def RelativeHumidityFromAbsoluteHumidity(ds):
     """ Calculate relative humidity from absolute humidity. """
-    logger.info(" Calculating relative humidity from absolute humidity")
+    logger.info(' Calculating relative humidity from absolute humidity')
     descr_level = "description_" + ds.globalattributes["nc_level"]
     Ta,Ta_flag,a = pfp_utils.GetSeriesasMA(ds,"Ta")
     AH,AH_flag,a = pfp_utils.GetSeriesasMA(ds,"AH")
@@ -601,15 +550,16 @@ def SpecificHumidityFromRelativeHumidity(ds):
         attr["group_name"] = "meteorology"
         pfp_utils.CreateSeries(ds, "SH", SH_new, SH_new_flag, attr)
 
-def CalculateMeteorologicalVariables(ds, info, Ta_name="Ta", ps_name="ps", SH_name="SH",
-                                     AH_name="AH", RH_name="RH"):
+def CalculateMeteorologicalVariables(ds, info, Ta_name='Ta', Tv_name='Tv_SONIC_Av',
+                                     ps_name='ps', SH_name="SH",AH_name='AH', RH_name='RH'):
     """
         Add time series of meteorological variables based on fundamental
         relationships (Stull 1988)
 
-        Usage pfp_ts.CalculateMeteorologicalVariables(ds,Ta_name,ps_name,SH_name,AH_name,RH_name)
+        Usage pfp_ts.CalculateMeteorologicalVariables(ds,Ta_name,Tv_name,ps_name,SH_name,AH_name,RH_name)
         ds: data structure
         Ta_name: data series name for air temperature
+        Tv_name: data series name for sonic virtual air temperature
         ps_name: data series name for pressure
         AH_name: data series name for absolute humidity
         SH_name : data series name for specific humidity
@@ -637,6 +587,16 @@ def CalculateMeteorologicalVariables(ds, info, Ta_name="Ta", ps_name="ps", SH_na
     descr_level = "description_" + ds.globalattributes["nc_level"]
     # get the required data series
     Ta,f,a = pfp_utils.GetSeriesasMA(ds, Ta_name)
+    # deal with possible aliases for the sonic temperature for the time being
+    if Tv_name not in list(ds.series.keys()):
+        if "Tv_CSAT_Av" in list(ds.series.keys()):
+            Tv_name = "Tv_CSAT_Av"
+        elif "Tv_CSAT" in list(ds.series.keys()):
+            Tv_name = "Tv_CSAT"
+        else:
+            Tv_name = Ta_name   # use Tv_CSAT if it is in the data structure, otherwise use Ta
+
+    Tv,f,a = pfp_utils.GetSeriesasMA(ds,Tv_name)
     ps,f,a = pfp_utils.GetSeriesasMA(ds, ps_name)
     AH,f,a = pfp_utils.GetSeriesasMA(ds, AH_name)
     SH,f,a = pfp_utils.GetSeriesasMA(ds, SH_name)
@@ -648,7 +608,7 @@ def CalculateMeteorologicalVariables(ds, info, Ta_name="Ta", ps_name="ps", SH_na
     rhow = pfp_mf.densitywatervapour(Ta, vp)          # partial density of water vapour
     Lv = pfp_mf.Lv(Ta)                                # latent heat of vapourisation
     mr = pfp_mf.mixingratio(ps, vp)                   # mixing ratio
-    Tv = pfp_mf.tvfromta(Ta, mr)                      # virtual temperature
+    #Tv = pfp_mf.tvfromta(Ta, mr)                      # virtual temperature
     mrsat = pfp_mf.mixingratio(ps, vpsat)             # saturation mixing ratio
     SHsat = pfp_mf.specifichumidity(mrsat)            # saturation specific humidity from saturation mixing ratio
     Cpd = pfp_mf.specificheatcapacitydryair(Tv)
@@ -839,7 +799,7 @@ def CheckCovarianceUnits(ds):
     Author: PRI
     Date: September 2015
     """
-    logger.info(" Checking covariance units")
+    logger.info(' Checking covariance units')
     co2_list = ["UxC", "UyC", "UzC"]
     h2o_list = ["UxA", "UyA", "UzA", "UxH", "UyH", "UzH"]
     for item in co2_list:
@@ -862,7 +822,7 @@ def CheckCovarianceUnits(ds):
             if "H" in item: item = item.replace("H","A")
             pfp_utils.CreateSeries(ds, item, data, flag, attr)
 
-def CombineSeries(cf, ds, label, convert_units=False, save_originals=False, mode="quiet"):
+def CombineSeries(cf, ds, labels, convert_units=False, save_originals=False, mode="quiet"):
     """
     Purpose:
      Combine two variables by merging or element-wise averaging.
@@ -881,23 +841,29 @@ def CombineSeries(cf, ds, label, convert_units=False, save_originals=False, mode
     Author: PRI
     Date: October 2019
     """
-    if label not in cf["Variables"]:
-        if mode != "quiet":
-            msg = " CombineSeries: Variable " + label + " not found in control file"
-            msg += ", skipping ..."
-            logger.warning(msg)
-        return
-    if "MergeSeries" in cf["Variables"][label]:
-        MergeSeries(cf, ds, label, convert_units=convert_units, save_originals=save_originals)
-    elif "AverageSeries" in cf["Variables"][label]:
-        AverageSeriesByElements(cf, ds, label)
-    else:
-        if mode != "quiet":
-            msg = " CombineSeries: Neither MergeSeries nor AverageSeries "
-            msg += " option given for variable " + label
-            msg += ", skipping ..."
-            logger.warning(msg)
-        pass
+    # check to see if labels argument is a string (single variable label)
+    if isinstance(labels, str):
+        # if so, make it a list
+        labels = [labels]
+    # loop over the variables to be checked
+    for label in labels:
+        if (label not in cf["Variables"]):
+            if mode != "quiet":
+                msg = " CombineSeries: Variable " + label + " not found in control file"
+                msg += ", skipping ..."
+                logger.warning(msg)
+            return
+        if "MergeSeries" in cf["Variables"][label]:
+            MergeSeries(cf, ds, label, convert_units=convert_units, save_originals=save_originals)
+        elif "AverageSeries" in cf["Variables"][label]:
+            AverageSeriesByElements(cf, ds, label)
+        else:
+            if mode != "quiet":
+                msg = " CombineSeries: Neither MergeSeries nor AverageSeries "
+                msg += " option given for variable " + label
+                msg += ", skipping ..."
+                logger.warning(msg)
+            pass
     return
 
 def CoordRotation2D(cf, ds):
@@ -913,22 +879,16 @@ def CoordRotation2D(cf, ds):
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
     # get the raw wind velocity components
-    # longitudinal component in CSAT coordinate system
-    Ux = pfp_utils.GetVariable(ds, "Ux_SONIC_Av")
-    # lateral component in CSAT coordinate system
-    Uy = pfp_utils.GetVariable(ds, "Uy_SONIC_Av")
-    # vertical component in CSAT coordinate system
-    Uz = pfp_utils.GetVariable(ds, "Uz_SONIC_Av")
+    Ux = pfp_utils.GetVariable(ds, "Ux_SONIC_Av") # longitudinal component in CSAT coordinate system
+    Uy = pfp_utils.GetVariable(ds, "Uy_SONIC_Av") # lateral component in CSAT coordinate system
+    Uz = pfp_utils.GetVariable(ds, "Uz_SONIC_Av") # vertical component in CSAT coordinate system
     # get the raw covariances
     UxUz = pfp_utils.GetVariable(ds, "UxUz")      # covariance(Ux,Uz)
     UyUz = pfp_utils.GetVariable(ds, "UyUz")      # covariance(Uy,Uz)
     UxUy = pfp_utils.GetVariable(ds, "UxUy")      # covariance(Ux,Uy)
-    # variance(Uy)
-    UyUy = pfp_utils.GetVariable(ds, "Uy_SONIC_Vr")
-    # variance(Ux)
-    UxUx = pfp_utils.GetVariable(ds, "Ux_SONIC_Vr")
-    # variance(Uz)
-    UzUz = pfp_utils.GetVariable(ds, "Uz_SONIC_Vr")
+    UyUy = pfp_utils.GetVariable(ds, "Uy_SONIC_Vr")# variance(Uy)
+    UxUx = pfp_utils.GetVariable(ds, "Ux_SONIC_Vr")# variance(Ux)
+    UzUz = pfp_utils.GetVariable(ds, "Uz_SONIC_Vr")# variance(Uz)
     UzC = pfp_utils.GetVariable(ds, "UzC")        # covariance(Uz,C)
     UzA = pfp_utils.GetVariable(ds, "UzA")        # covariance(Uz,A)
     UzT = pfp_utils.GetVariable(ds, "UzT")        # covariance(Uz,T)
@@ -1065,15 +1025,33 @@ def CoordRotation2D(cf, ds):
     flag = numpy.where(numpy.ma.getmaskarray(uu) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "U_SONIC_Vr", "Data": uu, "Flag": flag, "Attr": attr})
 
+    attr = copy.deepcopy(UxUx["Attr"])
+    attr["long_name"] = "Standard deviation of streamwise windspeed, rotated to natural wind coordinates"
+    data = numpy.ma.sqrt(uu)
+    flag = numpy.where(numpy.ma.getmaskarray(uu) == True, ones, zeros)
+    pfp_utils.CreateVariable(ds, {"Label": "U_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
+
     attr = copy.deepcopy(UyUy["Attr"])
-    attr["long_name"] = "Variance of crossstream windspeed, rotated to natural wind coordinates"
+    attr["long_name"] = "Variance of cross-stream windspeed, rotated to natural wind coordinates"
     flag = numpy.where(numpy.ma.getmaskarray(vv) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "V_SONIC_Vr", "Data": vv, "Flag": flag, "Attr": attr})
+
+    attr = copy.deepcopy(UyUy["Attr"])
+    attr["long_name"] = "Standard deviation of cross-stream windspeed, rotated to natural wind coordinates"
+    data = numpy.ma.sqrt(vv)
+    flag = numpy.where(numpy.ma.getmaskarray(vv) == True, ones, zeros)
+    pfp_utils.CreateVariable(ds, {"Label": "V_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
 
     attr = copy.deepcopy(UzUz["Attr"])
     attr["long_name"] = "Variance of vertical windspeed, rotated to natural wind coordinates"
     flag = numpy.where(numpy.ma.getmaskarray(ww) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "W_SONIC_Vr", "Data": ww, "Flag": flag, "Attr": attr})
+
+    attr = copy.deepcopy(UzUz["Attr"])
+    attr["long_name"] = "Standard deviation of vertical windspeed, rotated to natural wind coordinates"
+    data = numpy.ma.sqrt(ww)
+    flag = numpy.where(numpy.ma.getmaskarray(ww) == True, ones, zeros)
+    pfp_utils.CreateVariable(ds, {"Label": "W_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
 
     if pfp_utils.get_optionskeyaslogical(cf, "RelaxRotation"):
         RotatedSeriesList = ['wT', 'wA', 'wC', 'uw', 'vw']
@@ -1097,12 +1075,12 @@ def CalculateComponentsFromWsWd(ds):
     pfp_utils.CreateVariable(ds, u)
     pfp_utils.CreateVariable(ds, v)
 
-def CalculateFco2StorageSinglePoint(cf, ds, Fco2_out="Fco2_single", CO2_in="CO2"):
+def CalculateFco2StorageSinglePoint(cf, ds, CO2_in="CO2", Fco2_out="Fco2_single"):
     """
     Calculate CO2 flux storage term in the air column beneath the CO2 instrument.  This
     routine assumes the air column between the sensor and the surface is well mixed.
 
-    Usage pfp_ts.CalculateFco2StorageSinglePoint(cf, ds, Fco2_out='Fco2_single', CO2_in='CO2')
+    Usage pfp_ts.CalculateFco2StorageSinglePoint(cf, ds, CO2_in='CO2', Fco2_out='Fco2_single')
     cf: control file object
     ds: data structure
     Fco2_out: series label of the CO2 flux storage term
@@ -1127,72 +1105,35 @@ def CalculateFco2StorageSinglePoint(cf, ds, Fco2_out="Fco2_single", CO2_in="CO2"
         Fco2 = pfp_utils.GetVariable(ds, "Fco2")
         Ta = pfp_utils.GetVariable(ds, "Ta")
         ps = pfp_utils.GetVariable(ds, "ps")
-        # try to get a value for zms, the instrument height above ground
-        got_zms = False
-        if "height" in CO2["Attr"] and not got_zms:
-            try:
-                zms = float(pfp_utils.strip_non_numeric(CO2["Attr"]["height"]))
-                got_zms = True
-            except:
-                pass
-        if "height" in Fco2["Attr"] and not got_zms:
-            try:
-                zms = float(pfp_utils.strip_non_numeric(Fco2["Attr"]["height"]))
-                got_zms = True
-            except:
-                pass
-        if "tower_height" in list(ds.globalattributes.keys()) and not got_zms:
-            try:
-                zms = float(pfp_utils.strip_non_numeric(ds.globalattributes["tower_height"]))
-                got_zms = True
-            except:
-                pass
-        if pfp_utils.cfkeycheck(cf, Base="General", ThisOne="zms") and not got_zms:
-            try:
-                zms = float(pfp_utils.strip_non_numeric(cf["General"]["zms"]))
-                got_zms = True
-            except:
-                pass
-        if pfp_utils.cfkeycheck(cf, Base="Options", ThisOne="zms") and not got_zms:
-            try:
-                zms = float(pfp_utils.strip_non_numeric(cf["Options"]["zms"]))
-                got_zms = True
-            except:
-                pass
-        if got_zms:
-            # check the CO2 concentration units
-            # if the units are mg/m^3, convert CO2 concentration to umol/mol before taking the difference
-            pfp_utils.convert_units_co2(ds, CO2, "umol/mol")
-            # calculate the change in CO2 concentration between time steps
-            # CO2 concentration assumed to be in umol/mol
-            dc = numpy.ma.ediff1d(CO2["Data"], to_begin=0)
-            # convert the CO2 concentration difference from umol/mol to umol/m^3
-            dc = pfp_mf.co2_umolpm3fromppm(dc, Ta["Data"], ps["Data"])
-            # calculate the time step in seconds
-            epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
-            seconds = numpy.array([(dt-epoch).total_seconds() for dt in ldt["Data"]])
-            dt = numpy.ediff1d(seconds, to_begin=float(ts)*60)
-            # calculate the CO2 flux based on storage below the measurement height
-            Fco2_single["Data"] = zms*dc/dt
-            # do the attributes
-            Fco2_single["Attr"] = {}
-            for attr in ["height", "instrument", "serial_number"]:
-                if attr in CO2["Attr"]:
-                    Fco2_single["Attr"][attr] = CO2["Attr"][attr]
-            Fco2_single["Attr"]["units"] = "umol/m^2/s"
-            Fco2_single["Attr"]["standard_name"] = "not defined"
-            Fco2_single["Attr"]["long_name"] = "CO2 flux (storage term)"
-            Fco2_single["Attr"]["group_name"] = "flux"
-            Fco2_single["Attr"][descr] = "Fco2 storage component calcuated using single point \
+        # check the CO2 concentration units
+        # if the units are mg/m^3, convert CO2 concentration to umol/mol before taking the difference
+        pfp_utils.convert_units_co2(ds, CO2, "umol/mol")
+        # calculate the change in CO2 concentration between time steps
+        # CO2 concentration assumed to be in umol/mol
+        dc = numpy.ma.ediff1d(CO2["Data"], to_begin=0)
+        # convert the CO2 concentration difference from umol/mol to umol/m^3
+        dc = pfp_mf.co2_umolpm3fromppm(dc, Ta["Data"], ps["Data"])
+        # calculate the time step in seconds
+        epoch = datetime.datetime(1970, 1, 1, 0, 0, 0)
+        seconds = numpy.array([(dt-epoch).total_seconds() for dt in ldt["Data"]])
+        dt = numpy.ediff1d(seconds, to_begin=float(ts)*60)
+        # calculate the CO2 flux based on storage below the measurement height
+        zms = float(pfp_utils.strip_non_numeric(CO2["Attr"]["height"]))
+        Fco2_single["Data"] = zms*dc/dt
+        # do the attributes
+        Fco2_single["Attr"] = {}
+        for attr in ["height", "instrument", "serial_number"]:
+            if attr in CO2["Attr"]:
+                Fco2_single["Attr"][attr] = CO2["Attr"][attr]
+        Fco2_single["Attr"]["units"] = "umol/m^2/s"
+        Fco2_single["Attr"]["standard_name"] = "not defined"
+        Fco2_single["Attr"]["long_name"] = "CO2 flux (storage term)"
+        Fco2_single["Attr"]["group_name"] = "flux"
+        Fco2_single["Attr"][descr] = "Fco2 storage component calcuated using single point \
                                           CO2 measurement"
-            # put the storage flux in the data structure
-            mask = numpy.ma.getmaskarray(Fco2_single["Data"])
-            Fco2_single["Flag"] = numpy.where(mask == True, ones, zeros)
-            # match the units of Fc_single to the units of Fc
-            pfp_utils.convert_units_co2(ds, Fco2_single, Fco2["Attr"]["units"])
-        else:
-            msg = "  Measurement height not found, storage not calculated"
-            logger.error(msg)
+        # put the storage flux in the data structure
+        mask = numpy.ma.getmaskarray(Fco2_single["Data"])
+        Fco2_single["Flag"] = numpy.where(mask == True, ones, zeros)
         pfp_utils.CreateVariable(ds, Fco2_single)
     else:
         msg = "  " + Fco2_out + " found in data structure, not calculated"
@@ -1400,7 +1341,7 @@ def CorrectFgForStorage(cf,ds,Fg_out='Fg',Fg_in='Fg',Ts_in='Ts',Sws_in='Sws'):
     if len(iom) != 0:
         msg = "  CorrectFgForStorage: default soil moisture used for "
         msg += str(len(iom)) + " values"
-        logger.warning(msg)
+        logger.info(msg)
         Sws[iom] = Sws_default
     # get the soil temperature difference from time step to time step
     dTs = numpy.ma.zeros(nRecs)
@@ -1630,7 +1571,7 @@ def do_attributes(cf,ds):
         ds.globalattributes['Flag11'] = 'Corrections/Combinations: Coordinate Rotation (Ux, Uy, Uz, UxT, UyT, UzT, UxA, UyA, UzA, UxC, UyC, UzC, UxUz, UxUx, UxUy, UyUz, UxUy, UyUy)'
         ds.globalattributes['Flag12'] = 'Corrections/Combinations: Massman Frequency Attenuation Correction (Coord Rotation, Tv_CSAT, AH_HMP, ps)'
         ds.globalattributes['Flag13'] = 'Corrections/Combinations: Virtual to Actual Fh (Coord Rotation, Massman, Ta_HMP)'
-        ds.globalattributes['Flag14'] = 'Corrections/Combinations: WPL correction for flux effects on density measurements (Coord Rotation, Massman, Fhv to Fh, Cc_7500_Av)'
+        ds.globalattributes['Flag14'] = 'Corrections/Combinations: WPL correction for flux effects on density measurements (Coord Rotation, Massman, Fhv to Fh, CO2_IRGA_Av)'
         ds.globalattributes['Flag15'] = 'Corrections/Combinations: Ta from Tv'
         ds.globalattributes['Flag16'] = 'Corrections/Combinations: L3 Range Check'
         ds.globalattributes['Flag17'] = 'Corrections/Combinations: L3 Diurnal SD Check'
@@ -1669,6 +1610,7 @@ def DoFunctions(ds, info):
     Author: PRI
     Date: September 2015
     """
+    nrecs = int(ds.globalattributes["nc_nrecs"])
     implemented_functions = [name for name,data in inspect.getmembers(pfp_func,inspect.isfunction)]
     functions = {}
     convert_vars = []
@@ -1705,8 +1647,18 @@ def DoFunctions(ds, info):
         if result:
             msg = " Completed function for " + var
             logger.info(msg)
+    return
 
 def CalculateStandardDeviations(ds):
+    """
+    Purpose:
+     Calculate standard deviations from variances and vice versa.
+    Usage:
+     pfp_ts.CalculateStandardDeviations(ds)
+     where ds is a data structure
+    Author: PRI
+    Date: Back in the day
+    """
     logger.info(' Getting variances from standard deviations & vice versa')
     if 'AhAh' in list(ds.series.keys()) and 'AH_7500_Sd' not in list(ds.series.keys()):
         AhAh,flag,attr = pfp_utils.GetSeriesasMA(ds,'AhAh')

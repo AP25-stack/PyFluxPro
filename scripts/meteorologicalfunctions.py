@@ -170,6 +170,27 @@ def Fco2_umolpm2psfrommgCO2pm2ps(Fc_mgpm2ps):
     if WasND: Fc_umolpm2ps, _ = MAtoSeries(Fc_umolpm2ps)
     return Fc_umolpm2ps
 
+def h2o_gpm3frommmolpmol(h_mmpm,T,p):
+    """
+     Convert H2O concentration units of mmol/mol to g/m^3.
+        Usage:
+         H2O_gpm3 = h2o_gpm3frommmolpmol(H2O_mmolpmol, T, p)
+         where
+         H2O_mmolpmol (input) - H2O concentration, mmol/mol
+         T (input) - air temperature, C
+         p (input) - air pressure, kPa
+        Returns the H2O concentration in g/m^3.
+    """
+    # convert to masked arrays
+    h_mmpm, WasND = SeriestoMA(h_mmpm)
+    T, dummy = SeriestoMA(T)
+    p, dummy = SeriestoMA(p)
+    # do the job
+    h_gpm3 = (c.Mv*h_mmpm*p*1000)/(c.R*(T+273.15))
+    # convert to ndarray if input is not a masked array
+    if WasND: h_gpm3, _ = MAtoSeries(h_gpm3)
+    return h_gpm3
+
 def h2o_mmolpmolfromgpm3(h_gpm3,T,p):
     """
      Convert H2O concentration units of g/m^3 to mmol/mol.
@@ -191,26 +212,22 @@ def h2o_mmolpmolfromgpm3(h_gpm3,T,p):
     if WasND: h_mmpm, _ = MAtoSeries(h_mmpm)
     return h_mmpm
 
-def h2o_gpm3frommmolpmol(h_mmpm,T,p):
+def h2o_mmolpm3fromgpm3(h_gpm3):
     """
-     Convert H2O concentration units of mmol/mol to g/m^3.
+     Convert H2O concentration units of g/m^3 to mmol/m^3.
         Usage:
-         H2O_gpm3 = h2o_gpm3frommmolpmol(H2O_mmolpmol, T, p)
+         H2O_mmolpm3 = h2o_mmolpm3fromgpm3(H2O_gpm3)
          where
-         H2O_mmolpmol (input) - H2O concentration, mmol/mol
-         T (input) - air temperature, C
-         p (input) - air pressure, kPa
-        Returns the H2O concentration in g/m^3.
+         H2O_gpm3 (input) - H2O concentration, g/m^3
+        Returns the H2O concentration in mmol/m^3.
     """
     # convert to masked arrays
-    h_mmpm, WasND = SeriestoMA(h_mmpm)
-    T, dummy = SeriestoMA(T)
-    p, dummy = SeriestoMA(p)
+    h_gpm3, WasND = SeriestoMA(h_gpm3)
     # do the job
-    h_gpm3 = (c.Mv*h_mmpm*p*1000)/(c.R*(T+273.15))
+    h_mmolpm3 = h_gpm3/float(c.Mv)
     # convert to ndarray if input is not a masked array
-    if WasND: h_gpm3, _ = MAtoSeries(h_gpm3)
-    return h_gpm3
+    if WasND: h_mmolpm3, _ = MAtoSeries(h_mmolpm3)
+    return h_mmolpm3
 
 def Lv(Ta):
     # Calculate Lv as a function of temperature, from Stull 1988

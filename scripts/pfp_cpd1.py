@@ -317,6 +317,8 @@ def CPD_run(cf):
     d = {}
     f = {}
     for item in list(names.keys()):
+        msg = " CPD (McHugh): Using variable " + names[item] + " for " + item
+        logger.info(msg)
         data,flag,attr = pfp_utils.GetSeries(ds,names[item])
         d[item] = np.where(data==c.missing_value,np.nan,data)
         f[item] = flag
@@ -417,6 +419,7 @@ def plot_hist(S,mu,sig,crit_t,year,d):
     fig.savefig(plot_out_name)
     if d["show_plots"]:
         plt.draw()
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.ion()
@@ -444,6 +447,7 @@ def plot_slopes(df,d):
     fig.savefig(plot_out_name)
     if d["show_plots"]:
         plt.draw()
+        pfp_utils.mypause(0.5)
         plt.ioff()
     else:
         plt.ion()

@@ -1,5 +1,10 @@
 version_name = "PyFluxPro"
-version_number = "V3.0.1"
+version_number = "V3.0.2"
+
+# V3.0.2 - 14th Sep 2020
+#          introduced changes in PFP2.7 by Peter made in Aug/Sep
+#          to python3 before he takes over
+#          e.g. new feature "explore"
 # V3.0.1 - 21st May 2020
 #          converted PFP2.7 to python3
 #          using 2to3 and manual (esp. integer division)

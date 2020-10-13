@@ -139,7 +139,7 @@ def CheckExcelWorkbook(l1_info):
             types = numpy.array(xl_data[xl_sheet].col_types(col)[fdr:ldr])
             mode = scipy.stats.mode(types)
             #print xl_sheet, xl_label, col, mode[0][0], fdr, ldr
-            if mode[0][0] == xlrd.XL_CELL_DATE and 100*mode[1][0]/len(types) > 75:
+            if mode[0][0] == xlrd.XL_CELL_DATE and 100*mode[1][0]//len(types) > 75:
                 got_timestamp = True
                 #print " Time stamp is " + xl_label + " for sheet " + xl_sheet
                 l1ire["xl_sheets"][xl_sheet]["DateTime"] = xl_label
@@ -449,7 +449,10 @@ def ParseL1ControlFile(cf):
                 # check the arguments are being read in
                 else:
                     function_args = function_string[function_string.index("(")+1:-1].split(",")
-                    for item in function_args:
+                    nargs = len(function_args)
+                    if function_name in ["Linear"]:
+                        nargs = 1
+                    for item in function_args[:nargs]:
                         if item not in list(l1ire["Variables"].keys()):
                             msg = " Skipping " + label + "(function argument '" + item + "' not found"
                             logger.warning(msg)
@@ -469,7 +472,6 @@ def ParseL1ControlFile(cf):
         for item in ["long_name", "units"]:
             if item not in list(l1ire["Variables"][label]["Attr"].keys()):
                 msg = " Skipping " + label + " (subsection '" + item + "' not found)"
-
                 logger.warning(msg)
                 ok = False
         if not ok:
@@ -488,17 +490,67 @@ def ParseL3ControlFile(cf, ds):
     """
     ds.returncodes["message"] = "OK"
     ds.returncodes["value"] = 0
-    l3_info = {}
+    l3_info = {"CO2": {}, "Fco2": {}, "status": {"value": 0, "message": "OK"}}
     # add key for suppressing output of intermediate variables e.g. Cpd etc
     opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "KeepIntermediateSeries", default="No")
     l3_info["RemoveIntermediateSeries"] = {"KeepIntermediateSeries": opt, "not_output": []}
+    # find out what label is used for CO2
+    if "CO2" in list(cf["Variables"].keys()):
+        l3_info["CO2"]["label"] = "CO2"
+    else:
+        msg = " Label for CO2 not found in control file"
+        l3_info["status"]["value"] = 1
+        l3_info["status"]["message"] = msg
+    return l3_info
+
+    got_zms = False
+    labels = list(ds.series.keys())
+    CO2_label = l3_info["CO2"]["label"]
+    # try and get the height from the CO2 variable
+    if CO2_label in labels:
+        # get height from attributes if the CO2 variable is already in the data structure
+        CO2 = pfp_utils.GetVariable(ds, CO2_label)
+        zms = float(pfp_utils.strip_non_numeric(CO2["Attr"]["height"]))
+        got_zms = True
+    elif "MergeSeries" in list(cf["Variables"][CO2_label].keys()):
+        # get the height from the variables listed in MergeSeries
+        source = cf["Variables"][CO2_label]["MergeSeries"]["source"]
+        source = pfp_utils.convert_csv_string_to_list(source)
+        for item in source:
+            var = pfp_utils.GetVariable(ds, item)
+            zms = float(pfp_utils.strip_non_numeric(var["Attr"]["height"]))
+            got_zms = True
+            break
+    elif "AverageSeries" in list(cf["Variables"][CO2_label].keys()):
+        # get the height from the variables listed in AverageSeries
+        source = cf["Variables"][CO2_label]["AverageSeries"]["source"]
+        source = pfp_utils.convert_csv_string_to_list(source)
+        for item in source:
+            var = pfp_utils.GetVariable(ds, item)
+            zms = float(pfp_utils.strip_non_numeric(var["Attr"]["height"]))
+            got_zms = True
+            break
+    if "tower_height" in list(ds.globalattributes.keys()) and not got_zms:
+        zms = float(pfp_utils.strip_non_numeric(ds.globalattributes["tower_height"]))
+        got_zms = True
+    if pfp_utils.cfkeycheck(cf, Base="Options", ThisOne="zms") and not got_zms:
+        zms = float(pfp_utils.strip_non_numeric(cf["Options"]["zms"]))
+        got_zms = True
+    if got_zms:
+        l3_info["CO2"]["height"] = zms
+    else:
+        msg = " Unable to find height for CO2 (" + CO2_label + ") measurement"
+        l3_info["status"]["value"] = 1
+        l3_info["status"]["message"] = msg
+        return l3_info
+    # get a list of Fc variables to be merged
+    cfv = cf["Variables"]
+    merge_list = [l for l in list(cfv.keys()) if l[0:2] == "Fc" and "MergeSeries" in list(cfv[l].keys())]
+    average_list = [l for l in list(cfv.keys()) if l[0:2] == "Fc" and "AverageSeries" in list(cfv[l].keys())]
+    l3_info["Fc"]["combine_list"] = merge_list + average_list
     return l3_info
 
 #def ParseL6ControlFile(cf, ds):
-    #"""
-    #Purpose:
-     #Parse the L6 control file.
-    #Usage:
     #Side effects:
     #Author: PRI
     #Date: Back in the day
@@ -780,7 +832,20 @@ def include_variables(cfg, ds_in):
                 ds_out.series[label] = ds_in.series[label]
     return ds_out
 
-def l1_check_controlfile(cfg):
+def check_batch_controlfile(cfg):
+    """
+    Purpose:
+     Check the L1 control file to make sure it contains all information
+     needed to run L1 and that all information is correct.
+    Usage:
+    Side effects:
+    Author: PRI
+    Date: June 2020
+    """
+    ok = True
+    return ok
+
+def check_l1_controlfile(cfg):
     """
     Purpose:
      Check the L1 control file to make sure it contains all information
@@ -1229,12 +1294,20 @@ def l2_update_cfg_syntax(cfg):
                 for key3 in cfg[key1][key2]:
                     cfg3 = cfg[key1][key2][key3]
                     if key3 in ["RangeCheck", "DependencyCheck", "DiurnalCheck", "ExcludeDates",
-                                "ApplyFcStorage", "MergeSeries", "AverageSeries"]:
+                                    "ApplyFcStorage", "MergeSeries", "AverageSeries",
+                                    "LowerCheck", "UpperCheck"]:
                         for key4 in cfg3:
                             # force keywords to lower case
                             cfg3.rename(key4, key4.lower())
                             cfg4 = cfg3[key4.lower()]
                             cfg4 = parse_cfg_variables_value(key3, cfg4)
+                            cfg[key1][key2][key3][key4.lower()] = cfg4
+                    if key3 in ["ExcludeHours"]:
+                        for key4 in cfg3:
+                            # force keywords to lower case
+                            cfg3.rename(key4, key4.lower())
+                            cfg4 = cfg3[key4.lower()]
+                            cfg4 = parse_cfg_variables_excludehours(key3, cfg4)
                             cfg[key1][key2][key3][key4.lower()] = cfg4
         else:
             del cfg[key1]

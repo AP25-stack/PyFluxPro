@@ -24,10 +24,9 @@ level = mpt
     groupby = 12,1,2;3,4,5;6,7,8;9,10,11
     seasons_group_allow_duplicates = No
     threshold_check = 1
-
 [Variables]
     [[NEE]]
-        name = Fco2
+        name = Fco2_PFP
     [[VPD]]
         name = VPD
     [[USTAR]]

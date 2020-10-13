@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy
 import pylab
 import xlwt
+from pandas.plotting import register_matplotlib_converters
+register_matplotlib_converters()
 # PFP modules
 if not os.path.exists("../scripts/"):
     print("portal_audit: the scripts directory is missing")
@@ -30,9 +32,10 @@ def do_audit_analysis(base_path):
                  "end_date": datetime.datetime(2000,1,1,0,0)}
     n = 0
     for site in sites:
-        portal_dir = os.path.join(base_path, site, "Data", "Processed")
+        #portal_dir = os.path.join(base_path, site, "Data", "Processed")
+        portal_dir = os.path.join(base_path, site, "Data", "All")
         file_mask = os.path.join(portal_dir, "*.nc")
-        files = glob.glob(file_mask)
+        files = sorted(glob.glob(file_mask))
         l3_name = os.path.join(portal_dir, site + "_L3.nc")
         if os.path.isfile(l3_name):
             print("Processing ", site)
@@ -54,7 +57,8 @@ def do_audit_analysis(base_path):
 
     return all_sites, site_info
 
-base_path = "/mnt/OzFlux/Sites/"
+#base_path = "/mnt/OzFlux/Sites/"
+base_path = "/run/media/cilli/ozflux2/OzFlux2/OzFlux_portal/Sites/"
 do_it = True
 
 if do_it:
@@ -78,7 +82,7 @@ xl_file.save("portal_audit.xls")
 
 end_year = all_sites["end_date"].year
 all_sites["end_date"] = datetime.datetime(end_year+1, 1, 1, 0, 0)
-site_list = site_info.keys()
+site_list = list(site_info.keys())
 ylabel_list = [""]+site_list+[""]
 color_list = ["blue", "red", "green", "yellow", "magenta", "black", "orange", "brown"]
 xsize = 15.0
@@ -89,7 +93,7 @@ plt.ylim([0, len(site_list)+1])
 plt.xlim([all_sites["start_date"], all_sites["end_date"]])
 for n, site in enumerate(site_list):
     plt.plot(site_info[site]["X"], site_info[site]["Y"], color=color_list[numpy.mod(n,8)], linewidth=4)
-ylabel_posn = range(0, len(site_list)+2)
+ylabel_posn = list(range(0, len(site_list)+2))
 pylab.yticks(ylabel_posn, ylabel_list)
 fig.tight_layout()
 #plt.show()
@@ -104,7 +108,7 @@ plt.ylim([0, len(active_sites)+1])
 plt.xlim([all_sites["start_date"], all_sites["end_date"]])
 for n, site in enumerate(active_sites):
     plt.plot(site_info[site]["X"], [n+1, n+1], color=color_list[numpy.mod(n,8)], linewidth=4)
-ylabel_posn = range(0, len(active_sites)+2)
+ylabel_posn = list(range(0, len(active_sites)+2))
 pylab.yticks(ylabel_posn, ylabel_list)
 fig.tight_layout()
 
