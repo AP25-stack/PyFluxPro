@@ -1121,10 +1121,17 @@ def l1_update_cfg_variable_names(cfg, std):
         klen = len(srp)
         # loop over the variables in the control file
         for label_cfg in list(cfg["Variables"].keys()):
-            if ((label_cfg[:llen] == rp) and
-                (label_cfg[:klen] != srp)):
-                new_name = label_cfg.replace(label_cfg[:llen], srp)
-                cfg["Variables"].rename(label_cfg, new_name)
+            if ((label_cfg[:llen] == rp) and (label_cfg[:klen] != srp)):
+                if len(label_cfg) > len(rp):
+                    if label_cfg[len(rp)] == "_":
+                        new_name = label_cfg.replace(label_cfg[:llen], srp)
+                        cfg["Variables"].rename(label_cfg, new_name)
+                    else:
+                        # different variable name, leave it alone
+                        pass
+                else:
+                    new_name = label_cfg.replace(label_cfg[:llen], srp)
+                    cfg["Variables"].rename(label_cfg, new_name)
     return cfg
 
 def l2_update_controlfile(cfg):
