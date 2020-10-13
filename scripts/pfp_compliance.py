@@ -1307,7 +1307,7 @@ def l2_update_cfg_syntax(cfg):
                             # force keywords to lower case
                             cfg3.rename(key4, key4.lower())
                             cfg4 = cfg3[key4.lower()]
-                            cfg4 = parse_cfg_variables_excludehours(key3, cfg4)
+                            cfg4 = parse_cfg_variables_value(key3, cfg4)
                             cfg[key1][key2][key3][key4.lower()] = cfg4
         else:
             del cfg[key1]
