@@ -13,8 +13,7 @@ level = L1
     conventions = CF-1.6
     conventions_names = CF convention standard names table version 27, 28 Nov 2013, audited 4 Jan 2015
     data_url = 
-    doi = 
-    history = 
+    history = Cleaned by cleanup_netcdf_files.py
     institution = 
     latitude = <latitude>
     license_type = CC BY 4.0
@@ -40,10 +39,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Kipp and Zonen CNR1
-            long_name = Net radiation (CNR1 4 components)
+            long_name = Net radiation
             serial_number = 
             standard_name = surface_net_downwawrd_radiative_flux
             units = W/m^2
+            group_name = radiation
+            statistic_type = average
     [[Fld]]
         [[[xl]]]
             sheet = biomet
@@ -51,10 +52,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Kipp and Zonen CNR1
-            long_name = Down-welling long wave radiation
+            long_name = Down-welling longwave radiation
             serial_number = 
             standard_name = surface_downwelling_longwave_flux_in_air
             units = W/m^2
+            group_name = radiation
+            statistic_type = average
     [[Flu]]
         [[[xl]]]
             sheet = biomet
@@ -62,10 +65,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Kipp and Zonen CNR1
-            long_name = Up-welling long wave radiation
+            long_name = Up-welling longwave radiation
             serial_number = 
             standard_name = surface_upwelling_longwave_flux_in_air
             units = W/m^2
+            group_name = radiation
+            statistic_type = average
     [[Fsu]]
         [[[xl]]]
             sheet = biomet
@@ -73,10 +78,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Kipp and Zonen CNR1
-            long_name = Up-welling short wave radiation
+            long_name = Up-welling shortwave radiation
             serial_number = 
             standard_name = surface_upwelling_shortwave_flux_in_air
             units = W/m^2
+            group_name = radiation
+            statistic_type = average
     [[Fsd]]
         [[[xl]]]
             sheet = biomet
@@ -84,10 +91,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Kipp and Zonen CNR1
-            long_name = Down-welling short wave radiation
+            long_name = Down-welling shortwave radiation
             serial_number = 
             standard_name = surface_downwelling_shortwave_flux_in_air
             units = W/m^2
+            group_name = radiation
+            statistic_type = average
     [[Fm]]
         [[[xl]]]
             sheet = full_output
@@ -99,6 +108,8 @@ level = L1
             serial_number = 
             standard_name = 
             units = kg/m/s^2
+            group_name = flux
+            statistic_type = average
     [[Fm_EPFlag]]
         [[[xl]]]
             sheet = full_output
@@ -109,7 +120,8 @@ level = L1
             long_name = Momentum flux quality control flag
             serial_number = 
             standard_name = 
-            units = 
+            units = none
+            group_name = none
     [[Fh]]
         [[[xl]]]
             sheet = full_output
@@ -121,6 +133,8 @@ level = L1
             serial_number = 
             standard_name = 
             units = W/m^2
+            group_name = flux
+            statistic_type = average
     [[Fh_EPFlag]]
         [[[xl]]]
             sheet = full_output
@@ -131,7 +145,8 @@ level = L1
             long_name = Sensible heat flux quality control flag
             serial_number = 
             standard_name = 
-            units = 
+            units = none
+            group_name = none
     [[Fe]]
         [[[xl]]]
             sheet = full_output
@@ -143,6 +158,8 @@ level = L1
             serial_number = 
             standard_name = 
             units = W/m^2
+            group_name = flux
+            statistic_type = average
     [[Fe_EPFlag]]
         [[[xl]]]
             sheet = full_output
@@ -153,19 +170,22 @@ level = L1
             long_name = Latent heat flux quality control flag
             serial_number = 
             standard_name = 
-            units = 
-    [[Fc]]
+            units = none
+            group_name = none
+    [[Fco2]]
         [[[xl]]]
             sheet = full_output
             name = co2_flux
         [[[Attr]]]
             height = <height>m
             instrument = SONIC/IRGA
-            long_name = Carbon dioxide flux
+            long_name = CO2 flux
             serial_number = 
             standard_name = 
             units = umol/m^2/s
-    [[Fc_EPFlag]]
+            group_name = flux
+            statistic_type = average
+    [[Fco2_EPFlag]]
         [[[xl]]]
             sheet = full_output
             name = qc_co2_flux
@@ -175,7 +195,8 @@ level = L1
             long_name = Carbon dioxide flux quality control flag
             serial_number = 
             standard_name = 
-            units = 
+            units = none
+            group_name = none
     [[ustar]]
         [[[xl]]]
             sheet = full_output
@@ -187,6 +208,8 @@ level = L1
             serial_number = 
             standard_name = 
             units = m/s
+            group_name = flux
+            statistic_type = average
     [[Tv_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -194,10 +217,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = RM Young 81000
-            long_name = Virtual air temperature
+            long_name = Virtual temperature
             serial_number = 
             standard_name = virtual_temperature
             units = K
+            group_name = meteorology
+            statistic_type = average
         [[[Function]]]
             func = ConvertK2C(Tv_SONIC_Av)
     [[Tv_SONIC_Vr]]
@@ -207,10 +232,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Variance of virtual temperature from SONIC
+            long_name = Virtual temperature
             serial_number = 
             standard_name = 
             units = K^2
+            group_name = meteorology
+            statistic_type = variance
     [[CO2_IRGA_Av]]
         [[[xl]]]
             sheet = full_output
@@ -218,10 +245,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Li-7500A
-            long_name = CO2 concentration, average
+            long_name = CO2 concentration
             serial_number = 
             standard_name = 
             units = umol/mol
+            group_name = meteorology
+            statistic_type = average
     [[CO2_IRGA_Vr]]
         [[[xl]]]
             sheet = full_output
@@ -229,10 +258,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Li-7500A
-            long_name = CO2 concentration, variance
+            long_name = CO2 concentration
             serial_number = 
             standard_name = not defined
             units = umol^2/mol^2
+            group_name = meteorology
+            statistic_type = variance
     [[H2O_IRGA_Av]]
         [[[xl]]]
             sheet = full_output
@@ -240,10 +271,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Li-7500A
-            long_name = h2o mixing ratio, average
+            long_name = H2O concentration
             serial_number = 
             standard_name = 
             units = mmol/mol
+            group_name = meteorology
+            statistic_type = average
     [[H2O_IRGA_Vr]]
         [[[xl]]]
             sheet = full_output
@@ -251,10 +284,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Li-7500A
-            long_name = H2O concentration, variance
+            long_name = H2O concentration
             serial_number = 
             standard_name = not defined
             units = mmol^2/mol^2
+            group_name = meteorology
+            statistic_type = variance
     [[RH_IRGA_Av]]
         [[[xl]]]
             sheet = full_output
@@ -262,10 +297,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = Li-7500A
-            long_name = Relative humidity, average
+            long_name = Relative humidity
             serial_number = 
             standard_name = 
             units = percent
+            group_name = meteorology
+            statistic_type = average
     [[RH_<inst>_<height>m]]
         [[[xl]]]
             sheet = biomet
@@ -273,10 +310,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = <inst>
-            long_name = Relative humidity, average
+            long_name = Relative humidity
             serial_number = 
             standard_name = 
             units = percent
+            group_name = meteorology
+            statistic_type = average
     [[Ta_<inst>_<height>m]]
         [[[xl]]]
             sheet = biomet
@@ -284,10 +323,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = <inst>
-            long_name = Air temperature, average
+            long_name = Air temperature
             serial_number = 
             standard_name = air_temperature
             units = K
+            group_name = meteorology
+            statistic_type = average
         [[[Function]]]
             func = ConvertK2C(Ta_<inst>_<height>m)
     [[U_SONIC_Av]]
@@ -297,10 +338,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Wind speed, longitudinal component, coordinate rotated
+            long_name = Along wind velocity component
             serial_number = 
             standard_name = not defined
             units = m/s
+            group_name = meteorology
+            statistic_type = average
     [[U_SONIC_Vr]]
         [[[xl]]]
             sheet = full_output
@@ -308,10 +351,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Variance of longitudinal component of wind velocity
+            long_name = Along wind velocity component
             serial_number = 
             standard_name = 
             units = m^2/s^2
+            group_name = meteorology
+            statistic_type = variance
     [[V_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -319,10 +364,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Wind speed, lateral component, coordinate rotated
+            long_name = Across wind velocity component
             serial_number = 
             standard_name = not defined
             units = m/s
+            group_name = meteorology
+            statistic_type = average
     [[V_SONIC_Vr]]
         [[[xl]]]
             sheet = full_output
@@ -330,10 +377,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Variance of lateral component of wind velocity
+            long_name = Across wind velocity component
             serial_number = 
             standard_name = 
             units = m^2/s^2
+            group_name = meteorology
+            statistic_type = variance
     [[W_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -341,10 +390,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Wind speed, vertical component, coordinate rotated
+            long_name = Vertical wind velocity component
             serial_number = 
             standard_name = not defined
             units = m/s
+            group_name = meteorology
+            statistic_type = average
     [[W_SONIC_Vr]]
         [[[xl]]]
             sheet = full_output
@@ -352,10 +403,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Variance of veritcal component of wind velocity
+            long_name = Vertical wind velocity component
             serial_number = 
             standard_name = 
             units = m^2/s^2
+            group_name = meteorology
+            statistic_type = variance
     [[Ws_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -367,6 +420,8 @@ level = L1
             serial_number = 
             standard_name = wind_speed
             units = m/s
+            group_name = meteorology
+            statistic_type = average
     [[Wd_SONIC_Av]]
         [[[xl]]]
             sheet = full_output
@@ -374,10 +429,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = SONIC
-            long_name = Wind direction, true, degrees from North
+            long_name = Wind direction
             serial_number = 
             standard_name = wind_from_direction
             units = degrees
+            group_name = meteorology
+            statistic_type = average
     [[Ws_<inst>_Av]]
         [[[xl]]]
             sheet = biomet
@@ -389,6 +446,8 @@ level = L1
             serial_number = 
             standard_name = wind_speed
             units = m/s
+            group_name = meteorology
+            statistic_type = average
     [[Wd_<inst>_Av]]
         [[[xl]]]
             sheet = biomet
@@ -396,10 +455,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = <inst>
-            long_name = Wind direction, true, in degrees from North
+            long_name = Wind direction
             serial_number = 
             standard_name = wind_from_direction
             units = degrees
+            group_name = meteorology
+            statistic_type = average
     [[Precip]]
         [[[xl]]]
             sheet = biomet
@@ -407,10 +468,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = 
-            long_name = Rainfall, 30 minute total
+            long_name = Rainfall
             serial_number = 
             standard_name = rainfall_amount
             units = mm
+            group_name = meteorology
+            statistic_type = sum
     [[ps]]
         [[[xl]]]
             sheet = full_output
@@ -418,10 +481,12 @@ level = L1
         [[[Attr]]]
             height = <height>m
             instrument = IRGA
-            long_name = Air pressure, average
+            long_name = Surface air pressure
             serial_number = 
             standard_name = surface_air_pressure
             units = Pa
+            group_name = meteorology
+            statistic_type = average
         [[[Function]]]
             func = ConvertPa2kPa(ps)
     [[Fg_<depth>cma]]
@@ -431,10 +496,12 @@ level = L1
         [[[Attr]]]
             height = <depth>m
             instrument = 
-            long_name = Ground heat flux, sensor 1a
+            long_name = Ground heat flux
             serial_number = 
             standard_name = downward_heat_flux_in_soil
             units = W/m^2
+            group_name = soil
+            statistic_type = average
     [[Fg_<depth>cmb]]
         [[[xl]]]
             sheet = biomet
@@ -442,10 +509,12 @@ level = L1
         [[[Attr]]]
             height = <depth>m
             instrument = 
-            long_name = Ground heat flux, sensor 1b
+            long_name = Ground heat flux
             serial_number = 
             standard_name = downward_heat_flux_in_soil
             units = W/m^2
+            group_name = soil
+            statistic_type = average
     [[Sws_<depth>cma]]
         [[[xl]]]
             sheet = biomet
@@ -453,10 +522,12 @@ level = L1
         [[[Attr]]]
             height = <depth>m
             instrument = 
-            long_name = Soil water fraction, sensor <depth>cma
+            long_name = Soil water content
             serial_number = 
             standard_name = soil_moisture_content
             units = m^3/m^3
+            group_name = soil
+            statistic_type = average
     [[Sws_<depth>cmb]]
         [[[xl]]]
             sheet = biomet
@@ -464,10 +535,12 @@ level = L1
         [[[Attr]]]
             height = <depth>m
             instrument = 
-            long_name = Soil water fraction, sensor <depth>cmb
+            long_name = Soil water content
             serial_number = 
             standard_name = soil_moisture_content
             units = m^3/m^3
+            group_name = soil
+            statistic_type = average
     [[Ts_<depth>cma]]
         [[[xl]]]
             sheet = biomet
@@ -475,10 +548,12 @@ level = L1
         [[[Attr]]]
             height = <depth>m
             instrument = 
-            long_name = Soil temperature, sensor <depth>cma
+            long_name = Soil temperature
             serial_number = 
             standard_name = soil_temperature
             units = K
+            group_name = soil
+            statistic_type = average
         [[[Function]]]
             func = ConvertK2C(Ts_<depth>cma)
     [[Ts_<depth>cmb]]
@@ -488,9 +563,11 @@ level = L1
         [[[Attr]]]
             height = <depth>m
             instrument = 
-            long_name = Soil temperature, sensor <depth>cmb
+            long_name = Soil temperature
             serial_number = 
             standard_name = soil_temperature
             units = K
+            group_name = soil
+            statistic_type = average
         [[[Function]]]
             func = ConvertK2C(Ts_<depth>cmb)
