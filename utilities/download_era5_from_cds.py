@@ -55,8 +55,8 @@ else:
     sys.exit
 
 # === Which area, see index for country given
-list_country = ["australia", "indonesia", "brazil", "nz"]
-list_area    = ["-10/110/-45/155", "-2/114/-3/115", "-5/-45/-15/-35", "-30/165/-50/180"]
+list_country = ["australia", "indonesia", "brazil", "nz","mara"]
+list_area    = ["-10/110/-45/155", "-2/114/-3/115", "-5/-45/-15/-35", "-30/165/-50/180", "-39.5/176.5/-39.75/176.75"]
 
 era5_info["country"] = sys.argv[1]          #"australia"
 era5_info["target_directory"] = sys.argv[2] #"/rdsi/market/erai_processing/ERA5/AUS/"
@@ -71,6 +71,7 @@ print(era5_info["start_date"],era5_info["end_date"],era5_info["target"])
 # "usa":       "70/229.5/30/300"   "/mnt/AmeriFlux/ERA5/"
 # "brazil":    "-5/-45/-15/-35"    "/run/media/cilli/data190208/1_Work/1_OzFlux/Sites/ERA5/BRA/ # lat = -9.05; long = -40.316667; Jan 1 2013, Jan 1 2014
 # "nz":        "-30/165/-50/180"   "/run/media/cilli/cillidata/cilli/1_Work/1_OzFlux/Sites/ERAI/NZ/"
+# "maraekakaho":                   "/data/cilli/OzFlux/Sites/ERA5/NZ/Maraekakaho/
 # "china":     "60/80/20/140"      "/home/peter/ChinaFlux/ERAI/"
 # "borneo":    "8.25/108/3.75/120" "/run/media/cilli/cillidata/cilli/1_Work/1_OzFlux/Sites/ERAI/BORNEO/"
 # "indonesia": "-2/114/-3/115" target_directory = "/run/media/cilli/data190208/1_Work/1_OzFlux/Sites/ERA5/INDONESIA/"
