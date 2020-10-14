@@ -1742,7 +1742,7 @@ def nc_read_var(ncFile,ThisOne):
         # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
         data0 = ncFile.variables[ThisOne][:,0,0,0]
         data1 = ncFile.variables[ThisOne][:,1,0,0]
-        data = numpy.ma.where(data0==c.missing_value,data1.data0)
+        data = numpy.ma.where(data0.mask == False,data0,data1)
         # netCDF4 returns a masked array if the "missing_variable" attribute has been set
         # for the variable, here we trap this and force the array in ds.series to be ndarray
         # may not be needed after adding ncFile.set_auto_mask(False) in nc_read_series().

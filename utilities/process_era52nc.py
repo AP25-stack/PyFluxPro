@@ -22,6 +22,7 @@ if not os.path.exists("../scripts/"):
 # since the scripts directory is there, try importing the modules
 sys.path.append('../scripts')
 # PFP
+import constants as c
 import meteorologicalfunctions as mf
 import pysolar
 import pfp_io
@@ -171,7 +172,6 @@ for n, era5_name in enumerate(era5_files):
     era5_time = era5_file.variables["time"][:]
     time_units = getattr(era5_file.variables["time"],"units")
     try:
-        #dt_era5 = netCDF4.num2date(era5_time,time_units)
         dt_era5 = cftime.num2pydate(era5_time,time_units)
     except:
         dt_era5 = cftime.num2date(era5_time,time_units)
@@ -272,11 +272,24 @@ for n, era5_name in enumerate(era5_files):
         idx = numpy.where(alt_solar_tts<=0)[0]
         alt_solar_tts[idx] = float(0)
 
+        # check the number of dimensions - expvar added in dimension due to temporary release of data to 5 days delay from previous 3 month dalay
+        nDims = len(era5_file.variables["ssrd"].shape)
+
         # === DOWNWELLING SHORTWAVE Fsd === #
         # Interpolate the 1 hourly accumulated downwelling shortwave to the tower time step
-        # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Fsd_3d = era5_file.variables["ssrd"][:,:,:]
-        Fsd_accum = Fsd_3d[:,site_lat_index,site_lon_index]
+        # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude] or if temproray data included [time,expvar,latitude,longitude]
+        if nDims==3:
+            # 3 dimensions
+            Fsd_3d = era5_file.variables["ssrd"][:,:,:]
+            Fsd_accum = Fsd_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Fsd_3d = era5_file.variables["ssrd"][:,:,:,:]
+            data0 = Fsd_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Fsd_3d[:,1,site_lat_index,site_lon_index]
+            Fsd_accum = numpy.ma.where(data0.mask == False,data0,data1)
+        #Fsd_3d = era5_file.variables["ssrd"][:,:,:]
+        #Fsd_accum = Fsd_3d[:,site_lat_index,site_lon_index]
         # Downwelling shortwave in ERA-5 is a cummulative value since the previous post processing (archiving), so for
         #                                              HRES: accumulations are in the hour ending at the forecast step.
         # Here we convert the cummulative values to 1 hourly values.
@@ -313,8 +326,18 @@ for n, era5_name in enumerate(era5_files):
         # === NET-SHORTWAVE Fn_sw === #
         # Interpolate the 1 hourly accumulated net shortwave to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Fn_sw_3d = era5_file.variables["ssr"][:,:,:]
-        Fn_sw_accum = Fn_sw_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Fn_sw_3d = era5_file.variables["ssr"][:,:,:]
+            Fn_sw_accum = Fn_sw_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Fn_sw_3d = era5_file.variables["ssr"][:,:,:,:]
+            data0 = Fn_sw_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Fn_sw_3d[:,1,site_lat_index,site_lon_index]
+            Fn_sw_accum = numpy.ma.where(data0.mask == False,data0,data1)
+        #Fn_sw_3d = era5_file.variables["ssr"][:,:,:]
+        #Fn_sw_accum = Fn_sw_3d[:,site_lat_index,site_lon_index]
         # Net shortwave in ERA-5 is a cummulative value that is reset to 0 at 0300 and 1500 UTC.
         # Here we convert the cummulative values to 3 hourly values.
         #Fn_sw_era5_1hr = numpy.ediff1d(Fn_sw_accum,to_begin=0)
@@ -354,8 +377,18 @@ for n, era5_name in enumerate(era5_files):
         # === DOWNWELLING LONGWAVE Fld === #
         # Interpolate the 1 hourly accumulated downwelling longwave to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Fld_3d = era5_file.variables["strd"][:,:,:]
-        Fld_accum = Fld_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Fld_3d = era5_file.variables["strd"][:,:,:]
+            Fld_accum = Fld_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Fld_3d = era5_file.variables["strd"][:,:,:,:]
+            data0 = Fld_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Fld_3d[:,1,site_lat_index,site_lon_index]
+            Fld_accum = numpy.ma.where(data0.mask == False,data0,data1)
+        #Fld_3d = era5_file.variables["strd"][:,:,:]
+        #Fld_accum = Fld_3d[:,site_lat_index,site_lon_index]
         # Downwelling longwave in ERA-5 is a cummulative value that is reset to 0 at 0300 and 1500 UTC.
         # Here we convert the cummulative values to 1 hourly values.
         #Fld_era5_1hr = numpy.ediff1d(Fld_accum,to_begin=0)
@@ -381,8 +414,18 @@ for n, era5_name in enumerate(era5_files):
         # === NET-LONGWAVE Fn_lw === #
         # Interpolate the 1 hourly accumulated net longwave to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Fn_lw_3d = era5_file.variables["str"][:,:,:]
-        Fn_lw_accum = Fn_lw_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Fn_lw_3d = era5_file.variables["str"][:,:,:]
+            Fn_lw_accum = Fn_lw_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Fn_lw_3d = era5_file.variables["str"][:,:,:,:]
+            data0 = Fn_lw_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Fn_lw_3d[:,1,site_lat_index,site_lon_index]
+            Fn_lw_accum = numpy.ma.where(data0.mask == False,data0,data1)
+        #Fn_lw_3d = era5_file.variables["str"][:,:,:]
+        #Fn_lw_accum = Fn_lw_3d[:,site_lat_index,site_lon_index]
         # Net longwave in ERA-5 is a cummulative value that is reset at 0300 and 1500 UTC.
         # Here we convert the cummulative values to 3 hourly values.
         #Fn_lw_era5_1hr = numpy.ediff1d(Fn_lw_accum,to_begin=0)
@@ -424,8 +467,18 @@ for n, era5_name in enumerate(era5_files):
         # === SENSIBLE HEAT FLUX Fh === #
         # Interpolate the 1 hourly accumulated sensible heat flux to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Fh_3d = era5_file.variables["sshf"][:,:,:]
-        Fh_accum = float(-1)*Fh_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Fh_3d = era5_file.variables["sshf"][:,:,:]
+            Fh_accum = Fh_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Fh_3d = era5_file.variables["sshf"][:,:,:,:]
+            data0 = Fh_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Fh_3d[:,1,site_lat_index,site_lon_index]
+            Fh_accum = numpy.ma.where(data0.mask == False,data0,data1)
+        #Fh_3d = era5_file.variables["sshf"][:,:,:]
+        #Fh_accum = float(-1)*Fh_3d[:,site_lat_index,site_lon_index]
         # Sensible heat flux in ERA-5 is a cummulative value that is reset at 0300 and 1500 UTC.
         # Here we convert the cummulative values to 3 hourly values.
         #Fh_era5_1hr = numpy.ediff1d(Fh_accum,to_begin=0)
@@ -453,8 +506,18 @@ for n, era5_name in enumerate(era5_files):
         # === LATENT HEAT FLUX Fh === #
         # Interpolate the 1 hourly accumulated latent heat flux to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Fe_3d = era5_file.variables["slhf"][:,:,:]
-        Fe_accum = float(-1)*Fe_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Fe_3d = era5_file.variables["slhf"][:,:,:]
+            Fe_accum = Fe_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Fe_3d = era5_file.variables["slhf"][:,:,:,:]
+            data0 = Fe_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Fe_3d[:,1,site_lat_index,site_lon_index]
+            Fe_accum = numpy.ma.where(data0.mask == False,data0,data1)
+        #Fe_3d = era5_file.variables["slhf"][:,:,:]
+        #Fe_accum = float(-1)*Fe_3d[:,site_lat_index,site_lon_index]
         # Latent heat flux in ERA-5 is a cummulative value that is reset at 0300 and 1500 UTC.
         # Here we convert the cummulative values to 3 hourly values.
         #Fe_era5_1hr = numpy.ediff1d(Fe_accum,to_begin=0)
@@ -497,8 +560,18 @@ for n, era5_name in enumerate(era5_files):
         # === AIR PRESSURE ps === #
         # Interpolate the 1 hourly air pressure to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        ps_3d = era5_file.variables["sp"][:,:,:]
-        ps_era5_1hr = ps_3d[:,site_lat_index,site_lon_index]/float(1000)
+        if nDims==3:
+            # 3 dimensions
+            ps_3d = era5_file.variables["sp"][:,:,:]
+            ps_era5_1hr = ps_3d[:,site_lat_index,site_lon_index]/float(1000)
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            ps_3d = era5_file.variables["sp"][:,:,:,:]
+            data0 = ps_3d[:,0,site_lat_index,site_lon_index]/float(1000)
+            data1 = ps_3d[:,1,site_lat_index,site_lon_index]/float(1000)
+            ps_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #ps_3d = era5_file.variables["sp"][:,:,:]
+        #ps_era5_1hr = ps_3d[:,site_lat_index,site_lon_index]/float(1000)
 
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, ps_era5_1hr) 
@@ -517,8 +590,18 @@ for n, era5_name in enumerate(era5_files):
         # === TEMPERATURE Ta === #
         # Interpolate the 1 hourly air temperature to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Ta_3d = era5_file.variables["t2m"][:,:,:]
-        Ta_era5_1hr = Ta_3d[:,site_lat_index,site_lon_index] - 273.15
+        if nDims==3:
+            # 3 dimensions
+            Ta_3d = era5_file.variables["t2m"][:,:,:]
+            Ta_era5_1hr = Ta_3d[:,site_lat_index,site_lon_index] - 273.15
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Ta_3d = era5_file.variables["t2m"][:,:,:,:]
+            data0 = Ta_3d[:,0,site_lat_index,site_lon_index] - 273.15
+            data1 = Ta_3d[:,1,site_lat_index,site_lon_index] - 273.15
+            Ta_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Ta_3d = era5_file.variables["t2m"][:,:,:]
+        #Ta_era5_1hr = Ta_3d[:,site_lat_index,site_lon_index] - 273.15
 
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Ta_era5_1hr) 
@@ -538,8 +621,18 @@ for n, era5_name in enumerate(era5_files):
         # Interpolate the 1 hourly dew point temperature to the tower time step
         # and convert to Ah, RH and q
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Td_3d = era5_file.variables["d2m"][:,:,:]
-        Td_era5_1hr = Td_3d[:,site_lat_index,site_lon_index] - 273.15
+        if nDims==3:
+            # 3 dimensions
+            Td_3d = era5_file.variables["d2m"][:,:,:]
+            Td_era5_1hr = Td_3d[:,site_lat_index,site_lon_index] - 273.15
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Td_3d = era5_file.variables["d2m"][:,:,:,:]
+            data0 = Td_3d[:,0,site_lat_index,site_lon_index] - 273.15
+            data1 = Td_3d[:,1,site_lat_index,site_lon_index] - 273.15
+            Td_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Td_3d = era5_file.variables["d2m"][:,:,:]
+        #Td_era5_1hr = Td_3d[:,site_lat_index,site_lon_index] - 273.15
 
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Td_era5_1hr) 
@@ -585,8 +678,18 @@ for n, era5_name in enumerate(era5_files):
         # === ATMOSPHERIC BOUNDARY LAYER HEIGHT Habl === #
         # Interpolate the 1 hourly boundary layer height to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Habl_3d = era5_file.variables["blh"][:,:,:]
-        Habl_era5_1hr = Habl_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Habl_3d = era5_file.variables["blh"][:,:,:]
+            Habl_era5_1hr = Habl_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Habl_3d = era5_file.variables["blh"][:,:,:,:]
+            data0 = Habl_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Habl_3d[:,1,site_lat_index,site_lon_index]
+            Habl_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Habl_3d = era5_file.variables["blh"][:,:,:]
+        #Habl_era5_1hr = Habl_3d[:,site_lat_index,site_lon_index]
 
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Habl_era5_1hr) 
@@ -605,8 +708,19 @@ for n, era5_name in enumerate(era5_files):
         # === PRECIPITATION Precip === #
         # Spread the 1 hourly accumulated precipitation to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Precip_3d = era5_file.variables["tp"][:,:,:]
-        Precip_accum = Precip_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Precip_3d = era5_file.variables["tp"][:,:,:]
+            Precip_accum = Precip_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Precip_3d = era5_file.variables["tp"][:,:,:,:]
+            data0 = Precip_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Precip_3d[:,1,site_lat_index,site_lon_index]
+            Precip_accum = numpy.ma.where(data0.mask == False,data0,data1)
+        #Precip_3d = era5_file.variables["tp"][:,:,:]
+        #Precip_accum = Precip_3d[:,site_lat_index,site_lon_index]
+        
         #Precip_era5_1hr = numpy.ediff1d(Precip_accum,to_begin=0)
         #idx = numpy.where((hour_utc==3)|(hour_utc==15))[0]
         #Precip_era5_1hr[idx] = Precip_accum[idx]
@@ -625,8 +739,18 @@ for n, era5_name in enumerate(era5_files):
         # LEVEL1: 
         # Interpolate the 1 hourly soil moisture to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Sws_3d = era5_file.variables["swvl1"][:,:,:]
-        Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Sws_3d = era5_file.variables["swvl1"][:,:,:]
+            Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Sws_3d = era5_file.variables["swvl1"][:,:,:,:]
+            data0 = Sws_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Sws_3d[:,1,site_lat_index,site_lon_index]
+            Sws_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Sws_3d = era5_file.variables["swvl1"][:,:,:]
+        #Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Sws_era5_1hr) 
         # get the coefficient at the tower time step
@@ -636,8 +760,18 @@ for n, era5_name in enumerate(era5_files):
                                                  group_name = "soil", units="m^3/m^3")
         pfp_utils.CreateSeries(ds_era5,"Sws",Sws_era5_tts,flag,attr)
         # LEVEL2: 
-        Sws_3d = era5_file.variables["swvl2"][:,:,:]
-        Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Sws_3d = era5_file.variables["swvl2"][:,:,:]
+            Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Sws_3d = era5_file.variables["swvl2"][:,:,:,:]
+            data0 = Sws_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Sws_3d[:,1,site_lat_index,site_lon_index]
+            Sws_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Sws_3d = era5_file.variables["swvl2"][:,:,:]
+        #Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Sws_era5_1hr) 
         # get the coefficient at the tower time step
@@ -647,8 +781,18 @@ for n, era5_name in enumerate(era5_files):
                                                  group_name = "soil", units="m^3/m^3")
         pfp_utils.CreateSeries(ds_era5,"Sws2",Sws_era5_tts,flag,attr)
         # LEVEL3: 
-        Sws_3d = era5_file.variables["swvl3"][:,:,:]
-        Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Sws_3d = era5_file.variables["swvl3"][:,:,:]
+            Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Sws_3d = era5_file.variables["swvl3"][:,:,:,:]
+            data0 = Sws_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Sws_3d[:,1,site_lat_index,site_lon_index]
+            Sws_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Sws_3d = era5_file.variables["swvl3"][:,:,:]
+        #Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Sws_era5_1hr) 
         # get the coefficient at the tower time step
@@ -658,8 +802,18 @@ for n, era5_name in enumerate(era5_files):
                                                  group_name = "soil", units="m^3/m^3")
         pfp_utils.CreateSeries(ds_era5,"Sws3",Sws_era5_tts,flag,attr)
         # LEVEL4: 
-        Sws_3d = era5_file.variables["swvl4"][:,:,:]
-        Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            Sws_3d = era5_file.variables["swvl4"][:,:,:]
+            Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Sws_3d = era5_file.variables["swvl4"][:,:,:,:]
+            data0 = Sws_3d[:,0,site_lat_index,site_lon_index]
+            data1 = Sws_3d[:,1,site_lat_index,site_lon_index]
+            Sws_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Sws_3d = era5_file.variables["swvl4"][:,:,:]
+        #Sws_era5_1hr = Sws_3d[:,site_lat_index,site_lon_index]
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Sws_era5_1hr) 
         # get the coefficient at the tower time step
@@ -673,8 +827,18 @@ for n, era5_name in enumerate(era5_files):
         # LEVEL1: 
         # Interpolate the 1 hourly soil temperature to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Ts_3d = era5_file.variables["stl1"][:,:,:]
-        Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        if nDims==3:
+            # 3 dimensions
+            Ts_3d = era5_file.variables["stl1"][:,:,:]
+            Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Ts_3d = era5_file.variables["stl1"][:,:,:,:]
+            data0 = Ts_3d[:,0,site_lat_index,site_lon_index] - 273.15
+            data1 = Ts_3d[:,1,site_lat_index,site_lon_index] - 273.15
+            Ts_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Ts_3d = era5_file.variables["stl1"][:,:,:]
+        #Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Ts_era5_1hr) 
         # get the coefficient at the tower time step
@@ -686,8 +850,18 @@ for n, era5_name in enumerate(era5_files):
         # LEVEL2: 
         # Interpolate the 1 hourly soil temperature to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Ts_3d = era5_file.variables["stl2"][:,:,:]
-        Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        if nDims==3:
+            # 3 dimensions
+            Ts_3d = era5_file.variables["stl2"][:,:,:]
+            Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Ts_3d = era5_file.variables["stl2"][:,:,:,:]
+            data0 = Ts_3d[:,0,site_lat_index,site_lon_index] - 273.15
+            data1 = Ts_3d[:,1,site_lat_index,site_lon_index] - 273.15
+            Ts_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Ts_3d = era5_file.variables["stl2"][:,:,:]
+        #Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Ts_era5_1hr) 
         # get the coefficient at the tower time step
@@ -699,8 +873,18 @@ for n, era5_name in enumerate(era5_files):
         # LEVEL3: 
         # Interpolate the 1 hourly soil temperature to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Ts_3d = era5_file.variables["stl3"][:,:,:]
-        Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        if nDims==3:
+            # 3 dimensions
+            Ts_3d = era5_file.variables["stl3"][:,:,:]
+            Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Ts_3d = era5_file.variables["stl3"][:,:,:,:]
+            data0 = Ts_3d[:,0,site_lat_index,site_lon_index] - 273.15
+            data1 = Ts_3d[:,1,site_lat_index,site_lon_index] - 273.15
+            Ts_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Ts_3d = era5_file.variables["stl3"][:,:,:]
+        #Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Ts_era5_1hr) 
         # get the coefficient at the tower time step
@@ -712,8 +896,18 @@ for n, era5_name in enumerate(era5_files):
         # LEVEL4: 
         # Interpolate the 1 hourly soil temperature to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
-        Ts_3d = era5_file.variables["stl4"][:,:,:]
-        Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        if nDims==3:
+            # 3 dimensions
+            Ts_3d = era5_file.variables["stl4"][:,:,:]
+            Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            Ts_3d = era5_file.variables["stl4"][:,:,:,:]
+            data0 = Ts_3d[:,0,site_lat_index,site_lon_index] - 273.15
+            data1 = Ts_3d[:,1,site_lat_index,site_lon_index] - 273.15
+            Ts_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #Ts_3d = era5_file.variables["stl4"][:,:,:]
+        #Ts_era5_1hr = Ts_3d[:,site_lat_index,site_lon_index] - 273.15
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, Ts_era5_1hr) 
         # get the coefficient at the tower time step
@@ -727,8 +921,18 @@ for n, era5_name in enumerate(era5_files):
         # Interpolate the 1 hourly U and V components to the tower time step
         # NOTE: ERA-5 variables are dimensioned [time,latitude,longitude]
         # U first ...
-        U_3d = era5_file.variables["u10"][:,:,:]
-        U_era5_1hr = U_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            U_3d = era5_file.variables["u10"][:,:,:]
+            U_era5_1hr = U_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            U_3d = era5_file.variables["u10"][:,:,:,:]
+            data0 = U_3d[:,0,site_lat_index,site_lon_index]
+            data1 = U_3d[:,1,site_lat_index,site_lon_index]
+            U_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #U_3d = era5_file.variables["u10"][:,:,:]
+        #U_era5_1hr = U_3d[:,site_lat_index,site_lon_index]
 
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, U_era5_1hr) 
@@ -746,8 +950,18 @@ for n, era5_name in enumerate(era5_files):
 
         # === V-WIND COMPONENT V === #
         # ... then V
-        V_3d = era5_file.variables["v10"][:,:,:]
-        V_era5_1hr = V_3d[:,site_lat_index,site_lon_index]
+        if nDims==3:
+            # 3 dimensions
+            V_3d = era5_file.variables["v10"][:,:,:]
+            V_era5_1hr = V_3d[:,site_lat_index,site_lon_index]
+        elif nDims==4:
+            # 4 dimensions, this is specific to ERA5T data where 0 is ERA5 and 1 is ERA5T data
+            V_3d = era5_file.variables["v10"][:,:,:,:]
+            data0 = V_3d[:,0,site_lat_index,site_lon_index]
+            data1 = V_3d[:,1,site_lat_index,site_lon_index]
+            V_era5_1hr = numpy.ma.where(data0.mask == False,data0,data1)
+        #V_3d = era5_file.variables["v10"][:,:,:]
+        #V_era5_1hr = V_3d[:,site_lat_index,site_lon_index]
 
         # get the Akima interpolator function
         int_fn = scipy.interpolate.Akima1DInterpolator(era5_time_1hr, V_era5_1hr) 
