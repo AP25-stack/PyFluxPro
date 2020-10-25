@@ -63,6 +63,7 @@ def cpd2_main(cf):
     # read the netcdf file
     logger.info(" Reading netCDF file " + file_in)
     ds = pfp_io.nc_read_series(file_in)
+    if ds.returncodes["value"] != 0: return
     # get the single-point storage, Fc_single, if available
     if apply_storage and "Fco2_storage" not in list(ds.series.keys()):
         pfp_ts.CalculateFco2StorageSinglePoint(cf, ds)
@@ -73,7 +74,8 @@ def cpd2_main(cf):
     ts = int(ds.globalattributes["time_step"])
     dt = pfp_utils.GetVariable(ds, "DateTime")
     ustar_results = {}
-    years = sorted(list(set([ldt.year for ldt in dt["Data"]])))
+    dtd = dt["Data"] - datetime.timedelta(minutes=ts)
+    years = sorted(list(set([ldt.year for ldt in dtd])))
     msg = " Starting CPD analysis for " + str(years)
     logger.info(msg)
     pb = {"nYears": len(years), "n": 0}
@@ -82,18 +84,16 @@ def cpd2_main(cf):
         ustar_results[year] = {}
         start = datetime.datetime(year, 1, 1, 0, 0) + datetime.timedelta(minutes=ts)
         end = datetime.datetime(year+1, 1, 1, 0, 0)
-        Fsd = pfp_utils.GetVariable(ds, "Fsd", start=start, end=end, out_type="nan")
-        Fc = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end, out_type="nan")
-        if apply_storage:
-            pfp_ts.CorrectFco2ForStorage(cf, ds)
-        ustar = pfp_utils.GetVariable(ds, "ustar", start=start, end=end, out_type="nan")
-        Ta = pfp_utils.GetVariable(ds, "Ta", start=start, end=end, out_type="nan")
+        Fsd = pfp_utils.GetVariable(ds, names["Fsd"], start=start, end=end, out_type="nan")
+        Fco2 = pfp_utils.GetVariable(ds, names["Fco2"], start=start, end=end, out_type="nan")
+        ustar = pfp_utils.GetVariable(ds, names["ustar"], start=start, end=end, out_type="nan")
+        Ta = pfp_utils.GetVariable(ds, names["Ta"], start=start, end=end, out_type="nan")
         if start < Fsd["DateTime"][0] or end > Fsd["DateTime"][-1]:
             Fsd = pfp_utils.PadVariable(Fsd, start, end, out_type="nan")
-            Fc = pfp_utils.PadVariable(Fc, start, end, out_type="nan")
+            Fco2 = pfp_utils.PadVariable(Fco2, start, end, out_type="nan")
             ustar = pfp_utils.PadVariable(ustar, start, end, out_type="nan")
             Ta = pfp_utils.PadVariable(Ta, start, end, out_type="nan")
-        # get the day/night indicator, fNight is 1 for night time, 0 for day time
+        # if requested, apply storage
         if apply_storage:
             label = cf["Variables"]["Fco2"]["name"]
             msg = " CPD2: Applying Fco2_storage to " + label
@@ -109,7 +109,7 @@ def cpd2_main(cf):
         last = float(len(ustar["Data"]))/float(nrPerDay) + 1
         t = numpy.linspace(first, last, len(ustar["Data"]))
         # call the bootstrap routine
-        Cp2, Stats2, Cp3, Stats3 = cpdBootstrapUStarTh4Season20100901(t, Fc["Data"], ustar["Data"],
+        Cp2, Stats2, Cp3, Stats3 = cpdBootstrapUStarTh4Season20100901(t, Fco2["Data"], ustar["Data"],
                                                                       Ta["Data"], fNight, fPlot,
                                                                       cSiteYr, nBoot, pb)
         # call the QC routine
@@ -993,11 +993,11 @@ def fcnaniqr(X):
                             IQR[ic, iq] = yX - yN
     return IQR
 
-def myprctile(Y, SH):
+def myprctile(Y, q):
     """
     Stripped down version of Octave prctile.m
     """
-    Q = myquantile(Y, SH/float(100))
+    Q = myquantile(Y, q/float(100))
     return Q
 
 def myquantile(x, p, method=5):

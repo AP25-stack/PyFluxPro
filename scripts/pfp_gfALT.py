@@ -972,7 +972,6 @@ def gfalternate_plotcomposite(data_dict, stat_dict, diel_avg, l4a, pd):
     # draw the plot on the screen
     if l4a["gui"]["show_plots"]:
         plt.draw()
-        #plt.pause(1)
         pfp_utils.mypause(1)
         plt.ioff()
     else:

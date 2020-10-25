@@ -5,6 +5,7 @@ import datetime
 import logging
 import os
 # 3rd party modules
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -307,6 +308,7 @@ def CPD_run(cf):
     # read the netcdf file
     logger.info(' Reading netCDF file '+file_in)
     ds = pfp_io.nc_read_series(file_in)
+    if ds.returncodes["value"] != 0: return
     ts = int(ds.globalattributes["time_step"])
     # get the datetime
     dt = ds.series["DateTime"]["Data"]
@@ -375,7 +377,7 @@ def plot_fits(temp_df,stats_df,d):
     plt.plot(temp_df['ustar'],temp_df['yHat_a'],color='green')
     plt.title('Year: '+str(stats_df.name[0])+', Season: '+str(stats_df.name[1])+', T class: '+str(stats_df.name[2])+'\n',fontsize=22)
     plt.xlabel(r'u* ($m\/s^{-1}$)',fontsize=16)
-    plt.ylabel(r'Fc ($\mu mol C\/m^{-2} s^{-1}$)',fontsize=16)
+    plt.ylabel(r'Fco2 ($\mu mol C\/m^{-2} s^{-1}$)',fontsize=16)
     plt.axvline(x=stats_df['bMod_threshold'],color='black',linestyle='--')
     props = dict(boxstyle='round,pad=1', facecolor='white', alpha=0.5)
     txt='Change point detected at u*='+str(round(stats_df['bMod_threshold'],3))+' (i='+str(stats_df['bMod_CP'])+')'

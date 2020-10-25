@@ -146,28 +146,28 @@ def plot_fcvsustar(ds):
         start = datetime.datetime(year, 1, 1, 0, 30, 0)
         end = datetime.datetime(year+1, 1, 1, 0, 0, 0)
         # get the variables from the data structure
-        Fc = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
+        Fco2 = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
         Fsd = pfp_utils.GetVariable(ds, "Fsd", start=start, end=end)
         ustar = pfp_utils.GetVariable(ds, "ustar", start=start, end=end)
         # get the observations and night time filters
-        obs = (Fc["Flag"] == 0) & (ustar["Flag"] == 0)
+        obs = (Fco2["Flag"] == 0) & (ustar["Flag"] == 0)
         night = (Fsd["Data"] <= 10)
         obs_night_filter = obs & night
         # mask anything that is not an observation and at night
         ustar["Data"] = numpy.ma.masked_where(obs_night_filter == False, ustar["Data"])
-        Fc["Data"] = numpy.ma.masked_where(obs_night_filter == False, Fc["Data"])
+        Fco2["Data"] = numpy.ma.masked_where(obs_night_filter == False, Fco2["Data"])
         # get mask when either ustar or Fc masked
-        mask = numpy.ma.mask_or(numpy.ma.getmaskarray(ustar["Data"]), numpy.ma.getmaskarray(Fc["Data"]))
+        mask = numpy.ma.mask_or(numpy.ma.getmaskarray(ustar["Data"]), numpy.ma.getmaskarray(Fco2["Data"]))
         # apply mask
         ustar["Data"] = numpy.ma.masked_where(mask == True, ustar["Data"])
-        Fc["Data"] = numpy.ma.masked_where(mask == True, Fc["Data"])
+        Fco2["Data"] = numpy.ma.masked_where(mask == True, Fco2["Data"])
         # remove masked elements
         ustar["Data"] = numpy.ma.compressed(ustar["Data"])
-        Fc["Data"] = numpy.ma.compressed(Fc["Data"])
+        Fco2["Data"] = numpy.ma.compressed(Fco2["Data"])
         # get the binned statistics
-        count, edges, numbers = stats.binned_statistic(ustar["Data"],Fc["Data"], statistic='count', bins=nbins)
-        means, edges, numbers = stats.binned_statistic(ustar["Data"],Fc["Data"], statistic='mean', bins=nbins)
-        stdevs, edges, numbers = stats.binned_statistic(ustar["Data"],Fc["Data"], statistic='std', bins=nbins)
+        count, edges, numbers = stats.binned_statistic(ustar["Data"],Fco2["Data"], statistic='count', bins=nbins)
+        means, edges, numbers = stats.binned_statistic(ustar["Data"],Fco2["Data"], statistic='mean', bins=nbins)
+        stdevs, edges, numbers = stats.binned_statistic(ustar["Data"],Fco2["Data"], statistic='std', bins=nbins)
         mids = (edges[:-1]+edges[1:])/2
         # drop bins with less than 10 counts
         mids = numpy.array(mids[count >= 10])
@@ -175,22 +175,22 @@ def plot_fcvsustar(ds):
         stdevs = numpy.array(stdevs[count >= 10])
         # do the plot
         fig = plt.figure()
-        fig.canvas.set_window_title("Fc versus u*: "+str(year))
-        plt.plot(ustar["Data"], Fc["Data"], 'b.', alpha=0.25)
+        fig.canvas.set_window_title("Fco2 versus u*: "+str(year))
+        plt.plot(ustar["Data"], Fco2["Data"], 'b.', alpha=0.25)
         plt.errorbar(mids, means, yerr=stdevs, fmt='ro')
         plt.xlabel("u* ("+ustar["Attr"]["units"]+")")
-        plt.ylabel("Fc ("+Fc["Attr"]["units"]+")")
+        plt.ylabel("Fco2 ("+Fco2["Attr"]["units"]+")")
         plt.title(site_name+": "+str(year))
         plt.draw()
         pfp_utils.mypause(0.5)
     # plot 4 seasons for each year
-    logger.info(" Doing seasonal Fc versus u* plots")
+    logger.info(" Doing seasonal Fco2 versus u* plots")
     seasons = {"summer":[12, 1, 2], "autumn":[3, 4, 5], "winter":[6, 7, 8], "spring":[9, 10, 11]}
     nrows = 2
     ncols = 2
     for year in range(start_year, end_year+1):
         fig, axs = plt.subplots(nrows=nrows, ncols=ncols)
-        fig.canvas.set_window_title("Fc versus u*: "+str(year))
+        fig.canvas.set_window_title("Fco2 versus u*: "+str(year))
         for n, season in enumerate(["Summer", "Autumn", "Winter", "Spring"]):
             col = numpy.mod(n, ncols)
             row = n//ncols
@@ -210,42 +210,42 @@ def plot_fcvsustar(ds):
                 fig.delaxes(axs[row, col])
                 continue
             # get the variables from the data structure
-            Fc = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
+            Fco2 = pfp_utils.GetVariable(ds, "Fco2", start=start, end=end)
             Fsd = pfp_utils.GetVariable(ds, "Fsd", start=start, end=end)
             ustar = pfp_utils.GetVariable(ds, "ustar", start=start, end=end)
             # get the observations and night time filters
-            obs = (Fc["Flag"] == 0) & (ustar["Flag"] == 0)
+            obs = (Fco2["Flag"] == 0) & (ustar["Flag"] == 0)
             night = (Fsd["Data"] <= 10)
             obs_night_filter = obs & night
             # mask anything that is not an observation and at night
             ustar["Data"] = numpy.ma.masked_where(obs_night_filter == False, ustar["Data"])
-            Fc["Data"] = numpy.ma.masked_where(obs_night_filter == False, Fc["Data"])
+            Fco2["Data"] = numpy.ma.masked_where(obs_night_filter == False, Fco2["Data"])
             # get mask when either ustar or Fc masked
-            mask = numpy.ma.mask_or(numpy.ma.getmaskarray(ustar["Data"]), numpy.ma.getmaskarray(Fc["Data"]))
+            mask = numpy.ma.mask_or(numpy.ma.getmaskarray(ustar["Data"]), numpy.ma.getmaskarray(Fco2["Data"]))
             # apply mask
             ustar["Data"] = numpy.ma.masked_where(mask == True, ustar["Data"])
-            Fc["Data"] = numpy.ma.masked_where(mask == True, Fc["Data"])
+            Fco2["Data"] = numpy.ma.masked_where(mask == True, Fco2["Data"])
             # remove masked elements
             ustar["Data"] = numpy.ma.compressed(ustar["Data"])
-            Fc["Data"] = numpy.ma.compressed(Fc["Data"])
+            Fco2["Data"] = numpy.ma.compressed(Fco2["Data"])
             # if no data, skip this plot and delete the axes
-            if (len(ustar["Data"]) == 0) or (len(Fc["Data"]) == 0):
+            if (len(ustar["Data"]) == 0) or (len(Fco2["Data"]) == 0):
                 fig.delaxes(axs[row, col])
                 continue
             # get the binned statistics
-            count, edges, numbers = stats.binned_statistic(ustar["Data"],Fc["Data"], statistic='count', bins=nbins)
-            means, edges, numbers = stats.binned_statistic(ustar["Data"],Fc["Data"], statistic='mean', bins=nbins)
-            stdevs, edges, numbers = stats.binned_statistic(ustar["Data"],Fc["Data"], statistic='std', bins=nbins)
+            count, edges, numbers = stats.binned_statistic(ustar["Data"],Fco2["Data"], statistic='count', bins=nbins)
+            means, edges, numbers = stats.binned_statistic(ustar["Data"],Fco2["Data"], statistic='mean', bins=nbins)
+            stdevs, edges, numbers = stats.binned_statistic(ustar["Data"],Fco2["Data"], statistic='std', bins=nbins)
             mids = (edges[:-1]+edges[1:])/2
             # drop bins with less than 10 counts
             mids = numpy.array(mids[count >= 10])
             means = numpy.array(means[count >= 10])
             stdevs = numpy.array(stdevs[count >= 10])
-            axs[row, col].plot(ustar["Data"], Fc["Data"], 'b.', alpha=0.25)
+            axs[row, col].plot(ustar["Data"], Fco2["Data"], 'b.', alpha=0.25)
             axs[row, col].errorbar(mids, means, yerr=stdevs, fmt='ro')
             axs[row, col].set_title(site_name+": "+str(year)+" "+season)
             axs[row, col].set_xlabel("u* ("+ustar["Attr"]["units"]+")")
-            axs[row, col].set_ylabel("Fc ("+Fc["Attr"]["units"]+")")
+            axs[row, col].set_ylabel("Fco2 ("+Fco2["Attr"]["units"]+")")
         fig.tight_layout()
         plt.draw()
         pfp_utils.mypause(0.5)
@@ -314,6 +314,7 @@ def pltfingerprint_readncfiles(cf):
             if cf["Variables"][var]["in_filename"] not in ds:
                 infilename = cf["Variables"][var]["in_filename"]
                 ds[cf["Variables"][var]["in_filename"]] = pfp_io.nc_read_series(infilename)
+                if ds[cf["Variables"][var]["in_filename"]].returncodes["value"] != 0: return ds
     return ds
 
 def plot_fingerprint(cf):
@@ -437,6 +438,7 @@ def plot_fluxnet(cf):
     infilename = pfp_io.get_infilenamefromcf(cf)
 
     ds = pfp_io.nc_read_series(infilename)
+    if ds.returncodes["value"] != 0: return
     site_name = ds.globalattributes["site_name"]
     ldt=ds.series["DateTime"]["Data"]
     sdt = ldt[0]
@@ -469,6 +471,7 @@ def plot_fluxnet(cf):
         plt.draw()
         pfp_utils.mypause(0.5)
     plt.ioff()
+    return
 
 def plot_explore_histograms(ds, labels):
     """ Plot histograms of selected variables."""
@@ -912,6 +915,7 @@ def plot_quickcheck(cf):
     ncfilename = pfp_io.get_infilenamefromcf(cf)
     # read the netCDF file and return the data structure "ds"
     ds = pfp_io.nc_read_series(ncfilename)
+    if ds.returncodes["value"] != 0: return
     series_list = list(ds.series.keys())
     # get the time step
     ts = int(ds.globalattributes["time_step"])
