@@ -935,7 +935,7 @@ def do_qcchecks(cf,ds,mode="verbose"):
         # check the series is in the data structure
         if series not in list(ds.series.keys()):
             if mode!="quiet":
-                msg = " do_qcchecks: series "+series+" not found in data structure, skipping ..."
+                msg = " QC checks: series "+series+" not found in data structure, skipping ..."
                 logger.warning(msg)
             continue
         # if so, do the QC checks
@@ -946,7 +946,7 @@ def do_qcchecks(cf,ds,mode="verbose"):
         # check the series is in the data structure
         if series not in list(ds.series.keys()):
             if mode!="quiet":
-                msg = " do_qcchecks: series "+series+" not found in data structure, skipping ..."
+                msg = " Dependencies: series "+series+" not found in data structure, skipping ..."
                 logger.warning(msg)
             continue
         # if so, do dependency check

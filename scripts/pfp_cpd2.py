@@ -98,7 +98,7 @@ def cpd2_main(cf):
             label = cf["Variables"]["Fco2"]["name"]
             msg = " CPD2: Applying Fco2_storage to " + label
             logger.info(msg)
-            pfp_ts.CorrectFco2ForStorage(cf, ds, Fco2_out=label, Fco2_in=label, Fco2_storage_in="Fco2_storage")
+            pfp_ts.CorrectFco2ForStorage(cf, ds, Fco2_out=label, Fco2_in=label)
         # get the day/night indicator, fNight is 1 for night time, 0 for day time
         fNight = numpy.where(Fsd["Data"] < Fsd_threshold, 1, 0)
         # get a time series

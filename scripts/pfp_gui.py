@@ -9,7 +9,8 @@ import pdb
 from configobj import ConfigObj
 from PyQt5 import QtCore, QtGui, QtWidgets
 # PFP modules
-import pfp_func
+import pfp_func_units
+import pfp_func_stats
 import pfp_gfALT
 import pfp_gfSOLO
 import pfp_io
@@ -547,9 +548,11 @@ class edit_cfg_L1(QtWidgets.QWidget):
     def edit_L1_gui(self):
         """ Edit L1 control file GUI."""
         # get a QTreeView and a standard model
-        self.view = QtWidgets.QTreeView()
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
-        #self.tree = custom_treeview()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
@@ -559,15 +562,6 @@ class edit_cfg_L1(QtWidgets.QWidget):
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # set some features of the QTreeView
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        # set the QTreeView model
-        self.view.setModel(self.model)
-        # enable drag and drop
-        self.view.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
@@ -749,6 +743,10 @@ class edit_cfg_L1(QtWidgets.QWidget):
                     add_separator = True
                 if add_separator:
                     self.context_menu.addSeparator()
+                self.context_menu.actionAddVariableAbove = QtWidgets.QAction(self)
+                self.context_menu.actionAddVariableAbove.setText("Add new variable")
+                self.context_menu.addAction(self.context_menu.actionAddVariableAbove)
+                self.context_menu.actionAddVariableAbove.triggered.connect(self.add_variable_above)
                 self.context_menu.actionRemoveVariable = QtWidgets.QAction(self)
                 self.context_menu.actionRemoveVariable.setText("Remove variable")
                 self.context_menu.addAction(self.context_menu.actionRemoveVariable)
@@ -773,15 +771,28 @@ class edit_cfg_L1(QtWidgets.QWidget):
                 self.context_menu.actionRemoveAttribute.setText("Remove attribute")
                 self.context_menu.addAction(self.context_menu.actionRemoveAttribute)
                 self.context_menu.actionRemoveAttribute.triggered.connect(self.remove_item)
-            elif (str(idx.parent().data()) == "Function" and
-                  (selected_item.column() == 1)):
-                implemented_functions_name = [name for name,data in inspect.getmembers(pfp_func,inspect.isfunction)]
-                self.context_menu.actionAddFunction = {}
-                for item in implemented_functions_name:
-                    self.context_menu.actionAddFunction[item] = QtWidgets.QAction(self)
-                    self.context_menu.actionAddFunction[item].setText(str(item.replace("_", " ")))
-                    self.context_menu.addAction(self.context_menu.actionAddFunction[item])
-                    self.context_menu.actionAddFunction[item].triggered.connect(self.add_function_entry)
+            elif (str(idx.parent().data()) == "Function" and (selected_item.column() == 1)):
+                implemented_func_units = [name for name,data in inspect.getmembers(pfp_func_units, inspect.isfunction)]
+                menuUnits = QtWidgets.QMenu(self)
+                menuUnits.setTitle("Units")
+                actionAddUnitsFunction = {}
+                for item in implemented_func_units:
+                    actionAddUnitsFunction[item] = QtWidgets.QAction(self)
+                    actionAddUnitsFunction[item].setText(str(item.replace("_", " ")))
+                    actionAddUnitsFunction[item].triggered.connect(lambda: self.add_function_entry(pfp_func_units))
+                    menuUnits.addAction(actionAddUnitsFunction[item])
+                # now do the statistics comversion functions
+                implemented_func_stats = [name for name,data in inspect.getmembers(pfp_func_stats, inspect.isfunction)]
+                menuStats = QtWidgets.QMenu(self)
+                menuStats.setTitle("Statistics")
+                actionAddStatsFunction = {}
+                for item in implemented_func_stats:
+                    actionAddStatsFunction[item] = QtWidgets.QAction(self)
+                    actionAddStatsFunction[item].setText(str(item.replace("_", " ")))
+                    actionAddStatsFunction[item].triggered.connect(lambda: self.add_function_entry(pfp_func_stats))
+                    menuStats.addAction(actionAddStatsFunction[item])
+                self.context_menu.addMenu(menuUnits)
+                self.context_menu.addMenu(menuStats)
 
         self.context_menu.exec_(self.view.viewport().mapToGlobal(position))
 
@@ -809,14 +820,14 @@ class edit_cfg_L1(QtWidgets.QWidget):
         # update the tab text with an asterix if required
         self.update_tab_text()
 
-    def add_function_entry(self):
+    def add_function_entry(self, source):
         """ Add the selected function to the variables [Function] subsection."""
         # get the index of the selected item
         idx = self.view.selectedIndexes()[0]
-        # get a list of function names in pfp_func
-        implemented_functions_name = [name for name,data in inspect.getmembers(pfp_func,inspect.isfunction)]
-        # get the arguments for the functions in pfp_func
-        implemented_functions_data = [data for name,data in inspect.getmembers(pfp_func,inspect.isfunction)]
+        # get a list of function names in the source file
+        implemented_functions_name = [name for name,data in inspect.getmembers(source, inspect.isfunction)]
+        # get the arguments for the functions in the source file
+        implemented_functions_data = [data for name,data in inspect.getmembers(source, inspect.isfunction)]
         # get the context menu entry that has been selected
         sender = str(self.context_menu.sender().text())
         sender = sender.replace(" ", "_")
@@ -871,6 +882,25 @@ class edit_cfg_L1(QtWidgets.QWidget):
         subsection = QtGui.QStandardItem("New variable")
         self.add_subsubsection(subsection, new_var)
         parent.appendRow(subsection)
+        # add an asterisk to the tab text to indicate the tab contents have changed
+        self.update_tab_text()
+
+    def add_variable_above(self):
+        """ Add a new variable above the selected variable."""
+        # get the index of the selected item
+        idx = self.view.selectedIndexes()[0]
+        # get the selected item from the index
+        selected_item = idx.model().itemFromIndex(idx)
+        # get the parent of the selected item
+        parent = selected_item.parent()
+        # construct the new variable dictionary
+        new_var = {"xl":{"sheet":"", "name":""},
+                   "Attr":{"group_name": "", "height": "", "instrument": "", "long_name": "",
+                           "serial_number": "", "standard_name": "", "statistic_type": "",
+                           "units": ""}}
+        subsection = QtGui.QStandardItem("New variable")
+        self.add_subsubsection(subsection, new_var)
+        parent.insertRow(idx.row(), subsection)
         # add an asterisk to the tab text to indicate the tab contents have changed
         self.update_tab_text()
 
@@ -2534,11 +2564,13 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.actionAddExcludeDates.setText("Add ExcludeDates")
                     self.context_menu.addAction(self.context_menu.actionAddExcludeDates)
                     self.context_menu.actionAddExcludeDates.triggered.connect(self.add_excludedates)
-                if "ApplyFco2Storage" not in existing_entries and selected_text[0:2] == "Fco2":
-                    self.context_menu.actionAddApplyFco2Storage = QtWidgets.QAction(self)
-                    self.context_menu.actionAddApplyFco2Storage.setText("Add ApplyFco2Storage")
-                    self.context_menu.addAction(self.context_menu.actionAddApplyFco2Storage)
-                    self.context_menu.actionAddApplyFco2Storage.triggered.connect(self.add_applyfcstorage_to_variable)
+                if "ApplyFco2Storage" not in existing_entries and selected_text[0:4] == "Fco2":
+                    if selected_text not in ["Fco2_storage", "Fco2_profile", "Fco2_single"]:
+                        self.context_menu.addSeparator()
+                        self.context_menu.actionAddApplyFco2Storage = QtWidgets.QAction(self)
+                        self.context_menu.actionAddApplyFco2Storage.setText("Add ApplyFco2Storage")
+                        self.context_menu.addAction(self.context_menu.actionAddApplyFco2Storage)
+                        self.context_menu.actionAddApplyFco2Storage.triggered.connect(self.add_applyfco2storage_to_variable)
                 self.context_menu.addSeparator()
                 if "MergeSeries" not in existing_entries:
                     self.context_menu.actionAddMergeSeries = QtWidgets.QAction(self)
@@ -2854,6 +2886,7 @@ class edit_cfg_climatology(QtWidgets.QWidget):
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
@@ -3370,23 +3403,6 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
         dict_to_add = {str(subsection.rowCount()): "Right click to browse"}
         # add the subsubsection
         self.add_subsection(dict_to_add)
-
-        ## loop over selected items in the tree
-        #for idx in self.tree.selectedIndexes():
-            ## get the parent section
-            #section, i = self.get_section("Files")
-            #subsection, j = self.get_subsection(section, idx)
-            #child0 = QtGui.QStandardItem(str(subsection.rowCount()))
-            #child1 = QtGui.QStandardItem("")
-            #subsection.appendRow([child0, child1])
-
-    #def add_option(self, key, val):
-        #""" Add an option to the context menu."""
-        ## add the option to the [Options] section
-        #child0 = QtGui.QStandardItem(key)
-        #child1 = QtGui.QStandardItem(val)
-        #self.tree.sections["Options"].appendRow([child0, child1])
-        #self.update_tab_text()
 
     def add_numberofdimensions(self):
         """ Add the NumberOfDimensions option to the context menu."""

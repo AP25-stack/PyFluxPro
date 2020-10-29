@@ -1775,59 +1775,6 @@ def L6_summary_annual(ds, series_dict):
                     annual_dict["variables"][item]["attr"][attr] = "not defined"
     return annual_dict
 
-#def L6_summary_cumulative(ds, series_dict):
-    #"""
-    #Purpose:
-     #Calculate the cumulative sums of various quantities and write
-     #them to a worksheet in an Excel workbook.
-    #Usage:
-     #L6_summary_cumulative(xl_file,ds,series_dict)
-     #where xl_file is an Excel file object
-           #ds is an OzFluxQC data structure
-           #series_dict is a dictionary of various variable lists
-    #Author: PRI
-    #Date: June 2015
-    #"""
-    #logger.info(" Doing the cumulative summaries at L6")
-    #dt = ds.series["DateTime"]["Data"]
-    #ts = int(ds.globalattributes["time_step"])
-    #si = pfp_utils.GetDateIndex(dt, str(dt[0]), ts=ts, default=0, match="startnextday")
-    #ei = pfp_utils.GetDateIndex(dt, str(dt[-1]), ts=ts, default=len(dt)-1, match="endpreviousday")
-    #ldt = dt[si:ei+1]
-    #start_year = ldt[0].year
-    #end_year = ldt[-1].year
-    #year_list = range(start_year, end_year+1, 1)
-    #series_list = series_dict["cumulative"].keys()
-    #cumulative_dict = {}
-    #for year in year_list:
-        #cumulative_dict[str(year)] = cdyr = {"globalattributes":{}, "variables":{}}
-        ## copy the global attributes
-        #cdyr["globalattributes"] = copy.deepcopy(ds.globalattributes)
-        #if ts==30:
-            #start_date = str(year)+"-01-01 00:30"
-        #elif ts==60:
-            #start_date = str(year)+"-01-01 01:00"
-        #end_date = str(year+1)+"-01-01 00:00"
-        #si = pfp_utils.GetDateIndex(dt, start_date, ts=ts, default=0)
-        #ei = pfp_utils.GetDateIndex(dt, end_date, ts=ts, default=len(dt)-1)
-        #ldt = dt[si:ei+1]
-        #f0 = numpy.zeros(len(ldt), dtype=numpy.int32)
-        #cdyr["variables"]["DateTime"] = {"data":ldt,"flag":f0,
-                                         #"attr":{"units":"Year","format":"dd/mm/yyyy HH:MM",
-                                                 #"time_step":str(ts)}}
-        #for item in series_list:
-            #cdyr["variables"][item] = {"data":[],"attr":{}}
-            #variable = pfp_utils.GetVariable(ds, item, start=si, end=ei)
-            #if item in series_dict["lists"]["co2"]:
-                #variable = pfp_utils.convert_units_func(ds, variable, "gC/m^2")
-                #cdyr["variables"][item]["attr"]["units"] = "gC/m^2"
-            #else:
-                #cdyr["variables"][item]["attr"]["units"] = variable["Attr"]["units"]
-            #cdyr["variables"][item]["data"] = numpy.ma.cumsum(variable["Data"])
-            #cdyr["variables"][item]["attr"]["format"] = series_dict["cumulative"][item]["format"]
-            #cdyr["variables"][item]["attr"]["units"] = cdyr["variables"][item]["attr"]["units"]+"/year"
-    #return cumulative_dict
-
 def L6_summary_cumulative(ds, series_dict):
     """
     Purpose:

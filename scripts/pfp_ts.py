@@ -11,7 +11,8 @@ from scipy import interpolate
 import constants as c
 import meteorologicalfunctions as pfp_mf
 import pfp_cfg
-import pfp_func
+import pfp_func_units
+import pfp_func_stats
 import pfp_io
 import pfp_utils
 import pysolar
@@ -1037,6 +1038,7 @@ def CoordRotation2D(cf, ds):
 
     attr = copy.deepcopy(UxUx["Attr"])
     attr["long_name"] = "Standard deviation of streamwise windspeed, rotated to natural wind coordinates"
+    attr["units"] = "m/s"
     data = numpy.ma.sqrt(uu)
     flag = numpy.where(numpy.ma.getmaskarray(uu) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "U_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
@@ -1048,6 +1050,7 @@ def CoordRotation2D(cf, ds):
 
     attr = copy.deepcopy(UyUy["Attr"])
     attr["long_name"] = "Standard deviation of cross-stream windspeed, rotated to natural wind coordinates"
+    attr["units"] = "m/s"
     data = numpy.ma.sqrt(vv)
     flag = numpy.where(numpy.ma.getmaskarray(vv) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "V_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
@@ -1059,6 +1062,7 @@ def CoordRotation2D(cf, ds):
 
     attr = copy.deepcopy(UzUz["Attr"])
     attr["long_name"] = "Standard deviation of vertical windspeed, rotated to natural wind coordinates"
+    attr["units"] = "m/s"
     data = numpy.ma.sqrt(ww)
     flag = numpy.where(numpy.ma.getmaskarray(ww) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "W_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
@@ -1149,11 +1153,11 @@ def CalculateFco2StorageSinglePoint(cf, ds, CO2_in="CO2", Fco2_out="Fco2_single"
         logger.info(msg)
     return
 
-def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2", Fco2_storage_in="Fco2_single"):
+def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2"):
     """
     Correct CO2 flux for storage in the air column beneath the CO2 instrument.
 
-    Usage pfp_ts.CorrectFco2ForStorage(cf, ds,Fco2_out, Fco2_in, Fco2_storage_in)
+    Usage pfp_ts.CorrectFco2ForStorage(cf, ds, Fco2_out, Fco2_in)
     cf: control file object
     ds: data structure
     Fco2_out: series label of the corrected CO2 flux
@@ -1183,18 +1187,23 @@ def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2", Fco2_storage_
             msg = Fco2_in + " not found in data, skipping Fco2 storage correction ..."
             logger.warning(msg)
             return
-        if Fco2_storage_in not in list(ds.series.keys()):
-            msg = Fco2_storage_in + " not found in data, skipping Fco2 storage correction..."
+        # check to see if we have an Fco2_profile series
+        if "Fco2_storage" in list(ds.series.keys()):
+            msg = " Using Fco2_storage for the storage term"
+            logger.info(msg)
+            Fco2_storage_in = "Fco2_storage"
+        elif "Fco2_profile" in list(ds.series.keys()):
+            msg = " Using Fco2_profile for the storage term"
+            logger.info(msg)
+            Fco2_storage_in = "Fco2_profile"
+        elif "Fco2_single" in list(ds.series.keys()):
+            msg = " Using Fco2_single for the storage term"
+            logger.info(msg)
+            Fco2_storage_in = "Fco2_single"
+        else:
+            msg = " Storage term (Fco2_storage, Fco2_profile or Fco2_single) not found"
             logger.warning(msg)
             return
-        # check to see if we have an Fco2_profile series
-        if "Fco2_profile" in list(ds.series.keys()):
-            Fco2_storage_in = "Fco2_profile"
-        elif "Fco2_storage" in list(ds.series.keys()):
-            Fco2_storage_in = "Fco2_storage"
-        else:
-            msg = " Using single point Fco2 storage"
-            logger.info(msg)
         # apply the storage term
         msg = " ***!!! Applying Fco2 storage term !!!***"
         logger.info(msg)
@@ -1620,16 +1629,18 @@ def DoFunctions(ds, info):
     Date: September 2015
     """
     nrecs = int(ds.globalattributes["nc_nrecs"])
-    implemented_functions = [name for name,data in inspect.getmembers(pfp_func,inspect.isfunction)]
+    implemented_func_units = [name for name,data in inspect.getmembers(pfp_func_units,inspect.isfunction)]
+    implemented_func_stats = [name for name,data in inspect.getmembers(pfp_func_stats,inspect.isfunction)]
+    implemented_functions = implemented_func_units + implemented_func_stats
     functions = {}
-    convert_vars = []
-    function_vars = []
+    units_vars = []
+    stats_vars = []
     for label in list(info["Variables"].keys()):
         # datetime functions handled elsewhere for now
         if label == "DateTime": continue
         if "Function" not in list(info["Variables"][label].keys()): continue
         if "func" not in list(info["Variables"][label]["Function"].keys()):
-            msg = " DoFunctions: 'func' keyword not found in [Functions] for "+label
+            msg = " 'func' keyword not found in [Functions] for " + label
             logger.error(msg)
             continue
         function_string = info["Variables"][label]["Function"]["func"]
@@ -1637,29 +1648,35 @@ def DoFunctions(ds, info):
         function_name = function_string.split("(")[0]
         function_args = function_string.split("(")[1].replace(")","").replace(" ","").split(",")
         if function_name not in implemented_functions:
-            msg = " DoFunctions: Requested function "+function_name+" not imlemented, skipping ..."
+            msg = " Requested function " + function_name + " not imlemented, skipping ..."
             logger.error(msg)
             continue
-        else:
-            functions[label] = {"name":function_name, "arguments":function_args}
-            if "convert" in function_name.lower():
-                convert_vars.append(label)
-            else:
-                function_vars.append(label)
+        if function_name in implemented_func_units:
+            functions[label] = {"type": "units", "name":function_name, "arguments":function_args}
+            units_vars.append(label)
+        elif function_name in implemented_func_stats:
+            functions[label] = {"type": "stats", "name":function_name, "arguments":function_args}
+            stats_vars.append(label)
     series_list = list(ds.series.keys())
-    for label in convert_vars:
+    for label in units_vars:
         if label not in series_list:
             var = pfp_utils.CreateEmptyVariable(label, nrecs, attr=info["Variables"][label]["Attr"])
             pfp_utils.CreateVariable(ds, var)
-        result = getattr(pfp_func, functions[label]["name"])(ds, label, *functions[label]["arguments"])
+        old_units = ds.series[label]["Attr"]["units"]
+        result = getattr(pfp_func_units, functions[label]["name"])(ds, label, *functions[label]["arguments"])
+        new_units = ds.series[label]["Attr"]["units"]
         if result:
-            msg = " Completed units conversion for " + label
-            logger.info(msg)
-    for label in function_vars:
+            if len(functions[label]["arguments"]) == 1:
+                msg = " Units for " + label + " converted from " + old_units + " to " + new_units
+                logger.info(msg)
+            else:
+                msg = label + " calculated from " + ','.join(functions[label]["arguments"])
+                logger.info(msg)
+    for label in stats_vars:
         if label not in series_list:
             var = pfp_utils.CreateEmptyVariable(label, nrecs, attr=info["Variables"][label]["Attr"])
             pfp_utils.CreateVariable(ds, var)
-        result = getattr(pfp_func, functions[label]["name"])(ds, label, *functions[label]["arguments"])
+        result = getattr(pfp_func_stats, functions[label]["name"])(ds, label, *functions[label]["arguments"])
         if result:
             msg = " Completed function for " + label
             logger.info(msg)
@@ -1684,17 +1701,32 @@ def CalculateStandardDeviations(ds):
     d = {"AH_IRGA_Vr": {"sd_label": "AH_IRGA_Sd",
                         "long_name": "Absolute humidity from IRGA, standard deviation",
                         "units": "g/m^3"},
+         "H2O_IRGA_Vr": {"sd_label": "H2O_IRGA_Sd",
+                         "long_name": "H2O concentration from IRGA, standard deviation",
+                         "units": "mmol/m^3"},
          "CO2_IRGA_Vr": {"sd_label": "CO2_IRGA_Sd",
                          "long_name": "CO2 concentration from IRGA, standard deviation",
                          "units": "mg/m^3"},
          "Ux_SONIC_Vr": {"sd_label": "Ux_SONIC_Sd",
-                         "long_name": "Longitudinal velocity component from CSAT, standard deviation",
+                         "long_name": "Longitudinal velocity component from SONIC, standard deviation",
                          "units": "m/s"},
          "Uy_SONIC_Vr": {"sd_label": "Uy_SONIC_Sd",
-                         "long_name": "Lateral velocity component from CSAT, standard deviation",
+                         "long_name": "Lateral velocity component from SONIC, standard deviation",
                          "units": "m/s"},
          "Uz_SONIC_Vr": {"sd_label": "Uz_SONIC_Sd",
-                         "long_name": "Vertical velocity component from CSAT, standard deviation",
+                         "long_name": "Vertical velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "Tv_SONIC_Vr": {"sd_label": "Tv_SONIC_Sd",
+                         "long_name": "Virtual temperature from SONIC, standard deviation",
+                         "units": "degC"},
+         "U_SONIC_Vr": {"sd_label": "U_SONIC_Sd",
+                         "long_name": "Along wind velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "V_SONIC_Vr": {"sd_label": "V_SONIC_Sd",
+                         "long_name": "Across wind velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "W_SONIC_Vr": {"sd_label": "W_SONIC_Sd",
+                         "long_name": "Vertical velocity component from SONIC, standard deviation",
                          "units": "m/s"}}
     # get a list of variables in the data structure
     labels = list(ds.series.keys())
@@ -1713,17 +1745,32 @@ def CalculateStandardDeviations(ds):
     d = {"AH_IRGA_Sd": {"vr_label": "AH_IRGA_Vr",
                         "long_name": "Absolute humidity from IRGA, variance",
                         "units": "g^2/m^6"},
+         "H2O_IRGA_Sd": {"vr_label": "H2O_IRGA_Vr",
+                         "long_name": "H2O concentration from IRGA, variance",
+                         "units": "mmol^2/m^6"},
          "CO2_IRGA_Sd": {"vr_label": "CO2_IRGA_Vr",
                          "long_name": "CO2 concentration from IRGA, variance",
                          "units": "mg^2/m^6"},
          "Ux_SONIC_Sd": {"vr_label": "Ux_SONIC_Vr",
-                         "long_name": "Longitudinal velocity component from CSAT, variance",
+                         "long_name": "Longitudinal velocity component from SONIC, variance",
                          "units": "m^2/s^2"},
          "Uy_SONIC_Sd": {"vr_label": "Uy_SONIC_Vr",
-                         "long_name": "Lateral velocity component from CSAT, variance",
+                         "long_name": "Lateral velocity component from SONIC, variance",
                          "units": "m^2/s^2"},
          "Uz_SONIC_Sd": {"vr_label": "Uz_SONIC_Vr",
-                         "long_name": "Vertical velocity component from CSAT, variance",
+                         "long_name": "Vertical velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "Tv_SONIC_Sd": {"vr_label": "Tv_SONIC_Vr",
+                         "long_name": "Virtual temperature from SONIC, variance",
+                         "units": "degC^2"},
+         "U_SONIC_Sd": {"vr_label": "U_SONIC_Vr",
+                         "long_name": "Along wind velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "V_SONIC_Sd": {"vr_label": "V_SONIC_Vr",
+                         "long_name": "Across wind velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "W_SONIC_Sd": {"vr_label": "W_SONIC_Vr",
+                         "long_name": "Vertical velocity component from SONIC, variance",
                          "units": "m^2/s^2"}}
     labels = list(ds.series.keys())
     # loop over the standard deviations and create the variances
@@ -1737,39 +1784,6 @@ def CalculateStandardDeviations(ds):
             vr["Attr"]["units"] = d[sd_label]["units"]
             pfp_utils.CreateVariable(ds, vr)
             vr_done.append(vr["Label"])
-    # !!! this section deals with current variable naming convention !!!
-    # first, standard deviations from variances
-    # get a list of variances that were not created in step 1 above
-    labels = list(ds.series.keys())
-    vr_labels = [l for l in labels if l[-3:] == "_Vr" and l not in vr_done]
-    # loop over the variances
-    for vr_label in vr_labels:
-        # get the standard deviation label
-        sd_label = vr_label.replace("_Vr", "_Sd")
-        # check to see if the standard deviation is in the data structure
-        if sd_label not in labels:
-            # create it if it isn't
-            vr = pfp_utils.GetVariable(ds, vr_label)
-            sd = copy.deepcopy(vr)
-            sd["Label"] = sd_label
-            sd["Data"] = numpy.ma.sqrt(vr["Data"])
-            sd["Attr"]["long_name"] = vr["Attr"]["long_name"].replace("variance", "standard deviation")
-            sd["Attr"]["units"] = pfp_utils.units_variance_to_standard_deviation(vr["Attr"]["units"])
-            pfp_utils.CreateVariable(ds, sd)
-    # second, variances from standard deviations
-    # get a list of standard deviations that were not created in step 1 above
-    labels = list(ds.series.keys())
-    sd_labels = [l for l in labels if l[-3:] == "_Sd" and l not in sd_done]
-    for sd_label in sd_labels:
-        vr_label = sd_label.replace("_Sd", "_Vr")
-        if vr_label not in labels:
-            sd = pfp_utils.GetVariable(ds, sd_label)
-            vr = copy.deepcopy(sd)
-            vr["Label"] = vr_label
-            vr["Data"] = sd["Data"]*sd["Data"]
-            vr["Attr"]["long_name"] = sd["Attr"]["long_name"].replace("standard deviation", "variance")
-            vr["Attr"]["units"] = pfp_utils.units_standard_deviation_to_variance(sd["Attr"]["units"])
-            pfp_utils.CreateVariable(ds, vr)
     return
 
 def do_mergeseries(ds,target,srclist,mode="verbose"):

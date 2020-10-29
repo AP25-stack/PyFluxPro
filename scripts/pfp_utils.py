@@ -19,7 +19,7 @@ import xlrd
 # PFP modules
 import constants as c
 import meteorologicalfunctions as pfp_mf
-import pfp_func
+import pfp_func_units
 
 logger = logging.getLogger("pfp_log")
 
@@ -239,39 +239,6 @@ def contiguous_regions(condition):
     idx.shape = (-1,2)
     return idx
 
-#def ConvertCO2Units(cf, ds, CO2):
-    #if CO2 == None:
-        #return
-    #CO2_units_out = "mg/m3"            # default value
-    #CO2_units_in = ds.series[CO2]['Attr']['units']
-    #if 'Options' in cf:
-        #if 'CO2Units' in cf['Options']:
-            #CO2_units_out = str(cf['Options']['CO2Units'])
-    #if CO2_units_out!=CO2_units_in:
-        #logger.info(' Converting CO2 concentration from '+CO2_units_in+' to '+CO2_units_out)
-        #if CO2_units_out=="umol/mol" and CO2_units_in=="mg/m3":
-            #c_mgpm3,flag,attr = GetSeriesasMA(ds,CO2)
-            #T,f,a = GetSeriesasMA(ds,'Ta')
-            #p,f,a = GetSeriesasMA(ds,'ps')
-            #c_ppm = pfp_mf.co2_ppmfrommgCO2pm3(c_mgpm3,T,p)
-            #attr["long_name"] = attr["long_name"]+", converted to umol/mol"
-            #attr["units"] = CO2_units_out
-            #attr["standard_name"] = "mole_concentration_of_carbon_dioxide_in_air"
-            #CreateSeries(ds,CO2,c_ppm,flag,attr)
-        #elif CO2_units_out=="mg/m3" and CO2_units_in=="umol/mol":
-            #c_ppm,flag,attr = GetSeriesasMA(ds,CO2)
-            #T,f,a = GetSeriesasMA(ds,'Ta')
-            #p,f,a = GetSeriesasMA(ds,'ps')
-            #c_mgpm3 = pfp_mf.co2_mgCO2pm3fromppm(c_ppm,T,p)
-            #attr["long_name"] = attr["long_name"]+", converted to mg/m3"
-            #attr["units"] = CO2_units_out
-            #attr["standard_name"] = "mass_concentration_of_carbon_dioxide_in_air"
-            #CreateSeries(ds,CO2,c_mgpm3,flag,attr)
-        #else:
-            #logger.info('  ConvertCO2Units: input or output units for CO2 concentration not recognised')
-    #else:
-        #logger.info(" CO2 concentration already in requested units")
-
 def ConvertCO2Units(cf, ds):
     """
     Purpose:
@@ -284,14 +251,13 @@ def ConvertCO2Units(cf, ds):
     Date: Back in the day
     """
     # list of supported CO2 flux units
-    units_list = ["mg/m3", "(mg/m3)2", "mgCO2/m3", "(mgCO2/m3)2", "umol/m3", "umol/mol"]
+    units_list = ["mg/m^3", "mg^2/m^6", "mgCO2/m^3", "mgCO2^2/m^6",
+                  "mmol/m^3", "umol/m^3", "umol/mol"]
     # get the CO2 units requested by the user
     CO2_units_out = get_keyvaluefromcf(cf, ["Options"], "CO2Units", default="umol/mol")
     # get a list of CO2 series
     labels = ds.series.keys()
     CO2_labels = [l for l in labels if l[0:3] == "CO2" and ds.series[l]["Attr"]["units"] in units_list]
-    Cc_labels = [l for l in labels if l[0:2] == "Cc" and ds.series[l]["Attr"]["units"] in units_list]
-    CO2_labels = CO2_labels + Cc_labels
     # do the units conversion
     # separate averages and standard deviations
     for label in CO2_labels:
@@ -300,32 +266,32 @@ def ConvertCO2Units(cf, ds):
         if CO2_in["Attr"]["units"] == CO2_units_out:
             continue
         # check if we have a standard deviation or a variance
-        long_name = CO2_in["Attr"]["long_name"].lower()
-        if ("Sd" in label and "deviation" in long_name):
-            # the only conversion allowed for standard deviations is mg/m3 to mmol/m3 ...
-            if CO2_in["Attr"]["units"] in ["mg/m3", "mgCO2/m3"] and CO2_units_out == "umol/mol":
-                # ... and we will only do it if the user has requested umol/mol for CO2
-                msg = " Converting " + label + " from " + CO2_in["Attr"]["units"]
-                msg += " to mmol/m3"
-                logger.info(msg)
-                CO2_out = convert_units_func(ds, CO2_in, "mmol/m3")
-        elif ("Vr" in label and ")2" in CO2_in["Attr"]["units"]):
-            # the only conversion allowed for variances is (mg/m3)2 to (mmol/m3)2
-            if CO2_in["Attr"]["units"] in ["(mg/m3)2", "(mgCO2/m3)2"] and CO2_units_out == "umol/mol":
-                msg = " Converting " + label + " from " + CO2_in["Attr"]["units"]
-                msg += " to (mmol/m3)2"
-                logger.info(msg)
-                CO2_in["Data"] = numpy.ma.sqrt(CO2_in["Data"])
-                CO2_in["Attr"]["units"] = units_variance_to_standard_deviation(CO2_in["Attr"]["units"])
-                CO2_out = convert_units_func(ds, CO2_in, "mmol/m3")
-                CO2_out["Data"] = CO2_out["Data"]*CO2_out["Data"]
-                CO2_out["Attr"]["units"] = units_standard_deviation_to_variance(CO2_out["Attr"]["units"])
-        else:
+        CO2_units_in = CO2_in["Attr"]["units"]
+        if ((label[-3:] == "_Sd") and (CO2_units_in in ["mg/m^3"]) and (CO2_units_out == "umol/mol")):
+            # the only conversion allowed for standard deviations is mg/m^3 to mmol/m^3 ...
+            # ... and we will only do it if the user has requested umol/mol for CO2
+            msg = " Converting " + label + " from " + CO2_in["Attr"]["units"] + " to mmol/m^3"
+            logger.info(msg)
+            CO2_out = convert_units_func(ds, CO2_in, "mmol/m^3")
+        elif ((label[-3:] == "_Vr") and (CO2_units_in in ["mg^2/m^6"]) and (CO2_units_out == "umol/mol")):
+            # the only conversion allowed for variances is mg^2/m^6 to mmol^2/m^6
+            msg = " Converting " + label + " from " + CO2_in["Attr"]["units"] + " to mmol^2/m^6"
+            logger.info(msg)
+            CO2_in["Data"] = numpy.ma.sqrt(CO2_in["Data"])
+            CO2_in["Attr"]["units"] = "mg/m^3"
+            CO2_out = convert_units_func(ds, CO2_in, "mmol/m^3")
+            CO2_out["Data"] = CO2_out["Data"]*CO2_out["Data"]
+            CO2_out["Attr"]["units"] = "mmol^2/m^6"
+        elif ((CO2_units_in in ["mg/m^3"]) and (CO2_units_out == "umol/mol")):
             # assume we have an average and do the units conersion
             msg = " Converting " + label + " from " + CO2_in["Attr"]["units"]
             msg += " to " + CO2_units_out
             logger.info(msg)
             CO2_out = convert_units_func(ds, CO2_in, CO2_units_out)
+        else:
+            msg = " Unrecognised conversion for " + label
+            msg += "(" + CO2_units_in + " to " + CO2_units_out + ")"
+            logger.error(msg)
         CreateVariable(ds, CO2_out)
     return
 
@@ -377,61 +343,6 @@ def ConvertFco2Units(cf, ds):
         else:
             logger.info('  ConvertFco2Units: input or output units for Fco2 unrecognised')
     return
-
-#def convert_units_func(ds, variable, new_units, mode="quiet"):
-    #"""
-    #Purpose:
-     #Generic routine for changing units.
-     #Nothing is done if the original units are the same as the requested units.
-    #Usage:
-     #new_variable = pfp_utils.convert_units_func(ds, old_variable, new_units)
-     #where;
-      #new_variable is a copy of old_variable converted to new_units
-      #ds is a data structure
-      #old_variable is a variable in the original units
-      #new_units are the units of the new data
-    #Author: PRI
-    #Date: July 2015
-    #"""
-    #old_units = variable["Attr"]["units"]
-    #if old_units == new_units:
-        ## old units same as new units, nothing to do ...
-        #msg = " New units same as old ones, skipping ..."
-        #logger.warning(msg)
-        #return variable
-    ## check the units are something we understand
-    ## add more lists here to cope with water etc
-    #co2_list = ["umol/m2/s", "gC/m2", "mg/m3", "mgCO2/m3", "umol/mol", "mg/m2/s", "mgCO2/m2/s", "mmol/m3"]
-    #h2o_list = ["g/m3", "kg/m3", "mmol/mol", "%", "percent", "frac", "fraction", "kg/kg", "mmol/m3"]
-    #t_list = ["C", "K"]
-    #ps_list = ["Pa", "hPa", "kPa"]
-    #soil_list = ["%", "percent", "frac", "m3/m3"]
-    #ok_list = co2_list + h2o_list + t_list + ps_list + soil_list
-    ## parse the original units
-    #if old_units not in ok_list:
-        #if "Label" in variable:
-            #label = variable["Label"]
-        #else:
-            #label = "quantity provided"
-        #msg = " Unrecognised units (" + old_units + ") in " + label
-        #logger.error(msg)
-    #elif new_units not in ok_list:
-        #msg = " Unrecognised units requested (" + new_units + ")"
-        #logger.error(msg)
-    #elif new_units in co2_list and old_units in co2_list:
-        #variable = convert_units_co2(ds, variable, new_units)
-    #elif new_units in h2o_list and old_units in h2o_list:
-        #variable = convert_units_h2o(ds, variable, new_units)
-    #elif new_units in t_list and old_units in t_list:
-        #variable = convert_units_t(ds, variable, new_units)
-    #elif new_units in ps_list and old_units in ps_list:
-        #variable = convert_units_ps(ds, variable, new_units)
-    #elif new_units in soil_list and old_units in soil_list:
-        #variable = convert_units_soil(ds, variable, new_units)
-    #else:
-        #msg = "Unrecognised units combination " + old_units + " and " + new_units
-        #logger.error(msg)
-    #return variable
 
 def convert_units_func(ds, variable, new_units, mode="quiet"):
     """
@@ -1434,41 +1345,6 @@ def CreateVariable(ds, variable, over_write=True):
     ds.series[label]["Attr"] = variable["Attr"]
     return
 
-#def CreateVariable(ds,variable):
-    #"""
-    #Purpose:
-     #Create a variable in the data structure.
-     #If the variable already exists in the data structure, data values, QC flags and
-     #attributes will be overwritten.
-     #This utility is the prefered method for creating or updating a data series because
-     #it implements a consistent method for creating series in the data structure.  Direct
-     #writes to the contents of the data structure are discouraged (unless PRI wrote the code:=P).
-    #Usage:
-     #Fsd = pfp_utils.GetVariable(ds,"Fsd")
-      #... do something to Fsd here ...
-      #... and don't forget to update the QC flag ...
-      #... and the attributes ...
-     #pfp_utils.CreateVariable(ds,Fsd)
-    #Author: PRI
-    #Date: September 2016
-    #"""
-    #label = variable["Label"]
-    ## create a temporary series to avoid premature overwrites
-    #ds.series["_tmp_"] = {}
-    ## put the data into the temporary series
-    #if numpy.ma.isMA(variable["Data"]):
-        #ds.series["_tmp_"]["Data"] = numpy.ma.filled(variable["Data"], float(c.missing_value))
-    #else:
-        #ds.series["_tmp_"]["Data"] = numpy.array(variable["Data"])
-    ## copy or make the QC flag
-    #ds.series["_tmp_"]["Flag"] = numpy.array(variable["Flag"])
-    ## do the attributes
-    #ds.series["_tmp_"]["Attr"] = copy.deepcopy(variable["Attr"])
-    ## and copy the temporary series back to the original label
-    #ds.series[unicode(label)] = copy.deepcopy(ds.series['_tmp_'])
-    ## delete the temporary series
-    #del ds.series['_tmp_']
-
 def csv_string_to_list(input_string):
     """ Convert a string containing items separated by commas into a list."""
     if "," in input_string:
@@ -2252,7 +2128,7 @@ def get_datetime(cf, ds):
             function_string = function_string.replace('"','')
             function_name = function_string.split("(")[0]
             function_args = function_string.split("(")[1].replace(")","").replace(" ","").split(",")
-            result = getattr(pfp_func,function_name)(ds, "DateTime", *function_args)
+            result = getattr(pfp_func_units,function_name)(ds, "DateTime", *function_args)
     return
 
 def get_datetime_from_nctime(ds):
@@ -3190,36 +3066,6 @@ def strip_non_numeric(s):
     Strip non-numeric characters from a string.
     """
     return "".join([c for c in s if c in "-1234567890."])
-
-def units_variance_to_standard_deviation(units_in):
-    """
-    Purpose:
-     Convert variance units string to standard deviation units string.
-    Usage:
-     sd_units = pfp_utils.units_variance_to_standard_deviation(vr_units)
-    Author: PRI
-    Date: August 2020
-    """
-    if (("(" in units_in) and (")" in units_in)):
-        units_out = units_in[units_in.index("(")+1:units_in.index(")")]
-    else:
-        units_out = units_in
-    return units_out
-
-def units_standard_deviation_to_variance(units_in):
-    """
-    Purpose:
-     Convert standard deviation units string to variance units string.
-    Usage:
-     vr_units = pfp_utils.units_standard_deviation_to_variance(sd_units)
-    Author: PRI
-    Date: August 2020
-    """
-    if (("(" in units_in) and (")" in units_in)):
-        units_out = units_in
-    else:
-        units_out = "(" + units_in + ")2"
-    return units_out
 
 def UpdateGlobalAttributes(cf,ds,level):
     ds.globalattributes["nc_level"] = str(level)

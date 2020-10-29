@@ -53,7 +53,7 @@
 [rename_pattern]
     Fc = Fco2
     Ah = AH
-    q = SH
+    #q = SH
 # exclude variables that start with these strings
 [exclude]
     [[eta]]
@@ -139,7 +139,7 @@
     deg = degrees
     dS/m = dS/m
     frac = m^3/m^3
-    fraction = 1
+    fraction = fraction
     g/m3 = g/m^3
     (g/m3)2 = g^2/m^6
     g/m2/s = g/m^2/s

@@ -17,7 +17,8 @@ import xlrd
 # PFP modules
 import constants as c
 import pfp_cfg
-import pfp_func
+import pfp_func_units
+import pfp_func_stats
 import pfp_gui
 import pfp_io
 import pfp_ts
@@ -76,8 +77,8 @@ def change_variable_units(cfg, ds):
         if len(units) == 0:
             continue
         if units not in ok_units:
-            msg = " Unrecognised units " + units + " for variable " + label
-            logger.warning(msg)
+            #msg = " Unrecognised units " + units + " for variable " + label
+            #logger.warning(msg)
             continue
         if units in old_units:
             ds.series[label]["Attr"]["units"] = cfg["units_map"][units]
@@ -626,12 +627,14 @@ def ParseL1ControlFile(cf):
                 ok = False
             # check the function name and arguments
             else:
-                # get a list of function names in pfp_func
-                implemented_functions_name = [name for name,data in inspect.getmembers(pfp_func,inspect.isfunction)]
+                # get a list of function names in pfp_func_units
+                implemented_func_units = [name for name,data in inspect.getmembers(pfp_func_units,inspect.isfunction)]
+                implemented_func_stats = [name for name,data in inspect.getmembers(pfp_func_stats,inspect.isfunction)]
+                implemented_functions = implemented_func_units + implemented_func_stats
                 function_string = l1ire["Variables"][label]["Function"]["func"]
                 function_name = function_string[:function_string.index("(")]
                 # check the function name is implemented
-                if function_name not in implemented_functions_name:
+                if function_name not in implemented_functions:
                     msg = " Skipping " + label + " (function " + function_name + " not implemented)"
                     logger.warning(msg)
                     ok = False
@@ -643,7 +646,7 @@ def ParseL1ControlFile(cf):
                         nargs = 1
                     for item in function_args[:nargs]:
                         if item not in list(l1ire["Variables"].keys()):
-                            msg = " Skipping " + label + "(function argument '" + item + "' not found"
+                            msg = " Skipping " + label + " (function argument '" + item + "' not found)"
                             logger.warning(msg)
                             ok = False
                         else:
@@ -738,61 +741,6 @@ def ParseL3ControlFile(cf, ds):
     average_list = [l for l in list(cfv.keys()) if l[0:4] == "Fco2" and "AverageSeries" in list(cfv[l].keys())]
     l3_info["Fco2"]["combine_list"] = merge_list + average_list
     return l3_info
-
-#def ParseL6ControlFile(cf, ds):
-    #"""
-    #Purpose:
-     #Parse the L6 control file.
-    #Usage:
-    #Side effects:
-    #Author: PRI
-    #Date: Back in the day
-    #"""
-    ## create the L6 information dictionary
-    #l6_info = {}
-    ## add key for suppressing output of intermediate variables e.g. Ta_aws
-    #opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "KeepIntermediateSeries", default="No")
-    #l6_info["RemoveIntermediateSeries"] = {"KeepIntermediateSeries": opt, "not_output": []}
-    #if "EcosystemRespiration" in cf.keys():
-        #for output in cf["EcosystemRespiration"].keys():
-            #if "ERUsingSOLO" in cf["EcosystemRespiration"][output].keys():
-                #rpSOLO_createdict(cf, ds, l6_info, output, "ERUsingSOLO", 610)
-            #if "ERUsingLloydTaylor" in cf["EcosystemRespiration"][output].keys():
-                #pfp_rpLT.rpLT_createdict(cf, ds, l6_info, output, "ERUsingLloydTaylor", 620)
-            #if "ERUsingLasslop" in cf["EcosystemRespiration"][output].keys():
-                #pfp_rpLL.rpLL_createdict(cf, ds, l6_info, output, "ERUsingLasslop", 630)
-            #if "MergeSeries" in cf["EcosystemRespiration"][output].keys():
-                #rpMergeSeries_createdict(cf, ds, l6_info, output, "MergeSeries")
-    #if "NetEcosystemExchange" in cf.keys():
-        #l6_info["NetEcosystemExchange"] = {}
-        #for output in cf["NetEcosystemExchange"].keys():
-            #rpNEE_createdict(cf, ds, l6_info["NetEcosystemExchange"], output)
-    #if "GrossPrimaryProductivity" in cf.keys():
-        #l6_info["GrossPrimaryProductivity"] = {}
-        #for output in cf["GrossPrimaryProductivity"].keys():
-            #rpGPP_createdict(cf, ds, l6_info["GrossPrimaryProductivity"], output)
-    #return l6_info
-    # check to see if a turbulence filter has been applied to the CO2 flux
-    #if "turbulence_filter" not in Fco2["Attr"]:
-        ## print error message to the log window
-        #msg = "CO2 flux series Fc did not have a turbulence filter applied."
-        #logger.error(msg)
-        #msg = "Please repeat the L5 processing and apply a turbulence filter."
-        #logger.error(msg)
-        #msg = "Quiting L6 processing ..."
-        #logger.error(msg)
-        ## check to see if we are running in interactive mode
-        #if cf["Options"]["call_mode"].lower() == "interactive":
-            ## if so, put up a message box
-            #msg = "CO2 flux series Fc did not have a turbulence filter applied.\n"
-            #msg = msg + "Please repeat the L5 processing and apply a turbulence filter.\n"
-            #msg = msg + "Quiting L6 processing ..."
-            #msgbox = pfp_gui.myMessageBox(msg, title="Critical")
-        ## set the return code to non-zero ...
-        #ds.returncodes["value"] = 1
-        #ds.returncodes["message"] = "quit"
-        ## ... and return
-        #return
 
 def parse_variable_attributes(attributes):
     """
@@ -1138,7 +1086,32 @@ def check_l1_controlfile(cfg):
     # *******************
     # *** check units ***
     # *******************
-    # ... well, maybe in PFP3.
+    # the lists of units below need to be abstracted from the code and reconciled with
+    # the contents of controlfiles/standard/cfg_update.txt
+    units = {"co2": ["mg/m^3", "mmol/m^3", "umol/mol", "mg^2/m^6", "mmol^2/m^6",
+                     "mg/m^2/s", "umol/m^2/s", "umol^2/mol^2"],
+             "h2o": ["g/m^3", "kg/m^3", "mmol/m^3", "mmol/mol", "percent", "fraction",
+                      "kg/kg", "g^2/m^6", "mmol^2/m^6", "mmol^2/mol^2"],
+             "temperature": ["degC", "K", "degC^2", "K^2"],
+             "pressure": ["Pa", "hPa", "kPa"],
+             "soil": ["m^3/m^3", "dS/m"],
+             "radiation": ["W/m^2", "umol/m^2/s"],
+             "covariance": ["g/m^2/s", "mg/m^2/s", "m.degC/s", "m.K/s", "m^2/s^2"],
+             "flux": ["kg/m/s^2"],
+             "precipitation": ["m", "mm"],
+             "wind": ["m/s", "degrees", "m^2/s^2"],
+             "heat": ["J/kg", "J/kg/K", "J/m^3/K"],
+             "misc": ["V", "none"]}
+    ok_units = []
+    for key in list(units.keys()):
+        ok_units += units[key]
+    ok_units = list(set(ok_units))
+    for label in list(cfg["Variables"].keys()):
+        var_units = cfg["Variables"][label]["Attr"]["units"]
+        if var_units not in ok_units:
+            msg = " Unrecognised units (" + var_units +") for variable " + label
+            logger.error(msg)
+            ok = False
     return ok
 
 def error_message(msg, mode="correct"):
@@ -1369,12 +1342,15 @@ def l1_update_cfg_variable_names(cfg, std):
     Author: PRI
     Date: May 2020
     """
+    # dictionary of renamed variables
+    renamed = {}
     # rename exact variable name matches
     renames_exact = list(std["rename_exact"].keys())
     # loop over the variables in the control file
     for label_cfg in list(cfg["Variables"].keys()):
         if label_cfg in renames_exact:
             new_name = std["rename_exact"][label_cfg]
+            renamed[label_cfg] = new_name
             cfg["Variables"].rename(label_cfg, new_name)
     # rename pattern matches
     renames_pattern = list(std["rename_pattern"].keys())
@@ -1388,13 +1364,23 @@ def l1_update_cfg_variable_names(cfg, std):
                 if len(label_cfg) > len(rp):
                     if label_cfg[len(rp)] == "_":
                         new_name = label_cfg.replace(label_cfg[:llen], srp)
+                        renamed[label_cfg] = new_name
                         cfg["Variables"].rename(label_cfg, new_name)
                     else:
                         # different variable name, leave it alone
                         pass
                 else:
                     new_name = label_cfg.replace(label_cfg[:llen], srp)
+                    renamed[label_cfg] = new_name
                     cfg["Variables"].rename(label_cfg, new_name)
+    # do any functions
+    for label_cfg in list(cfg["Variables"].keys()):
+        if "Function" in cfg["Variables"][label_cfg]:
+            func_str = cfg["Variables"][label_cfg]["Function"]["func"]
+            for old_label in list(renamed.keys()):
+                if old_label in func_str:
+                    func_str = func_str.replace(old_label, renamed[old_label])
+                    cfg["Variables"][label_cfg]["Function"]["func"] = func_str
     return cfg
 
 def l2_update_controlfile(cfg):

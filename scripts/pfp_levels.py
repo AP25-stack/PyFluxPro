@@ -45,7 +45,7 @@ def l1qc(cf):
     # create new variables using user defined functions
     pfp_ts.DoFunctions(ds, l1_info["read_excel"])
     # calculate variances from standard deviations and vice versa
-    pfp_ts.CalculateStandardDeviations(ds)
+    #pfp_ts.CalculateStandardDeviations(ds)
     # check missing data and QC flags are consistent
     pfp_utils.CheckQCFlags(ds)
     return ds

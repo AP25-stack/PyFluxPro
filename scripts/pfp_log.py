@@ -46,6 +46,13 @@ def init_logger(logger_name, log_file_name, to_file=True, to_screen=False):
         fh2.setLevel(logging.ERROR)
         fh2.setFormatter(formatter)
         logger.addHandler(fh2)
+        # ... and a separate file for warnings
+        ext = os.path.splitext(log_file_name)[1]
+        warning_file_name = log_file_name.replace(ext, ".warnings")
+        fh3 = logging.FileHandler(warning_file_name)
+        fh3.setLevel(logging.WARNING)
+        fh3.setFormatter(formatter)
+        logger.addHandler(fh3)
     if to_screen:
         console = logging.StreamHandler()
         console.setFormatter(formatter)

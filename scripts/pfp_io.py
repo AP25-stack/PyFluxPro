@@ -276,7 +276,7 @@ def csv_read_series(cf):
     #function_string = cf["Variables"]["DateTime"]["Function"]["func"]
     #function_name = function_string.split("(")[0]
     #function_args = function_string.split("(")[1].replace(")","").split(",")
-    #result = getattr(pfp_func,function_name)(ds, *function_args)
+    #result = getattr(pfp_func_units,function_name)(ds, *function_args)
     # set some global attributes
     ds.globalattributes['featureType'] = 'timeseries'
     ds.globalattributes['csv_filename'] = info["csv_filename"]
