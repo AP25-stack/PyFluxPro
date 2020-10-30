@@ -42,11 +42,11 @@ def l1qc(cf):
     ds = pfp_ts.MergeDataStructures(ds_dict, l1_info)
     # write the processing level to a global attribute
     ds.globalattributes["nc_level"] = "L1"
-    # calculate variances from standard deviations and vice versa
-    pfp_ts.DoFunctions(ds, l1_info["read_excel"])
-    # check missing data and QC flags are consistent
-    pfp_ts.CalculateStandardDeviations(ds)
     # create new variables using user defined functions
+    pfp_ts.DoFunctions(ds, l1_info["read_excel"])
+    # calculate variances from standard deviations and vice versa
+    #pfp_ts.CalculateStandardDeviations(ds)
+    # check missing data and QC flags are consistent
     pfp_utils.CheckQCFlags(ds)
     return ds
 
@@ -123,8 +123,8 @@ def l3qc(cf, ds2):
     # ********************************
     # *** Merge CO2 concentrations ***
     # ********************************
-    # merge the CO2 concentrations
-    pfp_ts.CombineSeries(cf, ds3, "CO2", convert_units=True)
+    # merge the CO2 concentration
+    pfp_ts.CombineSeries(cf, ds3, l3_info["CO2"]["label"], convert_units=True)
     # ******************************************
     # *** Calculate meteorological variables ***
     # ******************************************
@@ -154,18 +154,13 @@ def l3qc(cf, ds2):
     # *** CO2 and Fc section ***
     # **************************
     # convert CO2 units if required
-    pfp_utils.ConvertCO2Units(cf, ds3, CO2="CO2")
+    pfp_utils.ConvertCO2Units(cf, ds3)
     # calculate Fco2 storage term - single height only at present
-    pfp_ts.CalculateFco2StorageSinglePoint(cf, ds3)
-    # convert Fco2 and Fco2_storage units if required
+    pfp_ts.CalculateFco2StorageSinglePoint(cf, ds3, l3_info["CO2"]["label"])
+    # convert Fco2 units if required
     pfp_utils.ConvertFco2Units(cf, ds3)
-    Fco2_list = ["Fco2", "Fco2_single", "Fco2_profile", "Fco2_storage"]
-    pfp_utils.CheckUnits(ds3, Fco2_list, "umol/m^2/s", convert_units=True)
     # merge Fco2 and Fco2_storage series if required
-    cfv = cf["Variables"]
-    merge_list = [l for l in list(cfv.keys()) if l[0:4] == "Fco2" and "MergeSeries" in list(cfv[l].keys())]
-    for label in merge_list:
-        pfp_ts.CombineSeries(cf, ds3, label, save_originals=True)
+    pfp_ts.CombineSeries(cf, ds3, l3_info["Fco2"]["combine_list"], save_originals=True)
     # correct Fco2 for storage term - only recommended if storage calculated from profile available
     pfp_ts.CorrectFco2ForStorage(cf, ds3)
     # *************************
@@ -277,21 +272,24 @@ def l4qc(main_gui, cf, ds3):
 
 def l5qc(main_gui, cf, ds4):
     ds5 = pfp_io.copy_datastructure(cf, ds4)
-    # ds4 will be empty (logical false) if an error occurs in copy_datastructure
+    # ds5 will be empty (logical false) if an error occurs in copy_datastructure
     # return from this routine if this is the case
     if not ds5:
         return ds5
     # set some attributes for this level
     pfp_utils.UpdateGlobalAttributes(cf, ds5, "L5")
-    # check to see if we have any imports
-    pfp_gf.ImportSeries(cf, ds5)
-    # re-apply the quality control checks (range, diurnal and rules)
-    pfp_ck.do_qcchecks(cf, ds5)
-    # now do the flux gap filling methods
     # parse the control file for information on how the user wants to do the gap filling
     l5_info = pfp_gf.ParseL5ControlFile(cf, ds5)
     if ds5.returncodes["value"] != 0:
         return ds5
+    # check to see if we have any imports
+    pfp_gf.ImportSeries(cf, ds5)
+    # re-apply the quality control checks (range, diurnal and rules)
+    pfp_ck.do_qcchecks(cf, ds5)
+    pfp_gf.CheckL5Drivers(ds5, l5_info)
+    if ds5.returncodes["value"] != 0:
+        return ds5
+    # now do the flux gap filling methods
     # *** start of the section that does the gap filling of the fluxes ***
     pfp_gf.CheckGapLengths(cf, ds5, l5_info)
     if ds5.returncodes["value"] != 0:
@@ -315,6 +313,10 @@ def l5qc(main_gui, cf, ds4):
             return ds5
     # merge the gap filled drivers into a single series
     pfp_ts.MergeSeriesUsingDict(ds5, l5_info, merge_order="standard")
+    # check that all targets were gap filled
+    pfp_gf.CheckL5Targets(ds5, l5_info)
+    if ds5.returncodes["value"] != 0:
+        return ds5
     # calculate Monin-Obukhov length
     pfp_ts.CalculateMoninObukhovLength(ds5)
     # write the percentage of good data as a variable attribute
@@ -338,12 +340,10 @@ def l6qc(main_gui, cf, ds5):
     l6_info = pfp_rp.ParseL6ControlFile(cf, ds6)
     # check to see if we have any imports
     pfp_gf.ImportSeries(cf, ds6)
-    # check units of Fc
-    Fc_units_list = ["mg/m^2/s", "umol/m^2/s"]
-    Fc_list = [l for l in list(ds6.series.keys()) if ("Fco2" in l[0:4]) and (ds6.series[l]["Attr"]["units"] in Fc_units_list)]
-    pfp_utils.CheckUnits(ds6, Fc_list, "umol/m^2/s", convert_units=True)
-    # get ER from the observed Fc
-    pfp_rp.GetERFromFc(cf, ds6)
+    # check units of Fco2
+    pfp_utils.CheckFco2Units(ds6, "umol/m^2/s", convert_units=True)
+    # get ER from the observed Fco2
+    pfp_rp.GetERFromFco2(cf, ds6)
     # return code will be non-zero if turbulance filter not applied to CO2 flux
     if ds6.returncodes["value"] != 0:
         return ds6
@@ -352,15 +352,13 @@ def l6qc(main_gui, cf, ds5):
         pfp_rp.ERUsingSOLO(main_gui, ds6, l6_info, "ERUsingSOLO")
         if ds6.returncodes["value"] != 0:
             return ds6
-    # estimate ER using FFNET
-    #pfp_rp.ERUsingFFNET(cf, ds6, l6_info)
     # estimate ER using Lloyd-Taylor
     pfp_rp.ERUsingLloydTaylor(cf, ds6, l6_info)
     # estimate ER using Lasslop et al
     pfp_rp.ERUsingLasslop(ds6, l6_info)
     # merge the estimates of ER with the observations
     pfp_ts.MergeSeriesUsingDict(ds6, l6_info, merge_order="standard")
-    # calculate NEE from Fc and ER
+    # calculate NEE from Fco2 and ER
     pfp_rp.CalculateNEE(cf, ds6, l6_info)
     # calculate NEP from NEE
     pfp_rp.CalculateNEP(cf, ds6)

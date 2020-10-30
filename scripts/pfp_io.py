@@ -75,6 +75,7 @@ def copy_datastructure(cf,ds_in):
             outfilename = get_outfilenamefromcf(cf)
             # read the netCDF file at the "input" level
             ds_file = nc_read_series(outfilename)
+            if ds_file.returncodes["value"] != 0: return
             dt_file = ds_file.series['DateTime']['Data']
             sd_file = str(dt_file[0])
             ed_file = str(dt_file[-1])
@@ -275,7 +276,7 @@ def csv_read_series(cf):
     #function_string = cf["Variables"]["DateTime"]["Function"]["func"]
     #function_name = function_string.split("(")[0]
     #function_args = function_string.split("(")[1].replace(")","").split(",")
-    #result = getattr(pfp_func,function_name)(ds, *function_args)
+    #result = getattr(pfp_func_units,function_name)(ds, *function_args)
     # set some global attributes
     ds.globalattributes['featureType'] = 'timeseries'
     ds.globalattributes['csv_filename'] = info["csv_filename"]
@@ -286,9 +287,10 @@ def csv_read_series(cf):
     ds.returncodes = {"value":0,"message":"OK"}
     return ds
 
-def nc_2xls(ncfilename,outputlist=None):
+def nc_2xls(ncfilename, outputlist=None):
     # read the netCDF file
     ds = nc_read_series(ncfilename,checktimestep=False)
+    if ds.returncodes["value"] != 0: return
     nRecs = int(ds.globalattributes["nc_nrecs"])
     nCols = len(list(ds.series.keys()))
     if outputlist!=None: nCols = len(outputlist)
@@ -308,7 +310,7 @@ def nc_2xls(ncfilename,outputlist=None):
             file_path = os.path.split(xlsxfilename)
             xlsxfilename = get_output_filename_dialog(file_path=file_path[0], ext="*.xlsx")
             if len(xlsxfilename) == 0: return
-        xlsx_write_series(ds,xlsxfilename,outputlist=outputlist)
+        xlsx_write_series(ds, xlsxfilename, outputlist=outputlist)
     return
 
 def read_eddypro_full(csvname):
@@ -417,6 +419,7 @@ def write_tsv_reddyproc(cf):
     writer = csv.writer(csvfile,dialect='excel-tab')
     # read the netCDF file
     ds = nc_read_series(ncFileName)
+    if ds.returncodes["value"] != 0: return
     # get the datetime series
     dt = ds.series["DateTime"]["Data"]
     ts = int(ds.globalattributes["time_step"])
@@ -600,6 +603,7 @@ def smap_write_csv(cf):
     csvFileName_base = get_outfilenamefromcf(cf)
     # read the netCDF file
     ds = nc_read_series(ncFileName)
+    if ds.returncodes["value"] != 0: return
     ts = int(ds.globalattributes["time_step"])
     nRecs = int(ds.globalattributes["nc_nrecs"])
     nperhr = int(float(60)/ts+0.5)
@@ -716,6 +720,7 @@ def write_csv_ecostress(cf):
     csv_writer = csv.writer(csv_file)
     # read the netCDF file
     ds = nc_read_series(nc_file_name)
+    if ds.returncodes["value"] != 0: return 0
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
@@ -880,6 +885,7 @@ def write_csv_ep_biomet(cf):
     writer = csv.writer(csvfile)
     # read the netCDF file
     ds = nc_read_series(ncFileName)
+    if ds.returncodes["value"] != 0: return 0
     nrecs = int(ds.globalattributes["nc_nrecs"])
     # get the date and time data
     ldt = pfp_utils.GetVariable(ds, "DateTime")
@@ -1039,6 +1045,7 @@ def write_csv_fluxnet(cf):
     writer = csv.writer(csvfile)
     # read the netCDF file
     ds = nc_read_series(ncFileName)
+    if ds.returncodes["value"] != 0: return 0
     nRecs = int(ds.globalattributes["nc_nrecs"])
     zeros = numpy.zeros(nRecs,dtype=numpy.int32)
     ones = numpy.ones(nRecs,dtype=numpy.int32)
@@ -1046,7 +1053,7 @@ def write_csv_fluxnet(cf):
     if "RH" not in list(ds.series.keys()):
         AH,f,a = pfp_utils.GetSeriesasMA(ds,'AH')
         Ta,f,a = pfp_utils.GetSeriesasMA(ds,'Ta')
-        RH = pfp_mf.relativehumidityfromabsolutehumidity(AH, Ta)
+        RH = pfp_mf.RHfromabsolutehumidity(AH, Ta)
         attr = pfp_utils.MakeAttributeDictionary(long_name="Relative humidity", units="percent",standard_name='relative_humidity')
         flag = numpy.where(numpy.ma.getmaskarray(RH)==True,ones,zeros)
         pfp_utils.CreateSeries(ds,"RH",RH,flag,attr)
@@ -1338,6 +1345,22 @@ def NetCDFConcatenate(info):
     for item in items:
         if item in inc["labels"]:
             inc["labels"].remove(item)
+    # check units for each variable are consistent across all files to be concatenated
+    for label in sorted(list(inc["labels"])):
+        units = []
+        for f in inc["chrono_files"]:
+            if label not in list(data[f].series.keys()):
+                continue
+            u = data[f].series[label]["Attr"]["units"]
+            units.append(u)
+        units_set = list(set(units))
+        if len(units_set) > 1:
+            msg = " Units for variable " + label + " not consistent across files "
+            msg += str(units_set)
+            logger.warning(msg)
+            msg = "  Variable " + label + " not concatenated"
+            logger.warning(msg)
+            inc["labels"].remove(label)
     # create the output data structure from the input files
     ds_out = netcdf_concatenate_create_ds_out(data, info)
     # truncate the start and the end of the output data structure
@@ -1431,7 +1454,7 @@ def netcdf_concatenate_create_ds_out(data, info):
                 dout["Flag"][indsa] = din["Flag"][indsb]
                 # copy the variable attributes but only if they don't already exist
                 netcdf_concatenate_variable_attributes(dout["Attr"], din["Attr"], info)
-    # update thdoute global attributes
+    # update the global attributes
     ds_out.globalattributes["nc_nrecs"] = nrecs
     return ds_out
 
@@ -1476,9 +1499,11 @@ def netcdf_concatenate_read_input_files(info):
     data = OrderedDict()
     file_name = info["NetCDFConcatenate"]["in_file_names"][0]
     data[file_name] = nc_read_series(file_name)
+    if data[file_name].returncodes["value"] != 0: return data
     ts0 = int(data[file_name].globalattributes["time_step"])
     for file_name in info["NetCDFConcatenate"]["in_file_names"][1:]:
         ds = nc_read_series(file_name)
+        if ds.returncodes["value"] != 0: return data
         tsn = int(ds.globalattributes["time_step"])
         if tsn == ts0:
             data[file_name] = ds
@@ -1553,6 +1578,7 @@ def ncsplit_run(split_gui):
     # read the input file into the input data structure
     #ds_in = split_gui.ds
     ds_in = nc_read_series(infilename)
+    if ds_in.returncodes["value"] != 0: return
     ts = int(ds_in.globalattributes["time_step"])
     ldt_in = ds_in.series["DateTime"]["Data"]
     ldt_in_flag = ds_in.series["DateTime"]["Flag"]
@@ -1637,7 +1663,8 @@ def nc_read_series(ncFullName,checktimestep=True,fixtimestepmethod="round"):
         if not pfp_utils.file_exists(ncFullName, mode="quiet"):
             msg = " netCDF file " + ncFullName + " not found"
             logger.error(msg)
-            raise Exception("nc_read_series: file not found")
+            ds.returncodes["value"] = 1
+            return ds
     # file probably exists, so let's read it
     ncFile = netCDF4.Dataset(ncFullName, "r")
     # disable automatic masking of data when valid_range specified
@@ -1649,6 +1676,11 @@ def nc_read_series(ncFullName,checktimestep=True,fixtimestepmethod="round"):
             ds.globalattributes[gattr] = getattr(ncFile, gattr)
     # get a list of the variables in the netCDF file (not their QC flags)
     varlist = [x for x in list(ncFile.variables.keys()) if "_QCFlag" not in x]
+    if "time" not in varlist:
+        msg = " 'time' variable not found in netCDF file, can not process file"
+        logger.error(msg)
+        ds.returncodes["value"] = 1
+        return ds
     for ThisOne in varlist:
         # skip variables that do not have time as a dimension
         dimlist = [x.lower() for x in ncFile.variables[ThisOne].dimensions]
@@ -1661,21 +1693,21 @@ def nc_read_series(ncFullName,checktimestep=True,fixtimestepmethod="round"):
         ds.series[ThisOne]["Flag"] = flag
         ds.series[ThisOne]["Attr"] = attr
     ncFile.close()
+    # check to see if we have the "nc_nrecs" global attribute
+    if "nc_nrecs" not in list(ds.globalattributes.keys()):
+        ds.globalattributes["nc_nrecs"] = str(len(ds.series["time"]["Data"]))
     # get a series of Python datetime objects
-    if "time" in ds.series.keys():
-        pfp_utils.get_datetime_from_nctime(ds)
-    elif "xlDateTime" in ds.series.keys():
-        pfp_utils.get_datetime_from_xldatetime(ds)
-    elif (("Year" in ds.series.keys()) and ("Month" in ds.series.keys()) and
-          ("Day" in ds.series.keys()) and ("Hour" in ds.series.keys()) and
-          ("Minute" in ds.series.keys()) and ("Second" in ds.series.keys())):
-        pfp_utils.get_datetime_from_ymdhms(ds)
-    else:
-        msg = " Unable to find datetime variable in netCDF file"
-        logger.error(msg)
-        raise Exception("No datetime in netCDF file")
+    pfp_utils.get_datetime_from_nctime(ds)
     # round the Python datetime to the nearest second
     pfp_utils.round_datetime(ds, mode="nearest_second")
+    # check for time step
+    if "time_step" not in list(ds.globalattributes.keys()):
+        ts = numpy.mean(pfp_utils.get_timestep(ds)//60)
+        ts = pfp_utils.roundtobase(ts, base=30)
+        ds.globalattributes["time_step"] = str(ts)
+    # check for site name
+    if "site_name" not in list(ds.globalattributes.keys()):
+        ds.globalattributes["site_name"] = os.path.basename(ncFullName)
     # check the time step and fix it required
     if checktimestep:
         if pfp_utils.CheckTimeStep(ds):
@@ -1768,13 +1800,13 @@ def nc_read_var(ncFile,ThisOne):
         if data.dtype=="int64": data = data.astype(numpy.int32)
     # get the variable attributes
     vattrlist = ncFile.variables[ThisOne].ncattrs()
-    attr = {}
-    if len(vattrlist)!=0:
+    attr = {"long_name": "none", "units": "none"}
+    if len(vattrlist) != 0:
         for vattr in vattrlist:
-            attr[vattr] = getattr(ncFile.variables[ThisOne],vattr)
-    return data,flag,attr
+            attr[vattr] = getattr(ncFile.variables[ThisOne], vattr)
+    return data, flag, attr
 
-def nc_open_write(ncFullName,nctype='NETCDF4'):
+def nc_open_write(ncFullName, nctype='NETCDF4'):
     """
     Purpose:
      Opens a netCDF file object for writing.  The opened netCDF file
@@ -1789,9 +1821,9 @@ def nc_open_write(ncFullName,nctype='NETCDF4'):
     Date: Back in the day
     """
     file_name = os.path.split(ncFullName)
-    logger.info("Opening netCDF file "+file_name[1])
+    logger.info("Opening netCDF file " + file_name[1])
     try:
-        ncFile = netCDF4.Dataset(ncFullName,'w',format=nctype)
+        ncFile = netCDF4.Dataset(ncFullName, "w", format=nctype)
     except:
         logger.error(" Unable to open netCDF file " + file_name[1] + " for writing")
         ncFile = None

@@ -87,7 +87,7 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.menuUtilities = QtWidgets.QMenu(self.menubar)
         self.menuUtilities.setTitle("Utilities")
         # Utilities/u* threshold submenu
-        self.menuUtilitiesUstar = QtWidgets.QMenu(self.menuFile)
+        self.menuUtilitiesUstar = QtWidgets.QMenu(self.menuUtilities)
         self.menuUtilitiesUstar.setTitle("u* threshold")
         # Help menu
         self.menuHelp = QtWidgets.QMenu(self.menubar)
@@ -243,8 +243,8 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.actionPlotClosePlots.triggered.connect(pfp_top_level.do_plot_closeplots)
         # Utilities menu actions
         self.actionUtilitiesClimatology.triggered.connect(lambda:pfp_top_level.do_utilities_climatology(mode="standard"))
-        self.actionUtilitiesUstarCPD1.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_cpd1(mode="standard"))
-        self.actionUtilitiesUstarCPD2.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_cpd2(mode="standard"))
+        self.actionUtilitiesUstarCPD1.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_cpd_mchugh(mode="standard"))
+        self.actionUtilitiesUstarCPD2.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_cpd_barr(mode="standard"))
         self.actionUtilitiesUstarMPT.triggered.connect(lambda:pfp_top_level.do_utilities_ustar_mpt(mode="standard"))
         # add the L4 GUI
         self.l4_ui = pfp_gui.pfp_l4_ui(self)

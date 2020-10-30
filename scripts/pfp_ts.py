@@ -11,7 +11,8 @@ from scipy import interpolate
 import constants as c
 import meteorologicalfunctions as pfp_mf
 import pfp_cfg
-import pfp_func
+import pfp_func_units
+import pfp_func_stats
 import pfp_io
 import pfp_utils
 import pysolar
@@ -69,11 +70,21 @@ def AverageSeriesByElements(cf,ds,Av_out):
         Av_out: output variable to ds.  Example: 'Fg'
         Series_in: input variable series in ds.  Example: ['Fg_8cma','Fg_8cmb']
         """
-    if Av_out not in list(cf['Variables'].keys()): return
-    if Av_out in ds.averageserieslist: return
-    srclist = pfp_utils.GetAverageSeriesKeys(cf,Av_out)
-    logger.info(' Averaging '+str(srclist)+'==>'+Av_out)
-
+    # sanity checks
+    if Av_out not in list(cf['Variables'].keys()):
+        return
+    if Av_out in ds.averageserieslist:
+        return
+    # get the list of series to average
+    srclist = pfp_utils.GetAverageSeriesKeys(cf, Av_out)
+    logger.info(" Averaging " + str(srclist) + "==>" + Av_out)
+    # check to see if they are in the data structure
+    labels = ds.series.keys()
+    for label in list(srclist):
+        if label not in labels:
+            msg = " Variable " + label + " not found in data structure, skipping ..."
+            logger.warning(msg)
+            srclist.remove(label)
     nSeries = len(srclist)
     if nSeries==0:
         logger.error('  AverageSeriesByElements: no input series specified for'+str(Av_out))
@@ -1027,6 +1038,7 @@ def CoordRotation2D(cf, ds):
 
     attr = copy.deepcopy(UxUx["Attr"])
     attr["long_name"] = "Standard deviation of streamwise windspeed, rotated to natural wind coordinates"
+    attr["units"] = "m/s"
     data = numpy.ma.sqrt(uu)
     flag = numpy.where(numpy.ma.getmaskarray(uu) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "U_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
@@ -1038,6 +1050,7 @@ def CoordRotation2D(cf, ds):
 
     attr = copy.deepcopy(UyUy["Attr"])
     attr["long_name"] = "Standard deviation of cross-stream windspeed, rotated to natural wind coordinates"
+    attr["units"] = "m/s"
     data = numpy.ma.sqrt(vv)
     flag = numpy.where(numpy.ma.getmaskarray(vv) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "V_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
@@ -1049,6 +1062,7 @@ def CoordRotation2D(cf, ds):
 
     attr = copy.deepcopy(UzUz["Attr"])
     attr["long_name"] = "Standard deviation of vertical windspeed, rotated to natural wind coordinates"
+    attr["units"] = "m/s"
     data = numpy.ma.sqrt(ww)
     flag = numpy.where(numpy.ma.getmaskarray(ww) == True, ones, zeros)
     pfp_utils.CreateVariable(ds, {"Label": "W_SONIC_Sd", "Data": data, "Flag": flag, "Attr": attr})
@@ -1102,12 +1116,11 @@ def CalculateFco2StorageSinglePoint(cf, ds, CO2_in="CO2", Fco2_out="Fco2_single"
         Fco2_single = pfp_utils.CreateEmptyVariable(Fco2_out, nRecs, datetime=ldt["Data"])
         # get the input data
         CO2 = pfp_utils.GetVariable(ds, CO2_in)
-        Fco2 = pfp_utils.GetVariable(ds, "Fco2")
         Ta = pfp_utils.GetVariable(ds, "Ta")
         ps = pfp_utils.GetVariable(ds, "ps")
         # check the CO2 concentration units
         # if the units are mg/m^3, convert CO2 concentration to umol/mol before taking the difference
-        pfp_utils.convert_units_co2(ds, CO2, "umol/mol")
+        pfp_utils.convert_units_func(ds, CO2, "umol/mol")
         # calculate the change in CO2 concentration between time steps
         # CO2 concentration assumed to be in umol/mol
         dc = numpy.ma.ediff1d(CO2["Data"], to_begin=0)
@@ -1140,11 +1153,11 @@ def CalculateFco2StorageSinglePoint(cf, ds, CO2_in="CO2", Fco2_out="Fco2_single"
         logger.info(msg)
     return
 
-def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2", Fco2_storage_in="Fco2_single"):
+def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2"):
     """
     Correct CO2 flux for storage in the air column beneath the CO2 instrument.
 
-    Usage pfp_ts.CorrectFco2ForStorage(cf, ds,Fco2_out, Fco2_in, Fco2_storage_in)
+    Usage pfp_ts.CorrectFco2ForStorage(cf, ds, Fco2_out, Fco2_in)
     cf: control file object
     ds: data structure
     Fco2_out: series label of the corrected CO2 flux
@@ -1174,18 +1187,23 @@ def CorrectFco2ForStorage(cf, ds, Fco2_out="Fco2", Fco2_in="Fco2", Fco2_storage_
             msg = Fco2_in + " not found in data, skipping Fco2 storage correction ..."
             logger.warning(msg)
             return
-        if Fco2_storage_in not in list(ds.series.keys()):
-            msg = Fco2_storage_in + " not found in data, skipping Fco2 storage correction..."
+        # check to see if we have an Fco2_profile series
+        if "Fco2_storage" in list(ds.series.keys()):
+            msg = " Using Fco2_storage for the storage term"
+            logger.info(msg)
+            Fco2_storage_in = "Fco2_storage"
+        elif "Fco2_profile" in list(ds.series.keys()):
+            msg = " Using Fco2_profile for the storage term"
+            logger.info(msg)
+            Fco2_storage_in = "Fco2_profile"
+        elif "Fco2_single" in list(ds.series.keys()):
+            msg = " Using Fco2_single for the storage term"
+            logger.info(msg)
+            Fco2_storage_in = "Fco2_single"
+        else:
+            msg = " Storage term (Fco2_storage, Fco2_profile or Fco2_single) not found"
             logger.warning(msg)
             return
-        # check to see if we have an Fco2_profile series
-        if "Fco2_profile" in list(ds.series.keys()):
-            Fco2_storage_in = "Fco2_profile"
-        elif "Fco2_storage" in list(ds.series.keys()):
-            Fco2_storage_in = "Fco2_storage"
-        else:
-            msg = " Using single point Fco2 storage"
-            logger.info(msg)
         # apply the storage term
         msg = " ***!!! Applying Fco2 storage term !!!***"
         logger.info(msg)
@@ -1592,7 +1610,7 @@ def do_attributes(cf,ds):
         #ds.globalattributes['Flag70'] = 'Partitioning Night: Re computed from exponential temperature response curves'
         #ds.globalattributes['Flag80'] = 'Partitioning Day: GPP/Re computed from light-response curves, GPP = Re - Fc'
         #ds.globalattributes['Flag81'] = 'Partitioning Day: GPP night mask'
-        #ds.globalattributes['Flag82'] = 'Partitioning Day: Fc > Re, GPP = 0, Re = Fc'
+        #ds.globalattributes['Flag82'] = 'Partitioning Day: Fco2 > Re, GPP = 0, Re = Fco2'
     for ThisOne in list(ds.series.keys()):
         if ThisOne in cf['Variables']:
             if 'Attr' in list(cf['Variables'][ThisOne].keys()):
@@ -1611,41 +1629,56 @@ def DoFunctions(ds, info):
     Date: September 2015
     """
     nrecs = int(ds.globalattributes["nc_nrecs"])
-    implemented_functions = [name for name,data in inspect.getmembers(pfp_func,inspect.isfunction)]
+    implemented_func_units = [name for name,data in inspect.getmembers(pfp_func_units,inspect.isfunction)]
+    implemented_func_stats = [name for name,data in inspect.getmembers(pfp_func_stats,inspect.isfunction)]
+    implemented_functions = implemented_func_units + implemented_func_stats
     functions = {}
-    convert_vars = []
-    function_vars = []
-    for var in list(info["Variables"].keys()):
+    units_vars = []
+    stats_vars = []
+    for label in list(info["Variables"].keys()):
         # datetime functions handled elsewhere for now
-        if var == "DateTime": continue
-        if "Function" not in list(info["Variables"][var].keys()): continue
-        if "func" not in list(info["Variables"][var]["Function"].keys()):
-            msg = " DoFunctions: 'func' keyword not found in [Functions] for "+var
+        if label == "DateTime": continue
+        if "Function" not in list(info["Variables"][label].keys()): continue
+        if "func" not in list(info["Variables"][label]["Function"].keys()):
+            msg = " 'func' keyword not found in [Functions] for " + label
             logger.error(msg)
             continue
-        function_string = info["Variables"][var]["Function"]["func"]
+        function_string = info["Variables"][label]["Function"]["func"]
         function_string = function_string.replace('"','')
         function_name = function_string.split("(")[0]
         function_args = function_string.split("(")[1].replace(")","").replace(" ","").split(",")
         if function_name not in implemented_functions:
-            msg = " DoFunctions: Requested function "+function_name+" not imlemented, skipping ..."
+            msg = " Requested function " + function_name + " not imlemented, skipping ..."
             logger.error(msg)
             continue
-        else:
-            functions[var] = {"name":function_name, "arguments":function_args}
-            if "convert" in function_name.lower():
-                convert_vars.append(var)
+        if function_name in implemented_func_units:
+            functions[label] = {"type": "units", "name":function_name, "arguments":function_args}
+            units_vars.append(label)
+        elif function_name in implemented_func_stats:
+            functions[label] = {"type": "stats", "name":function_name, "arguments":function_args}
+            stats_vars.append(label)
+    series_list = list(ds.series.keys())
+    for label in units_vars:
+        if label not in series_list:
+            var = pfp_utils.CreateEmptyVariable(label, nrecs, attr=info["Variables"][label]["Attr"])
+            pfp_utils.CreateVariable(ds, var)
+        old_units = ds.series[label]["Attr"]["units"]
+        result = getattr(pfp_func_units, functions[label]["name"])(ds, label, *functions[label]["arguments"])
+        new_units = ds.series[label]["Attr"]["units"]
+        if result:
+            if len(functions[label]["arguments"]) == 1:
+                msg = " Units for " + label + " converted from " + old_units + " to " + new_units
+                logger.info(msg)
             else:
-                function_vars.append(var)
-    for var in convert_vars:
-        result = getattr(pfp_func, functions[var]["name"])(ds, var, *functions[var]["arguments"])
+                msg = label + " calculated from " + ','.join(functions[label]["arguments"])
+                logger.info(msg)
+    for label in stats_vars:
+        if label not in series_list:
+            var = pfp_utils.CreateEmptyVariable(label, nrecs, attr=info["Variables"][label]["Attr"])
+            pfp_utils.CreateVariable(ds, var)
+        result = getattr(pfp_func_stats, functions[label]["name"])(ds, label, *functions[label]["arguments"])
         if result:
-            msg = " Completed units conversion for " + var
-            logger.info(msg)
-    for var in function_vars:
-        result = getattr(pfp_func, functions[var]["name"])(ds, var, *functions[var]["arguments"])
-        if result:
-            msg = " Completed function for " + var
+            msg = " Completed function for " + label
             logger.info(msg)
     return
 
@@ -1660,117 +1693,98 @@ def CalculateStandardDeviations(ds):
     Date: Back in the day
     """
     logger.info(' Getting variances from standard deviations & vice versa')
-    if 'AhAh' in list(ds.series.keys()) and 'AH_7500_Sd' not in list(ds.series.keys()):
-        AhAh,flag,attr = pfp_utils.GetSeriesasMA(ds,'AhAh')
-        AH_7500_Sd = numpy.ma.sqrt(AhAh)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m^3')
-        pfp_utils.CreateSeries(ds,'AH_7500_Sd',AH_7500_Sd,flag,attr)
-    if 'AH_7500_Sd' in list(ds.series.keys()) and 'AhAh' not in list(ds.series.keys()):
-        AH_7500_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'AH_7500_Sd')
-        AhAh = AH_7500_Sd*AH_7500_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='g^2/m^6')
-        pfp_utils.CreateSeries(ds,'AhAh',AhAh,flag,attr)
-    if 'AH_IRGA_Vr' in list(ds.series.keys()) and 'AH_IRGA_Sd' not in list(ds.series.keys()):
-        AH_IRGA_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'AH_IRGA_Vr')
-        AH_IRGA_Sd = numpy.ma.sqrt(AH_IRGA_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m^3')
-        pfp_utils.CreateSeries(ds,'AH_IRGA_Sd',AH_IRGA_Sd,flag,attr)
-    if 'AH_IRGA_Sd' in list(ds.series.keys()) and 'AH_IRGA_Vr' not in list(ds.series.keys()):
-        AH_IRGA_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'AH_IRGA_Sd')
-        AH_IRGA_Vr = AH_IRGA_Sd*AH_IRGA_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='g^2/m^6')
-        pfp_utils.CreateSeries(ds,'AH_IRGA_Vr',AH_IRGA_Vr,flag,attr)
-    if 'H2O_IRGA_Vr' in list(ds.series.keys()) and 'H2O_IRGA_Sd' not in list(ds.series.keys()):
-        H2O_IRGA_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'H2O_IRGA_Vr')
-        H2O_IRGA_Sd = numpy.ma.sqrt(H2O_IRGA_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, standard deviation',units='g/m^3')
-        pfp_utils.CreateSeries(ds,'H2O_IRGA_Sd',H2O_IRGA_Sd,flag,attr)
-    if 'H2O_IRGA_Sd' in list(ds.series.keys()) and 'H2O_IRGA_Vr' not in list(ds.series.keys()):
-        H2O_IRGA_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'H2O_IRGA_Sd')
-        H2O_IRGA_Vr = H2O_IRGA_Sd*H2O_IRGA_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Absolute humidity from IRGA, variance',units='g^2/m^6')
-        pfp_utils.CreateSeries(ds,'H2O_IRGA_Vr',H2O_IRGA_Vr,flag,attr)
-    if 'CcCc' in list(ds.series.keys()) and 'Cc_7500_Sd' not in list(ds.series.keys()):
-        CcCc,flag,attr = pfp_utils.GetSeriesasMA(ds,'CcCc')
-        Cc_7500_Sd = numpy.ma.sqrt(CcCc)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, standard deviation',units='mg/m^3')
-        pfp_utils.CreateSeries(ds,'Cc_7500_Sd',Cc_7500_Sd,flag,attr)
-    if 'CO2_IRGA_Sd' in list(ds.series.keys()) and 'CO2_IRGA_Vr' not in list(ds.series.keys()):
-        CO2_IRGA_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'CO2_IRGA_Sd')
-        CO2_IRGA_Vr = CO2_IRGA_Sd*CO2_IRGA_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, variance',units='mg^2/m^6')
-        pfp_utils.CreateSeries(ds,'CO2_IRGA_Vr',CO2_IRGA_Vr,flag,attr)
-    if 'Cc_7500_Sd' in list(ds.series.keys()) and 'CcCc' not in list(ds.series.keys()):
-        Cc_7500_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Cc_7500_Sd')
-        CcCc = Cc_7500_Sd*Cc_7500_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, variance',units='mg^2/m^6')
-        pfp_utils.CreateSeries(ds,'CcCc',CcCc,flag,attr)
-    if 'CO2_IRGA_Vr' in list(ds.series.keys()) and 'CO2_IRGA_Sd' not in list(ds.series.keys()):
-        CO2_IRGA_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'CO2_IRGA_Vr')
-        CO2_IRGA_Sd = numpy.ma.sqrt(CO2_IRGA_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='CO2 concentration from IRGA, standard deviation',units='mg/m^3')
-        pfp_utils.CreateSeries(ds,'CO2_IRGA_Sd',CO2_IRGA_Sd,flag,attr)
-    if 'Ux_Sd' in list(ds.series.keys()) and 'UxUx' not in list(ds.series.keys()):
-        Ux_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ux_Sd')
-        UxUx = Ux_Sd*Ux_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, variance',units='m^2/s^2')
-        pfp_utils.CreateSeries(ds,'UxUx',UxUx,flag,attr)
-    if 'UxUx' in list(ds.series.keys()) and 'Ux_Sd' not in list(ds.series.keys()):
-        UxUx,flag,attr = pfp_utils.GetSeriesasMA(ds,'UxUx')
-        Ux_Sd = numpy.ma.sqrt(UxUx)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, standard deviation',units='m/s')
-        pfp_utils.CreateSeries(ds,'Ux_Sd',Ux_Sd,flag,attr)
-    if 'Uy_Sd' in list(ds.series.keys()) and 'UyUy' not in list(ds.series.keys()):
-        Uy_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uy_Sd')
-        UyUy = Uy_Sd*Uy_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, variance',units='m^2/s^2')
-        pfp_utils.CreateSeries(ds,'UyUy',UyUy,flag,attr)
-    if 'UyUy' in list(ds.series.keys()) and 'Uy_Sd' not in list(ds.series.keys()):
-        UyUy,flag,attr = pfp_utils.GetSeriesasMA(ds,'UyUy')
-        Uy_Sd = numpy.ma.sqrt(UyUy)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, standard deviation',units='m/s')
-        pfp_utils.CreateSeries(ds,'Uy_Sd',Uy_Sd,flag,attr)
-    if 'Uz_Sd' in list(ds.series.keys()) and 'UzUz' not in list(ds.series.keys()):
-        Uz_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uz_Sd')
-        UzUz = Uz_Sd*Uz_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, variance',units='m^2/s^2')
-        pfp_utils.CreateSeries(ds,'UzUz',UzUz,flag,attr)
-    if 'UzUz' in list(ds.series.keys()) and 'Uz_Sd' not in list(ds.series.keys()):
-        UzUz,flag,attr = pfp_utils.GetSeriesasMA(ds,'UzUz')
-        Uz_Sd = numpy.ma.sqrt(UzUz)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, standard deviation',units='m/s')
-        pfp_utils.CreateSeries(ds,'Uz_Sd',Uz_Sd,flag,attr)
-    if 'Ux_SONIC_Sd' in list(ds.series.keys()) and 'Ux_SONIC_Vr' not in list(ds.series.keys()):
-        Ux_SONIC_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ux_SONIC_Sd')
-        Ux_SONIC_Vr = Ux_SONIC_Sd*Ux_SONIC_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, variance',units='m^2/s^2')
-        pfp_utils.CreateSeries(ds,'Ux_SONIC_Vr',Ux_SONIC_Vr,flag,attr)
-    if 'Ux_SONIC_Vr' in list(ds.series.keys()) and 'Ux_SONIC_Sd' not in list(ds.series.keys()):
-        Ux_SONIC_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'Ux_SONIC_Vr')
-        Ux_SONIC_Sd = numpy.ma.sqrt(Ux_SONIC_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Longitudinal velocity component from CSAT, standard deviation',units='m/s')
-        pfp_utils.CreateSeries(ds,'Ux_SONIC_Sd',Ux_SONIC_Sd,flag,attr)
-
-    if 'Uy_SONIC_Sd' in list(ds.series.keys()) and 'Uy_SONIC_Vr' not in list(ds.series.keys()):
-        Uy_SONIC_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uy_SONIC_Sd')
-        Uy_SONIC_Vr = Uy_SONIC_Sd*Uy_SONIC_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, variance',units='m^2/s^2')
-        pfp_utils.CreateSeries(ds,'Uy_SONIC_Vr',Uy_SONIC_Vr,flag,attr)
-    if 'Uy_SONIC_Vr' in list(ds.series.keys()) and 'Uy_SONIC_Sd' not in list(ds.series.keys()):
-        Uy_SONIC_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uy_SONIC_Vr')
-        Uy_SONIC_Sd = numpy.ma.sqrt(Uy_SONIC_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Lateral velocity component from CSAT, standard deviation',units='m/s')
-        pfp_utils.CreateSeries(ds,'Uy_SONIC_Sd',Uy_SONIC_Sd,flag,attr)
-    if 'Uz_SONIC_Sd' in list(ds.series.keys()) and 'Uz_SONIC_Vr' not in list(ds.series.keys()):
-        Uz_SONIC_Sd,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uz_SONIC_Sd')
-        Uz_SONIC_Vr = Uz_SONIC_Sd*Uz_SONIC_Sd
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, variance',units='m^2/s^2')
-        pfp_utils.CreateSeries(ds,'Uz_SONIC_Vr',Uz_SONIC_Vr,flag,attr)
-    if 'Uz_SONIC_Vr' in list(ds.series.keys()) and 'Uz_SONIC_Sd' not in list(ds.series.keys()):
-        Uz_SONIC_Vr,flag,attr = pfp_utils.GetSeriesasMA(ds,'Uz_SONIC_Vr')
-        Uz_SONIC_Sd = numpy.ma.sqrt(Uz_SONIC_Vr)
-        attr = pfp_utils.MakeAttributeDictionary(long_name='Vertical velocity component from CSAT, standard deviation',units='m/s')
-        pfp_utils.CreateSeries(ds,'Uz_SONIC_Sd',Uz_SONIC_Sd,flag,attr)
+    # !!! this section deals with messy legacy variable names !!!
+    # initialise lists of variables that have been done
+    sd_done = []
+    vr_done = []
+    # get a dictionary of variances and the stadard deviations we want from them
+    d = {"AH_IRGA_Vr": {"sd_label": "AH_IRGA_Sd",
+                        "long_name": "Absolute humidity from IRGA, standard deviation",
+                        "units": "g/m^3"},
+         "H2O_IRGA_Vr": {"sd_label": "H2O_IRGA_Sd",
+                         "long_name": "H2O concentration from IRGA, standard deviation",
+                         "units": "mmol/m^3"},
+         "CO2_IRGA_Vr": {"sd_label": "CO2_IRGA_Sd",
+                         "long_name": "CO2 concentration from IRGA, standard deviation",
+                         "units": "mg/m^3"},
+         "Ux_SONIC_Vr": {"sd_label": "Ux_SONIC_Sd",
+                         "long_name": "Longitudinal velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "Uy_SONIC_Vr": {"sd_label": "Uy_SONIC_Sd",
+                         "long_name": "Lateral velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "Uz_SONIC_Vr": {"sd_label": "Uz_SONIC_Sd",
+                         "long_name": "Vertical velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "Tv_SONIC_Vr": {"sd_label": "Tv_SONIC_Sd",
+                         "long_name": "Virtual temperature from SONIC, standard deviation",
+                         "units": "degC"},
+         "U_SONIC_Vr": {"sd_label": "U_SONIC_Sd",
+                         "long_name": "Along wind velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "V_SONIC_Vr": {"sd_label": "V_SONIC_Sd",
+                         "long_name": "Across wind velocity component from SONIC, standard deviation",
+                         "units": "m/s"},
+         "W_SONIC_Vr": {"sd_label": "W_SONIC_Sd",
+                         "long_name": "Vertical velocity component from SONIC, standard deviation",
+                         "units": "m/s"}}
+    # get a list of variables in the data structure
+    labels = list(ds.series.keys())
+    # loop over the variances and create the standard deviations
+    for vr_label in list(d.keys()):
+        if vr_label in labels and d[vr_label]["sd_label"] not in labels:
+            vr = pfp_utils.GetVariable(ds, vr_label)
+            sd = copy.deepcopy(vr)
+            sd["Label"] = d[vr_label]["sd_label"]
+            sd["Data"] = numpy.ma.sqrt(vr["Data"])
+            sd["Attr"]["long_name"] = d[vr_label]["long_name"]
+            sd["Attr"]["units"] = d[vr_label]["units"]
+            pfp_utils.CreateVariable(ds, sd)
+            sd_done.append(sd["Label"])
+    # now do the same with the standard deviations
+    d = {"AH_IRGA_Sd": {"vr_label": "AH_IRGA_Vr",
+                        "long_name": "Absolute humidity from IRGA, variance",
+                        "units": "g^2/m^6"},
+         "H2O_IRGA_Sd": {"vr_label": "H2O_IRGA_Vr",
+                         "long_name": "H2O concentration from IRGA, variance",
+                         "units": "mmol^2/m^6"},
+         "CO2_IRGA_Sd": {"vr_label": "CO2_IRGA_Vr",
+                         "long_name": "CO2 concentration from IRGA, variance",
+                         "units": "mg^2/m^6"},
+         "Ux_SONIC_Sd": {"vr_label": "Ux_SONIC_Vr",
+                         "long_name": "Longitudinal velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "Uy_SONIC_Sd": {"vr_label": "Uy_SONIC_Vr",
+                         "long_name": "Lateral velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "Uz_SONIC_Sd": {"vr_label": "Uz_SONIC_Vr",
+                         "long_name": "Vertical velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "Tv_SONIC_Sd": {"vr_label": "Tv_SONIC_Vr",
+                         "long_name": "Virtual temperature from SONIC, variance",
+                         "units": "degC^2"},
+         "U_SONIC_Sd": {"vr_label": "U_SONIC_Vr",
+                         "long_name": "Along wind velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "V_SONIC_Sd": {"vr_label": "V_SONIC_Vr",
+                         "long_name": "Across wind velocity component from SONIC, variance",
+                         "units": "m^2/s^2"},
+         "W_SONIC_Sd": {"vr_label": "W_SONIC_Vr",
+                         "long_name": "Vertical velocity component from SONIC, variance",
+                         "units": "m^2/s^2"}}
+    labels = list(ds.series.keys())
+    # loop over the standard deviations and create the variances
+    for sd_label in list(d.keys()):
+        if sd_label in labels and d[sd_label]["vr_label"] not in labels and sd_label not in sd_done:
+            sd = pfp_utils.GetVariable(ds, sd_label)
+            vr = copy.deepcopy(sd)
+            vr["Label"] = d[sd_label]["vr_label"]
+            vr["Data"] = sd["Data"]*sd["Data"]
+            vr["Attr"]["long_name"] = d[sd_label]["long_name"]
+            vr["Attr"]["units"] = d[sd_label]["units"]
+            pfp_utils.CreateVariable(ds, vr)
+            vr_done.append(vr["Label"])
+    return
 
 def do_mergeseries(ds,target,srclist,mode="verbose"):
     if mode.lower()!="quiet":
@@ -2816,6 +2830,7 @@ def ReplaceOnDiff(cf,ds,series=''):
                             n = len(open_ncfiles)
                             open_ncfiles.append(alt_filename)
                             ds_alt[n] = pfp_io.nc_read_series(alt_filename)
+                            if ds_alt[n].returncodes["value"] != 0: return
                         else:
                             n = open_ncfiles.index(alt_filename)
                         if 'Transform' in list(cf['Variables'][ThisOne]['ReplaceOnDiff'][Alt].keys()):

@@ -54,6 +54,7 @@ def do_L2_batch(cf_level):
             cf = pfp_io.get_controlfilecontents(cf_level[i])
             infilename = pfp_io.get_infilenamefromcf(cf)
             ds1 = pfp_io.nc_read_series(infilename)
+            if ds1.returncodes["value"] != 0: return
             ds2 = pfp_levels.l2qc(cf, ds1)
             outfilename = pfp_io.get_outfilenamefromcf(cf)
             nc_file = pfp_io.nc_open_write(outfilename)
@@ -79,6 +80,7 @@ def do_L3_batch(cf_level):
             cf = pfp_io.get_controlfilecontents(cf_level[i])
             infilename = pfp_io.get_infilenamefromcf(cf)
             ds2 = pfp_io.nc_read_series(infilename)
+            if ds2.returncodes["value"] != 0: return
             ds3 = pfp_levels.l3qc(cf, ds2)
             outfilename = pfp_io.get_outfilenamefromcf(cf)
             nc_file = pfp_io.nc_open_write(outfilename)
@@ -171,7 +173,7 @@ def do_concatenate_batch(cf_level):
             if "plot_path" in cf_cc["Files"]:
                 cf_fp["Files"]["plot_path"] = cf_cc["Files"]["plot_path"]
             else:
-                cf_fp["Files"]["plot_path"] = file_path[:file_path.index("Data")] + "Plots/"            
+                cf_fp["Files"]["plot_path"] = file_path[:file_path.index("Data")] + "Plots/"
             if "Options" not in cf_fp:
                 cf_fp["Options"] = {}
             cf_fp["Options"]["call_mode"] = "batch"
@@ -299,6 +301,7 @@ def do_L4_batch(cf_level):
             cf_l4["Options"]["show_plots"] = "No"
             infilename = pfp_io.get_infilenamefromcf(cf_l4)
             ds3 = pfp_io.nc_read_series(infilename)
+            if ds3.returncodes["value"] != 0: return
             ds4 = pfp_levels.l4qc(None, cf_l4, ds3)
             outfilename = pfp_io.get_outfilenamefromcf(cf_l4)
             nc_file = pfp_io.nc_open_write(outfilename)
@@ -352,6 +355,7 @@ def do_L5_batch(cf_level):
             cf_l5["Options"]["show_plots"] = "No"
             infilename = pfp_io.get_infilenamefromcf(cf_l5)
             ds4 = pfp_io.nc_read_series(infilename)
+            if ds4.returncodes["value"] != 0: return
             ds5 = pfp_levels.l5qc(None, cf_l5, ds4)
             outfilename = pfp_io.get_outfilenamefromcf(cf_l5)
             nc_file = pfp_io.nc_open_write(outfilename)
@@ -406,6 +410,7 @@ def do_L6_batch(cf_level):
             cf["Options"]["show_plots"] = "No"
             infilename = pfp_io.get_infilenamefromcf(cf)
             ds5 = pfp_io.nc_read_series(infilename)
+            if ds5.returncodes["value"] != 0: return
             ds6 = pfp_levels.l6qc(None, cf, ds5)
             outfilename = pfp_io.get_outfilenamefromcf(cf)
             nc_file = pfp_io.nc_open_write(outfilename)
@@ -443,7 +448,7 @@ def do_levels_batch(cf_batch):
     processing_levels = ["l1", "l2", "l3",
                          "ecostress", "fluxnet", "reddyproc",
                          "concatenate", "climatology",
-                         "cpd1", "cpd2", "mpt",
+                         "cpd_mchugh", "cpd_barr", "mpt",
                          "l4", "l5", "l6"]
     for level in levels:
         if level.lower() not in processing_levels:
@@ -474,10 +479,10 @@ def do_levels_batch(cf_batch):
         elif level.lower() == "climatology":
             # climatology
             do_climatology_batch(cf_batch["Levels"][level])
-        elif level.lower() == "cpd1":
+        elif level.lower() == "cpd_mchugh":
             # ustar threshold from change point detection
             do_cpd1_batch(cf_batch["Levels"][level])
-        elif level.lower() == "cpd2":
+        elif level.lower() == "cpd_barr":
             # ustar threshold from change point detection
             do_cpd2_batch(cf_batch["Levels"][level])
         elif level.lower() == "mpt":
@@ -499,22 +504,22 @@ def do_levels_batch(cf_batch):
     return
 
 #if (__name__ == '__main__'):
-    # get the control file name
+    ## get the control file name
     #if len(sys.argv) == 1:
-        # not on the command line, so ask the user
-        #cfg_file_path = input("Enter the control file name: ")
-        # exit if nothing selected
+        ## not on the command line, so ask the user
+        #cfg_file_path = raw_input("Enter the control file name: ")
+        ## exit if nothing selected
         #if len(cfg_file_path) == 0:
             #sys.exit()
     #else:
-        # control file name on the command line
+        ## control file name on the command line
         #if not os.path.exists(sys.argv[1]):
-            # control file doesn't exist
+            ## control file doesn't exist
             #logger.error("Control file %s does not exist", sys.argv[1])
             #sys.exit()
         #else:
             #cfg_file_path = sys.argv[1]
-    # read the control file
+    ## read the control file
     #cf_batch = ConfigObj(cfg_file_path, indent_type="    ", list_values=False)
-    # call the processing
+    ## call the processing
     #do_levels_batch(cf_batch)

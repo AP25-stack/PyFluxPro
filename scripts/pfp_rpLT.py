@@ -30,7 +30,7 @@ def get_data_dict(ds,configs_dict):
     VPD,VPD_flag,a = pfp_utils.GetSeries(ds,"VPD")
     ustar,ustar_flag,a = pfp_utils.GetSeries(ds,"ustar")
     # replace c.missing_value with numpy.nan
-    Fc = numpy.where((Fc_flag!=0)|(Fc==c.missing_value),
+    Fco2 = numpy.where((Fc_flag!=0)|(Fc==c.missing_value),
                      numpy.nan,Fc)
     ustar = numpy.where((ustar_flag!=0)|(ustar==c.missing_value),
                         numpy.nan,ustar)
@@ -321,7 +321,7 @@ def rpLT_createdict(cf, ds, l6_info, output, called_by, flag_code):
     # get the outputs section
     rpLT_createdict_outputs(cf, l6_info[called_by], output, called_by, flag_code)
     # create an empty series in ds if the output series doesn't exist yet
-    Fc = pfp_utils.GetVariable(ds, l6_info[called_by]["info"]["source"])
+    Fco2 = pfp_utils.GetVariable(ds, l6_info[called_by]["info"]["source"])
     model_outputs = list(cf["EcosystemRespiration"][output][called_by].keys())
     for model_output in model_outputs:
         if model_output not in list(ds.series.keys()):
@@ -333,7 +333,7 @@ def rpLT_createdict(cf, ds, l6_info, output, called_by, flag_code):
             variable["Attr"][descr_level] = "Modeled by Lloyd-Taylor"
             variable["Attr"]["target"] = l6_info[called_by]["info"]["target"]
             variable["Attr"]["source"] = l6_info[called_by]["info"]["source"]
-            variable["Attr"]["units"] = Fc["Attr"]["units"]
+            variable["Attr"]["units"] = Fco2["Attr"]["units"]
             pfp_utils.CreateVariable(ds, variable)
     return
 
