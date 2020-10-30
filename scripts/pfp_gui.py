@@ -744,7 +744,7 @@ class edit_cfg_L1(QtWidgets.QWidget):
                 if add_separator:
                     self.context_menu.addSeparator()
                 self.context_menu.actionAddVariableAbove = QtWidgets.QAction(self)
-                self.context_menu.actionAddVariableAbove.setText("Add new variable")
+                self.context_menu.actionAddVariableAbove.setText("New variable")
                 self.context_menu.addAction(self.context_menu.actionAddVariableAbove)
                 self.context_menu.actionAddVariableAbove.triggered.connect(self.add_variable_above)
                 self.context_menu.actionRemoveVariable = QtWidgets.QAction(self)
@@ -766,7 +766,7 @@ class edit_cfg_L1(QtWidgets.QWidget):
                     self.context_menu.addAction(self.context_menu.actionRemoveSubSubSection)
                     self.context_menu.actionRemoveSubSubSection.triggered.connect(self.remove_item)
         elif level == 3:
-            if str(idx.parent().data()) == "Attr":
+            if ((str(idx.parent().data()) == "Attr") and (selected_item.column() == 0)):
                 self.context_menu.actionRemoveAttribute = QtWidgets.QAction(self)
                 self.context_menu.actionRemoveAttribute.setText("Remove attribute")
                 self.context_menu.addAction(self.context_menu.actionRemoveAttribute)

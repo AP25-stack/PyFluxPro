@@ -110,7 +110,8 @@ def CheckExcelWorkbook(l1_info):
             xl_sheet = l1ire["Variables"][nc_label]["xl"]["sheet"]
             xl_label = l1ire["Variables"][nc_label]["xl"]["name"]
             if xl_sheet not in xl_sheets_present:
-                msg = " Sheet " + xl_sheet + " (" + xl_label + ") not found in workbook, skipping ..."
+                msg = " Sheet " + xl_sheet + " (" + xl_label + ") not found in workbook, skipping "
+                msg += nc_label + " ..."
                 logger.warning(msg)
                 del l1ire["Variables"][nc_label]
                 continue

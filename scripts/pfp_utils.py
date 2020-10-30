@@ -267,21 +267,29 @@ def ConvertCO2Units(cf, ds):
             continue
         # check if we have a standard deviation or a variance
         CO2_units_in = CO2_in["Attr"]["units"]
-        if ((label[-3:] == "_Sd") and (CO2_units_in in ["mg/m^3"]) and (CO2_units_out == "umol/mol")):
-            # the only conversion allowed for standard deviations is mg/m^3 to mmol/m^3 ...
-            # ... and we will only do it if the user has requested umol/mol for CO2
-            msg = " Converting " + label + " from " + CO2_in["Attr"]["units"] + " to mmol/m^3"
-            logger.info(msg)
-            CO2_out = convert_units_func(ds, CO2_in, "mmol/m^3")
-        elif ((label[-3:] == "_Vr") and (CO2_units_in in ["mg^2/m^6"]) and (CO2_units_out == "umol/mol")):
-            # the only conversion allowed for variances is mg^2/m^6 to mmol^2/m^6
-            msg = " Converting " + label + " from " + CO2_in["Attr"]["units"] + " to mmol^2/m^6"
-            logger.info(msg)
-            CO2_in["Data"] = numpy.ma.sqrt(CO2_in["Data"])
-            CO2_in["Attr"]["units"] = "mg/m^3"
-            CO2_out = convert_units_func(ds, CO2_in, "mmol/m^3")
-            CO2_out["Data"] = CO2_out["Data"]*CO2_out["Data"]
-            CO2_out["Attr"]["units"] = "mmol^2/m^6"
+        if (label[-3:] == "_Sd"):
+            if (CO2_units_out == "umol/mol"):
+                if (CO2_units_in in ["mg/m^3"]):
+                    # the only conversion allowed for standard deviations is mg/m^3 to mmol/m^3 ...
+                    # ... and we will only do it if the user has requested umol/mol for CO2
+                    msg = " Converting " + label + " from " + CO2_in["Attr"]["units"] + " to mmol/m^3"
+                    logger.info(msg)
+                    CO2_out = convert_units_func(ds, CO2_in, "mmol/m^3")
+                else:
+                    continue
+        elif (label[-3:] == "_Vr"):
+            if (CO2_units_out == "umol/mol"):
+                if (CO2_units_in in ["mg^2/m^6"]):
+                    # the only conversion allowed for variances is mg^2/m^6 to mmol^2/m^6
+                    msg = " Converting " + label + " from " + CO2_in["Attr"]["units"] + " to mmol^2/m^6"
+                    logger.info(msg)
+                    CO2_in["Data"] = numpy.ma.sqrt(CO2_in["Data"])
+                    CO2_in["Attr"]["units"] = "mg/m^3"
+                    CO2_out = convert_units_func(ds, CO2_in, "mmol/m^3")
+                    CO2_out["Data"] = CO2_out["Data"]*CO2_out["Data"]
+                    CO2_out["Attr"]["units"] = "mmol^2/m^6"
+                else:
+                    continue
         elif ((CO2_units_in in ["mg/m^3"]) and (CO2_units_out == "umol/mol")):
             # assume we have an average and do the units conersion
             msg = " Converting " + label + " from " + CO2_in["Attr"]["units"]
