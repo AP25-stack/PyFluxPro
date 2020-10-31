@@ -92,7 +92,7 @@ class pfp_main_ui(QtWidgets.QWidget):
         # Help menu
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setTitle("Help")
-        # File menu items
+        # File menu items: menu actions for control files
         self.actionFileOpen = QtWidgets.QAction(self)
         self.actionFileOpen.setText("Open")
         self.actionFileOpen.setShortcut('Ctrl+O')
@@ -115,7 +115,7 @@ class pfp_main_ui(QtWidgets.QWidget):
         self.actionFileConvertnc2reddyproc.setText("nc to REddyProc")
         self.actionFileConvertncupdate = QtWidgets.QAction(self)
         self.actionFileConvertncupdate.setText("nc update")
-        # Edit menu items
+        # File menu item: split netCDF
         self.actionFileSplit = QtWidgets.QAction(self)
         self.actionFileSplit.setText("Split")
         self.actionFileSplit.setShortcut('Ctrl+P')
@@ -251,13 +251,14 @@ class pfp_main_ui(QtWidgets.QWidget):
         # add the L5 GUI
         self.solo_gui = pfp_gui.solo_gui(self)
 
-    def open_controlfile(self):
+    def open_controlfile(self, cfgpath=None):
         # get the control file path
-        cfgpath = QtWidgets.QFileDialog.getOpenFileName(caption="Choose a control file ...")[0]
-        cfgpath = str(cfgpath)
-        # check to see if file open was cancelled
-        if len(cfgpath) == 0:
-            return
+        if not cfgpath:
+            cfgpath = QtWidgets.QFileDialog.getOpenFileName(caption="Choose a control file ...")[0]
+            cfgpath = str(cfgpath)
+            # check to see if file open was cancelled
+            if len(cfgpath) == 0:
+                return
         # read the contents of the control file
         logger.info(" Opening " + cfgpath)
         try:
@@ -298,6 +299,26 @@ class pfp_main_ui(QtWidgets.QWidget):
         elif self.cfg["level"] in ["concatenate"]:
             if not pfp_compliance.concatenate_update_controlfile(self.cfg): return
             self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_concatenate(self)
+            self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
+            self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
+        elif self.cfg["level"] in ["climatology"]:
+            if not pfp_compliance.climatology_update_controlfile(self.cfg): return
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_climatology(self)
+            self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
+            self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
+        elif self.cfg["level"] in ["cpd_mchugh"]:
+            if not pfp_compliance.cpd_mchugh_update_controlfile(self.cfg): return
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_cpd_mchugh(self)
+            self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
+            self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
+        elif self.cfg["level"] in ["cpd_barr"]:
+            if not pfp_compliance.cpd_barr_update_controlfile(self.cfg): return
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_cpd_barr(self)
+            self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
+            self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
+        elif self.cfg["level"] in ["mpt"]:
+            if not pfp_compliance.mpt_update_controlfile(self.cfg): return
+            self.tabs.tab_dict[self.tabs.tab_index_all] = pfp_gui.edit_cfg_mpt(self)
             self.tabs.cfg_dict[self.tabs.tab_index_all] = self.tabs.tab_dict[self.tabs.tab_index_all].get_data_from_model()
             self.tabs.cfg_dict[self.tabs.tab_index_all]["controlfile_name"] = cfgpath
         elif self.cfg["level"] in ["L4"]:
@@ -599,7 +620,7 @@ class pfp_main_ui(QtWidgets.QWidget):
         # call the appropriate processing routine depending on the level
         self.tabs.tab_index_running = tab_index_current
         if self.tabs.cfg_dict[tab_index_current]["level"] == "batch":
-             # check the L1 control file to see if it is OK to run
+            # check the L1 control file to see if it is OK to run
             if not pfp_compliance.check_batch_controlfile(cfg): return
             pfp_top_level.do_run_batch(cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "L1":
@@ -612,6 +633,14 @@ class pfp_main_ui(QtWidgets.QWidget):
             pfp_top_level.do_run_l3(cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "concatenate":
             pfp_top_level.do_file_concatenate(cfg)
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "climatology":
+            pfp_top_level.do_utilities_climatology(cfg=cfg, mode="custom")
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "cpd_mchugh":
+            pfp_top_level.do_utilities_ustar_cpd_mchugh(cfg=cfg, mode="custom")
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "cpd_barr":
+            pfp_top_level.do_utilities_ustar_cpd_barr(cfg=cfg, mode="custom")
+        elif self.tabs.cfg_dict[tab_index_current]["level"] == "mpt":
+            pfp_top_level.do_utilities_ustar_mpt(cfg=cfg, mode="custom")
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "L4":
             pfp_top_level.do_run_l4(self, cfg)
         elif self.tabs.cfg_dict[tab_index_current]["level"] == "L5":
