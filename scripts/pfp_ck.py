@@ -311,7 +311,10 @@ def do_SONICcheck(cf, ds, code=3):
                   "Uy_SONIC_Av", "Uy_SONIC_Sd", "Uy_SONIC_Vr",
                   "UzA", "UzC", "UzT",
                   "Uz_SONIC_Av", "Uz_SONIC_Sd", "Uz_SONIC_Vr",
-                  "Tv_SONIC_Av", "Tv_SONIC_Sd", "Tv_SONIC_Vr"]
+                  "Tv_SONIC_Av", "Tv_SONIC_Sd", "Tv_SONIC_Vr",
+                  "U_SONIC_Av", "U_SONIC_Sd", "U_SONIC_Vr",
+                  "V_SONIC_Av", "V_SONIC_Sd", "V_SONIC_Vr",
+                  "W_SONIC_Av", "W_SONIC_Sd", "W_SONIC_Vr"]
     # check these are in the data structure
     for label in list(dependents):
         if label not in labels:
@@ -331,17 +334,17 @@ def do_SONICcheck(cf, ds, code=3):
             conditionals.append(diag)
             break
     if not got_diag:
-        msg = " Sonic diagnostic not used in SONIC check (not in data structure)"
+        msg = " Sonic diagnostic (Diag_SONIC) not found in data"
         logger.warning(msg)
     # check if we have Uz standard deviation or vaiance (only use one)
     got_uz = False
-    for uz in ["Uz_SONIC_Sd", "Uz_SONIC_Vr"]:
+    for uz in ["Uz_SONIC_Sd", "W_SONIC_Sd", "Uz_SONIC_Vr", "W_SONIC_Vr"]:
         if uz in labels:
             got_uz = True
             conditionals.append(uz)
             break
     if not got_uz:
-        msg = " Uz standard deviation or variance not used in SONIC check (not in data structure)"
+        msg = " Neither Uz or W standard deviation or variance used in SONIC check (not in data structure)"
         logger.warning(msg)
     # check if we have Tv standard deviation or variance (only use one)
     got_tv = False
@@ -551,7 +554,7 @@ def do_EC155check(cf, ds, code=4):
             conditionals.append(diag)
             break
     if not got_diag:
-        msg = " IRGA diagnostic not used in IRGA check (not in data structure)"
+        msg = " IRGA diagnostic (Diag_IRGA) not found in data"
         logger.warning(msg)
     # check if we have the H2O and CO2 signal strengths
     got_signal = False
@@ -814,7 +817,7 @@ def do_li7500check(cf, ds, code=4):
             conditionals.append(diag)
             break
     if not got_diag:
-        msg = " IRGA diagnostic not used in IRGA check (not in data structure)"
+        msg = " IRGA diagnostic (Diag_IRGA) not found in data"
         logger.warning(msg)
     # check if we have an AGC (only use one)
     got_AGC = False
@@ -925,7 +928,7 @@ def do_li7500acheck(cf, ds, code=4):
             conditionals.append(diag)
             break
     if not got_diag:
-        msg = " IRGA diagnostic not used in IRGA check (not in data structure)"
+        msg = " IRGA diagnostic (Diag_IRGA) not found in data"
         logger.warning(msg)
     # check if we have the H2O and CO2 signal strengths
     got_signal = False
