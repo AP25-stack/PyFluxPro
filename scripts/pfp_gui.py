@@ -1273,6 +1273,22 @@ class edit_cfg_L2(QtWidgets.QWidget):
         # add an asterisk to the tab text to indicate the tab contents have changed
         self.update_tab_text()
 
+    def add_variable_above(self):
+        """ Add a new variable above the selected variable."""
+        # get the index of the selected item
+        idx = self.view.selectedIndexes()[0]
+        # get the selected item from the index
+        selected_item = idx.model().itemFromIndex(idx)
+        # get the parent of the selected item
+        parent = selected_item.parent()
+        # construct the new variable dictionary
+        new_var = {"RangeCheck":{"lower":0, "upper": 1}}
+        subsection = QtGui.QStandardItem("New variable")
+        self.add_subsubsection(subsection, new_var)
+        parent.insertRow(idx.row(), subsection)
+        # add an asterisk to the tab text to indicate the tab contents have changed
+        self.update_tab_text()
+
     def add_winddirectioncorrection(self):
         """ Add the wind direction correction check to a variable."""
         new_qc = {"CorrectWindDirection":{"0":"YYYY-mm-dd HH:MM, YYYY-mm-dd HH:MM, <correction>"}}
@@ -1600,6 +1616,10 @@ class edit_cfg_L2(QtWidgets.QWidget):
                 #self.context_menu.addAction(self.context_menu.actionAddExcludeHours)
                 #self.context_menu.actionAddExcludeHours.triggered.connect(self.add_excludehours)
                 self.context_menu.addSeparator()
+                self.context_menu.actionAddVariableAbove = QtWidgets.QAction(self)
+                self.context_menu.actionAddVariableAbove.setText("New variable")
+                self.context_menu.addAction(self.context_menu.actionAddVariableAbove)
+                self.context_menu.actionAddVariableAbove.triggered.connect(self.add_variable_above)
                 self.context_menu.actionRemoveVariable = QtWidgets.QAction(self)
                 self.context_menu.actionRemoveVariable.setText("Remove variable")
                 self.context_menu.addAction(self.context_menu.actionRemoveVariable)
