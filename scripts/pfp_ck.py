@@ -300,43 +300,85 @@ def do_SONICcheck(cf, ds, code=3):
     Author: PRI
     Date: Back in the day
     """
-    # check to see if the user has disabled the SONIC check
-    opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "SONIC_Check", default="Yes")
-    if opt.lower() == "no":
+    msg = " Doing the SONIC check"
+    logger.info(msg)
+    nrecs = int(ds.globalattributes["nc_nrecs"])
+    labels = list(ds.series.keys())
+    # list of variables to be modified by this QC check
+    dependents = ["UxA", "UxC", "UxT", "UxUy", "UxUz",
+                  "Ux_SONIC_Av", "Ux_SONIC_Sd", "Ux_SONIC_Vr",
+                  "UyA", "UyC", "UyT", "UyUz",
+                  "Uy_SONIC_Av", "Uy_SONIC_Sd", "Uy_SONIC_Vr",
+                  "UzA", "UzC", "UzT",
+                  "Uz_SONIC_Av", "Uz_SONIC_Sd", "Uz_SONIC_Vr",
+                  "Tv_SONIC_Av", "Tv_SONIC_Sd", "Tv_SONIC_Vr"]
+    # check these are in the data structure
+    for label in list(dependents):
+        if label not in labels:
+            dependents.remove(label)
+    # return if there are no dependents to check
+    if len(dependents) == 0:
+        msg = "  No dependent variables found, skipping SONIC check ..."
+        logger.info(msg)
         return
-    # do the SONIC check
-    series_list = list(ds.series.keys())
-    if "Diag_SONIC" in series_list:
-        pass
-    elif "Diag_CSAT" in series_list:
-        ds.series["Diag_SONIC"] = copy.deepcopy(ds.series["Diag_CSAT"])
-    else:
-        msg = " Sonic diagnostics not found in data, skipping sonic checks ..."
+    # list for conditional variables
+    conditionals = []
+    # check if we have the SONIC diagnostic
+    got_diag = False
+    for diag in ["Diag_SONIC", "Diag_CSAT"]:
+        if diag in labels:
+            got_diag = True
+            conditionals.append(diag)
+            break
+    if not got_diag:
+        msg = " Sonic diagnostic not used in SONIC check (not in data structure)"
+        logger.warning(msg)
+    # check if we have Uz standard deviation or vaiance (only use one)
+    got_uz = False
+    for uz in ["Uz_SONIC_Sd", "Uz_SONIC_Vr"]:
+        if uz in labels:
+            got_uz = True
+            conditionals.append(uz)
+            break
+    if not got_uz:
+        msg = " Uz standard deviation or variance not used in SONIC check (not in data structure)"
+        logger.warning(msg)
+    # check if we have Tv standard deviation or variance (only use one)
+    got_tv = False
+    for tv in ["Tv_SONIC_Sd", "Tv_SONIC_Vr"]:
+        if tv in labels:
+            got_tv = True
+            conditionals.append(tv)
+            break
+    if not got_tv:
+        msg = " Tv standard deviation or variance not used in SONIC check (not in data structure)"
+        logger.warning(msg)
+    # return if we found no conditionals
+    if len(conditionals) == 0:
+        msg = " No conditional variables found, skipping SONIC check ..."
         logger.warning(msg)
         return
-    logger.info(" Doing the sonic check")
-    sonic_all = ["Ux", "Uy", "Uz",
-                "Ws_CSAT", "Ws_CSAT_Av", "Ws_CSAT_Sd", "Ws_CSAT_Vr",
-                "Wd_CSAT", "Wd_CSAT_Av", "Wd_CSAT_Compass", "Wd_CSAT_Sd", "Wd_CSAT_Vr",
-                "Ws_SONIC", "Ws_SONIC_Av", "Ws_SONIC_Sd", "Ws_SONIC_Vr",
-                "Wd_SONIC", "Wd_SONIC_Av", "Wd_SONIC_Compass", "Wd_SONIC_Sd", "Wd_SONIC_Vr",
-                "Tv_CSAT", "Tv_CSAT_Av", "Tv_CSAT_Sd", "Tv_CSAT_Vr",
-                "Tv_SONIC", "Tv_SONIC_Av", "Tv_SONIC_Sd", "Tv_SONIC_Vr",
-                "UzT", "UxT", "UyT", "UzA", "UxA", "UyA", "UzC", "UxC", "UyC",
-                "UxUz", "UyUz", "UxUy", "UxUx", "UyUy", "UzUz"]
-    sonic_list = []
-    for item in sonic_all:
-        if item in series_list:
-            sonic_list.append(item)
-    index = numpy.where(ds.series['Diag_SONIC']['Flag'] != 0)
-    msg = "  SONICCheck: Diag_SONIC rejected "+str(numpy.size(index))+" points"
+    # create an index series, 0 ==> not OK, 1 ==> OK
+    cidx = numpy.ones(nrecs, dtype=int)
+    for conditional in conditionals:
+        variable = pfp_utils.GetVariable(ds, conditional)
+        idx = numpy.where(numpy.ma.getmaskarray(variable["Data"]) == True)[0]
+        msg = "  SONIC check: " + conditional + " rejected " + str(numpy.size(idx)) + " points"
+        logger.info(msg)
+        cidx[idx] = int(0)
+    rejected = numpy.count_nonzero(cidx == 0)
+    percent = int(numpy.rint(100*rejected/nrecs))
+    msg = "  SONIC check: total number of points rejected was " + str(rejected)
+    msg += " (" + str(percent) + "%)"
     logger.info(msg)
-    for label in sonic_list:
-        if label in list(ds.series.keys()):
-            ds.series[label]["Data"][index] = numpy.float64(c.missing_value)
-            ds.series[label]["Flag"][index] = numpy.int32(code)
-        else:
-            logger.error("  SONICcheck: series "+str(label)+" not found in data")
+    # use the conditional series to mask the dependents
+    for dependent in dependents:
+        variable = pfp_utils.GetVariable(ds, dependent)
+        variable["Data"] = numpy.ma.masked_where(cidx == int(0), variable["Data"])
+        idx = numpy.where(cidx == int(0))[0]
+        variable["Flag"][idx] = int(code)
+        variable["Attr"]["sonic_check"] = ",".join(dependents)
+        pfp_utils.CreateVariable(ds, variable)
     return
 
 def do_dependencycheck(cf, ds, section, series, code=23, mode="quiet"):
@@ -458,65 +500,115 @@ def do_diurnalcheck(cf, ds, section, series, code=5):
             ds.series[series]["Attr"]["diurnalcheck_numsd"] = cf[section][series]["DiurnalCheck"]["numsd"]
     return
 
-def do_EC155check(cf,ds):
+def do_EC155check(cf, ds, code=4):
     """
     Purpose:
+     Reject covariances of H2O (UxA, UyA and UzA) and CO2 (UzC, UyC and UzC)
+     based on the IRGA AGC and the standard deviation or variance of H2O and
+     CO2 concentration.
+     QC checks on AGC and standard deviation or variance of H2O and CO2 are
+     performed before this routine is called.  This routine then rejects the
+     covariance values for those times when the precursors have been rejected.
+     Only 1 H2O and 1 CO2 variable, either standard deviation or
+     variance, are used.
+     This routine is an implicit DependencyCheck.
+     EC150/155 version.
     Usage:
+     pfp_ch.do_li7500check(cf, ds, code=4)
+     where cf is a control file
+           ds is a data structure
+    Side effects:
+     Covariance values are masked and flags set to 4 for all time steps when
+     any of the precursors have failed a previous QC check.
     Author: PRI
-    Date: September 2015
+    Date: October 2020 (rewrite of original)
     """
-    # check to see if we have a Diag_IRGA series to work with
-    if "Diag_IRGA" not in list(ds.series.keys()):
-        msg = " IRGA diagnostics not found in data, skipping IRGA checks ..."
+    msg = " Doing the IRGA (EC150/155) check"
+    logger.info(msg)
+    nrecs = int(ds.globalattributes["nc_nrecs"])
+    labels = list(ds.series.keys())
+    # list of variables to be modified by this QC check
+    dependents = ["UzA", "UxA", "UyA", "UzC", "UxC", "UyC",
+                  "AH_IRGA_Av", "AH_IRGA_Sd", "AH_IRGA_Vr",
+                  "CO2_IRGA_Av", "CO2_IRGA_Sd", "CO2_IRGA_Vr",
+                  "H2O_IRGA_Av", "H2O_IRGA_Sd", "H2O_IRGA_Vr"]
+    # check these are in the data structure
+    for label in list(dependents):
+        if label not in labels:
+            dependents.remove(label)
+    # return if there are no dependents to check
+    if len(dependents) == 0:
+        msg = "  No dependent variables found, skipping IRGA check ..."
         logger.warning(msg)
         return
-    # seems OK to continue
-    irga_type = str(ds.globalattributes["irga_type"])
-    msg = " Doing the " + irga_type+" check"
-    logger.info(msg)
-    # list of series that depend on IRGA data quality
-    EC155_list = ['H2O_IRGA_Av','CO2_IRGA_Av','H2O_IRGA_Sd','CO2_IRGA_Sd','H2O_IRGA_Vr','CO2_IRGA_Vr',
-                 'UzA','UxA','UyA','UzH','UxH','UyH','UzC','UxC','UyC']
-    idx = numpy.where(ds.series['Diag_IRGA']['Flag'] !=0 )
-    msg = "  "+irga_type+"Check: Diag_IRGA rejects " + str(numpy.size(idx))
-    logger.info(msg)
-    used_Signal = False
-    used_H2O = False
-    used_CO2 = False
-    EC155_dependents = []
-    for item in ['Signal_H2O','Signal_CO2','H2O_IRGA_Sd','CO2_IRGA_Sd']:
-        if item in list(ds.series.keys()):
-            if ("Signal_H2O" in item) or ("Signal_CO2" in item):
-                used_Signal = True
-            if ("H2O" in item) or ("AH" in item):
-                used_H2O = True
-            if ("CO2" in item):
-                used_CO2 = True
-            EC155_dependents.append(item)
-    if not used_Signal:
-        msg = " Signal_H2O or Signal_CO2 value not used in QC (not in data)"
+    # list for conditional variables
+    conditionals = []
+    # check if we have the IRGA diagnostic
+    got_diag = False
+    for diag in ["Diag_IRGA", "Diag_7500"]:
+        if diag in labels:
+            got_diag = True
+            conditionals.append(diag)
+            break
+    if not got_diag:
+        msg = " IRGA diagnostic not used in IRGA check (not in data structure)"
         logger.warning(msg)
-    if not used_H2O:
-        msg = " H2O stdev or var not used in QC (not in data)"
+    # check if we have the H2O and CO2 signal strengths
+    got_signal = False
+    for signal in ["Signal_Av", "Signal_H2O", "Signal_CO2"]:
+        if signal in labels:
+            got_signal = True
+            conditionals.append(signal)
+    if not got_signal:
+        msg = " Signal_H2O and Signal_CO2 not used in IRGA check (not in data structure)"
         logger.warning(msg)
-    if not used_CO2:
-        msg = " CO2 stdev or var not used in QC (not in data)"
+    # check of H2O standard deviation or variance (only use one)
+    got_H2O = False
+    for h2o in ["H2O_IRGA_Sd", "AH_IRGA_Sd", "H2O_IRGA_Vr", "AH_IRGA_Vr"]:
+        if h2o in labels:
+            got_H2O = True
+            conditionals.append(h2o)
+            break
+    if not got_H2O:
+        msg = " H2O standard deviation or variance not used in IRGA check (not in data structure)"
         logger.warning(msg)
-    flag = numpy.copy(ds.series['Diag_IRGA']['Flag'])
-    for item in EC155_dependents:
-        idx = numpy.where(ds.series[item]['Flag'] != 0)[0]
-        msg = "  " + irga_type+"Check: "+item+" rejected "+str(numpy.size(idx))+" points"
+    # check of CO2 standard deviation or variance (only use one)
+    got_CO2 = False
+    for co2 in ["CO2_IRGA_Sd", "CO2_IRGA_Vr"]:
+        if co2 in labels:
+            got_CO2 = True
+            conditionals.append(co2)
+            break
+    if not got_CO2:
+        msg = " CO2 standard deviation or variance not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # return if we found no conditionals
+    if len(conditionals) == 0:
+        msg = " No conditional variables found, skipping IRGA check ..."
+        logger.warning(msg)
+        return
+    # create an index series, 0 ==> not OK, 1 ==> OK
+    cidx = numpy.ones(nrecs, dtype=int)
+    for conditional in conditionals:
+        variable = pfp_utils.GetVariable(ds, conditional)
+        idx = numpy.where(numpy.ma.getmaskarray(variable["Data"]) == True)[0]
+        msg = "  IRGA check: " + conditional + " rejected " + str(numpy.size(idx)) + " points"
         logger.info(msg)
-        flag[idx] = numpy.int32(1)
-    idx = numpy.where(flag !=0 )[0]
-    msg = "  "+irga_type+"Check: Total rejected " + str(numpy.size(idx))
+        cidx[idx] = int(0)
+    rejected = numpy.count_nonzero(cidx == 0)
+    percent = int(numpy.rint(100*rejected/nrecs))
+    msg = "  IRGA check: total number of points rejected was " + str(rejected)
+    msg += " (" + str(percent) + "%)"
     logger.info(msg)
-    for ThisOne in EC155_list:
-        if ThisOne in list(ds.series.keys()):
-            ds.series[ThisOne]['Data'][idx] = numpy.float64(c.missing_value)
-            ds.series[ThisOne]['Flag'][idx] = numpy.int32(4)
-        #else:
-            #logger.warning(' do_EC155check: series '+str(ThisOne)+' in EC155 list not found in data structure')
+    # use the conditional series to mask the dependents
+    for dependent in dependents:
+        variable = pfp_utils.GetVariable(ds, dependent)
+        variable["Data"] = numpy.ma.masked_where(cidx == int(0), variable["Data"])
+        idx = numpy.where(cidx == int(0))[0]
+        variable["Flag"][idx] = int(code)
+        variable["Attr"]["irga_check"] = ",".join(dependents)
+        pfp_utils.CreateVariable(ds, variable)
+    return
 
 def do_EPQCFlagCheck(cf, ds, section, series, code=9):
     """
@@ -672,155 +764,225 @@ def do_IRGAcheck(cf,ds):
     return
 
 def do_li7500check(cf, ds, code=4):
-    '''Rejects data values for series specified in LI75List for times when the Diag_7500
-       flag is non-zero.  If the Diag_7500 flag is not present in the data structure passed
-       to this routine, it is constructed from the QC flags of the series specified in
-       LI75Lisat.  Additional checks are done for AGC_7500 (the LI-7500 AGC value),
-       AH_7500_Sd (standard deviation of absolute humidity) and Cc_7500_Sd (standard
-       deviation of CO2 concentration).'''
-    series_list = list(ds.series.keys())
-    # check we have an IRGA diagnostics series to use
-    if "Diag_IRGA" in series_list:
-        pass
-    elif "Diag_7500" in series_list:
-        # backward compatibility with early OFQC
-        ds.series[str("Diag_IRGA")] = copy.deepcopy(ds.series["Diag_7500"])
-    else:
-        msg = " IRGA diagnostics not found in data, skipping IRGA checks ..."
+    """
+    Purpose:
+     Reject covariances of H2O (UxA, UyA and UzA) and CO2 (UzC, UyC and UzC)
+     based on the IRGA AGC and the standard deviation or variance of H2O and
+     CO2 concentration.
+     QC checks on AGC and standard deviation or variance of H2O and CO2 are
+     performed before this routine is called.  This routine then rejects the
+     covariance values for those times when the precursors have been rejected.
+     Only 1 H2O and 1 CO2 variable, either standard deviation or
+     variance, are used.
+     This routine is an implicit DependencyCheck.
+     Li-7500 version.
+    Usage:
+     pfp_ch.do_li7500check(cf, ds, code=4)
+     where cf is a control file
+           ds is a data structure
+    Side effects:
+     Covariance values are masked and flags set to 4 for all time steps when
+     any of the precursors have failed a previous QC check.
+    Author: PRI
+    Date: October 2020 (rewrite of original)
+    """
+    msg = " Doing the IRGA (Li-7500) check"
+    logger.info(msg)
+    nrecs = int(ds.globalattributes["nc_nrecs"])
+    labels = list(ds.series.keys())
+    # list of variables to be modified by this QC check
+    dependents = ["UzA", "UxA", "UyA", "UzC", "UxC", "UyC",
+                  "AH_IRGA_Av", "AH_IRGA_Sd", "AH_IRGA_Vr",
+                  "CO2_IRGA_Av", "CO2_IRGA_Sd", "CO2_IRGA_Vr",
+                  "H2O_IRGA_Av", "H2O_IRGA_Sd", "H2O_IRGA_Vr"]
+    # check these are in the data structure
+    for label in list(dependents):
+        if label not in labels:
+            dependents.remove(label)
+    # return if there are no dependents to check
+    if len(dependents) == 0:
+        msg = "  No dependent variables found, skipping IRGA check ..."
+        logger.info(msg)
+        return
+    # list for conditional variables
+    conditionals = []
+    # check if we have the IRGA diagnostic
+    got_diag = False
+    for diag in ["Diag_IRGA", "Diag_7500"]:
+        if diag in labels:
+            got_diag = True
+            conditionals.append(diag)
+            break
+    if not got_diag:
+        msg = " IRGA diagnostic not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # check if we have an AGC (only use one)
+    got_AGC = False
+    for agc in ["AGC_7500", "AGC_IRGA"]:
+        if agc in labels:
+            got_AGC = True
+            conditionals.append(agc)
+            break
+    if not got_AGC:
+        msg = " AGC not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # check of H2O standard deviation or variance (only use one)
+    got_H2O = False
+    for h2o in ["H2O_IRGA_Sd", "AH_IRGA_Sd", "H2O_IRGA_Vr", "AH_IRGA_Vr"]:
+        if h2o in labels:
+            got_H2O = True
+            conditionals.append(h2o)
+            break
+    if not got_H2O:
+        msg = " H2O standard deviation or variance not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # check of CO2 standard deviation or variance (only use one)
+    got_CO2 = False
+    for co2 in ["CO2_IRGA_Sd", "CO2_IRGA_Vr"]:
+        if co2 in labels:
+            got_CO2 = True
+            conditionals.append(co2)
+            break
+    if not got_CO2:
+        msg = " CO2 standard deviation or variance not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # return if we found no conditionals
+    if len(conditionals) == 0:
+        msg = " No conditional variables found, skipping IRGA check ..."
         logger.warning(msg)
         return
-    logger.info(" Doing the LI-7500 check")
-    # let's check the contents of ds and see what we have to work with
-    # first, list everything we may have once used for some kind of LI-7500 output
-    # we do this for backwards compatibility
-    irga_list_all = ["AH_7500_Av", "AH_7500_Sd", "AH_IRGA_Av", "AH_IRGA_Sd",
-                     "Cc_7500_Av", "Cc_7500_Sd", "Cc_7500_Av", "Cc_7500_Sd",
-                     "H2O_IRGA_Av", "H2O_IRGA_Vr","CO2_IRGA_Av", "CO2_IRGA_Vr",
-                     "UzA", "UxA", "UyA", "UzC", "UxC", "UyC"]
-    # now get a list of what is actually there
-    irga_list = []
-    for label in series_list:
-        if label in irga_list_all:
-            irga_list.append(label)
-    # now tell the user how many points the IRGA diagnostic will remove
-    idx = numpy.where(ds.series["Diag_IRGA"]["Flag"] != 0)
-    msg = "  Diag_IRGA rejected "+str(numpy.size(idx))+" points"
+    # create an index series, 0 ==> not OK, 1 ==> OK
+    cidx = numpy.ones(nrecs, dtype=int)
+    for conditional in conditionals:
+        variable = pfp_utils.GetVariable(ds, conditional)
+        idx = numpy.where(numpy.ma.getmaskarray(variable["Data"]) == True)[0]
+        msg = "  IRGA check: " + conditional + " rejected " + str(numpy.size(idx)) + " points"
+        logger.info(msg)
+        cidx[idx] = int(0)
+    rejected = numpy.count_nonzero(cidx == 0)
+    percent = int(numpy.rint(100*rejected/nrecs))
+    msg = "  IRGA check: total number of points rejected was " + str(rejected)
+    msg += " (" + str(percent) + "%)"
     logger.info(msg)
-    # and then we start with the dependents
-    # and again we list everything we may have used in the past for backwards compatibility
-    irga_dependents_all = ["AGC_7500", "AGC_IRGA",
-                           "AH_7500_Sd","Cc_7500_Sd",
-                           "AH_IRGA_Sd", "Cc_IRGA_Sd",
-                           "H2O_IRGA_Sd", "CO2_IRGA_Sd",
-                           "AhAh","CcCc",
-                           "AH_IRGA_Vr", "Cc_IRGA_Vr",
-                           "H2O_IRGA_Vr", "CO2_IRGA_Vr"]
-    # and then check to see what we actually have to work with
-    irga_dependents = []
-    for label in irga_dependents_all:
-        if label in series_list:
-            irga_dependents.append(label)
-    # and then remove variances where variances and standard deviations are duplicated
-    std_list = ["AH_7500_Sd", "Cc_7500_Sd", "AH_IRGA_Sd", "Cc_IRGA_Sd", "H2O_IRGA_Sd", "CO2_IRGA_Sd"]
-    var_list = ["AhAh",       "CcCc",       "AhAh",       "CcCc",       "H2O_IRGA_Vr", "CO2_IRGA_Vr"]
-    irga_dependents_nodups = copy.deepcopy(irga_dependents)
-    for std, var in zip(std_list, var_list):
-        if (std in irga_dependents) and (var in irga_dependents):
-            irga_dependents_nodups.remove(var)
-    # now we can do the business
-    used_AGC = False
-    used_H2O = False
-    used_CO2 = False
-    flag = numpy.copy(ds.series["Diag_IRGA"]["Flag"])
-    for label in irga_dependents_nodups:
-        if ("AGC" in label):
-            used_AGC = True
-        if ("H2O" in label) or ("AH" in label):
-            used_H2O = True
-        if ("CO2" in label):
-            used_CO2 = True
-        idx = numpy.where(ds.series[label]["Flag"] != 0)
-        logger.info("  IRGACheck: "+label+" rejected "+str(numpy.size(idx))+" points")
-        flag[idx] = numpy.int32(1)
-    if not used_AGC:
-        msg = " AGC value not used in QC (not in data)"
-        logger.warning(msg)
-    if not used_H2O:
-        msg = " H2O stdev or var not used in QC (not in data)"
-        logger.warning(msg)
-    if not used_CO2:
-        msg = " CO2 stdev or var not used in QC (not in data)"
-        logger.warning(msg)
-    idx = numpy.where(flag != 0)[0]
-    msg = "  IRGACheck: Total rejected is " + str(numpy.size(idx))
-    percent = float(100)*numpy.size(idx)/numpy.size(flag)
-    msg = msg + " (" + str(int(percent+0.5)) + "%)"
-    logger.info(msg)
-    for label in irga_list:
-        ds.series[label]['Data'][idx] = numpy.float64(c.missing_value)
-        ds.series[label]['Flag'][idx] = numpy.int32(code)
+    # use the conditional series to mask the dependents
+    for dependent in dependents:
+        variable = pfp_utils.GetVariable(ds, dependent)
+        variable["Data"] = numpy.ma.masked_where(cidx == int(0), variable["Data"])
+        idx = numpy.where(cidx == int(0))[0]
+        variable["Flag"][idx] = int(code)
+        variable["Attr"]["irga_check"] = ",".join(dependents)
+        pfp_utils.CreateVariable(ds, variable)
     return
 
-def do_li7500acheck(cf,ds):
-    '''Rejects data values for series specified in LI75List for times when the Diag_7500
-       flag is non-zero.  If the Diag_IRGA flag is not present in the data structure passed
-       to this routine, it is constructed from the QC flags of the series specified in
-       LI75Lisat.  Additional checks are done for AGC_7500 (the LI-7500 AGC value),
-       AH_7500_Sd (standard deviation of absolute humidity) and Cc_7500_Sd (standard
-       deviation of CO2 concentration).'''
-    if "Diag_IRGA" not in list(ds.series.keys()):
-        msg = " IRGA diagnostics not found in data, skipping IRGA checks ..."
+def do_li7500acheck(cf, ds, code=4):
+    """
+    Purpose:
+     Reject covariances of H2O (UxA, UyA and UzA) and CO2 (UzC, UyC and UzC)
+     based on the IRGA AGC and the standard deviation or variance of H2O and
+     CO2 concentration.
+     QC checks on AGC and standard deviation or variance of H2O and CO2 are
+     performed before this routine is called.  This routine then rejects the
+     covariance values for those times when the precursors have been rejected.
+     Only 1 H2O and 1 CO2 variable, either standard deviation or
+     variance, are used.
+     This routine is an implicit DependencyCheck.
+     Li-7500 version.
+    Usage:
+     pfp_ch.do_li7500check(cf, ds, code=4)
+     where cf is a control file
+           ds is a data structure
+    Side effects:
+     Covariance values are masked and flags set to 4 for all time steps when
+     any of the precursors have failed a previous QC check.
+    Author: PRI
+    Date: October 2020 (rewrite of original)
+    """
+    msg = " Doing the IRGA (Li-7500A) check"
+    logger.info(msg)
+    nrecs = int(ds.globalattributes["nc_nrecs"])
+    labels = list(ds.series.keys())
+    # list of variables to be modified by this QC check
+    dependents = ["UzA", "UxA", "UyA", "UzC", "UxC", "UyC",
+                  "AH_IRGA_Av", "AH_IRGA_Sd", "AH_IRGA_Vr",
+                  "CO2_IRGA_Av", "CO2_IRGA_Sd", "CO2_IRGA_Vr",
+                  "H2O_IRGA_Av", "H2O_IRGA_Sd", "H2O_IRGA_Vr"]
+    # check these are in the data structure
+    for label in list(dependents):
+        if label not in labels:
+            dependents.remove(label)
+    # return if there are no dependents to check
+    if len(dependents) == 0:
+        msg = "  No dependent variables found, skipping IRGA check ..."
+        logger.info(msg)
+        return
+    # list for conditional variables
+    conditionals = []
+    # check if we have the IRGA diagnostic
+    got_diag = False
+    for diag in ["Diag_IRGA", "Diag_7500"]:
+        if diag in labels:
+            got_diag = True
+            conditionals.append(diag)
+            break
+    if not got_diag:
+        msg = " IRGA diagnostic not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # check if we have the H2O and CO2 signal strengths
+    got_signal = False
+    for signal in ["Signal_Av", "Signal_H2O", "Signal_CO2"]:
+        if signal in labels:
+            got_signal = True
+            conditionals.append(signal)
+    if not got_signal:
+        msg = " Signal_H2O and Signal_CO2 not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # check of H2O standard deviation or variance (only use one)
+    got_H2O = False
+    for h2o in ["H2O_IRGA_Sd", "AH_IRGA_Sd", "H2O_IRGA_Vr", "AH_IRGA_Vr"]:
+        if h2o in labels:
+            got_H2O = True
+            conditionals.append(h2o)
+            break
+    if not got_H2O:
+        msg = " H2O standard deviation or variance not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # check of CO2 standard deviation or variance (only use one)
+    got_CO2 = False
+    for co2 in ["CO2_IRGA_Sd", "CO2_IRGA_Vr"]:
+        if co2 in labels:
+            got_CO2 = True
+            conditionals.append(co2)
+            break
+    if not got_CO2:
+        msg = " CO2 standard deviation or variance not used in IRGA check (not in data structure)"
+        logger.warning(msg)
+    # return if we found no conditionals
+    if len(conditionals) == 0:
+        msg = " No conditional variables found, skipping IRGA check ..."
         logger.warning(msg)
         return
-    logger.info(' Doing the 7500A check')
-    LI75List = ['H2O_IRGA_Av','CO2_IRGA_Av','H2O_IRGA_Sd','CO2_IRGA_Sd','H2O_IRGA_Vr','CO2_IRGA_Vr',
-                'UzA','UxA','UyA','UzC','UxC','UyC']
-    idx = numpy.where(ds.series['Diag_IRGA']['Flag']!=0)[0]
-    logger.info('  7500ACheck: Diag_IRGA ' + str(numpy.size(idx)))
-    # initialise logicals to track which QC data used
-    used_Signal = False
-    used_H2O = False
-    used_CO2 = False
-    LI75_dependents = []
-    for item in ['Signal_H2O','Signal_CO2','Signal_Avg',
-                 'H2O_IRGA_Sd','CO2_IRGA_Sd',
-                 'H2O_IRGA_Vr','CO2_IRGA_Vr']:
-        if item in list(ds.series.keys()):
-            if ("Signal_H2O" in item) or ("Signal_CO2" in item):
-                used_Signal = True
-            if ("H2O" in item) or ("AH" in item):
-                used_H2O = True
-            if ("CO2" in item):
-                used_CO2 = True
-            LI75_dependents.append(item)
-    if "H2O_IRGA_Sd" and "H2O_IRGA_Vr" in LI75_dependents:
-        LI75_dependents.remove("H2O_IRGA_Vr")
-    if "CO2_IRGA_Sd" and "CO2_IRGA_Vr" in LI75_dependents:
-        LI75_dependents.remove("CO2_IRGA_Vr")
-    if not used_Signal:
-        msg = " Signal_H2O or Signal_CO2 value not used in QC (not in data)"
-        logger.warning(msg)
-    if not used_H2O:
-        msg = " H2O stdev or var not used in QC (not in data)"
-        logger.warning(msg)
-    if not used_CO2:
-        msg = " CO2 stdev or var not used in QC (not in data)"
-        logger.warning(msg)
-    flag = numpy.copy(ds.series['Diag_IRGA']['Flag'])
-    for item in LI75_dependents:
-        if item in list(ds.series.keys()):
-            idx = numpy.where(ds.series[item]['Flag']!=0)
-            logger.info('  7500ACheck: '+item+' rejected '+str(numpy.size(idx))+' points')
-            flag[idx] = numpy.int32(1)
-    idx = numpy.where(flag != 0)[0]
-    logger.info('  7500ACheck: Total ' + str(numpy.size(idx)))
-    for ThisOne in LI75List:
-        if ThisOne in list(ds.series.keys()):
-            ds.series[ThisOne]['Data'][idx] = numpy.float64(c.missing_value)
-            ds.series[ThisOne]['Flag'][idx] = numpy.int32(4)
-        else:
-            #logger.warning('  pfp_ck.do_7500acheck: series '+str(ThisOne)+' in LI75List not found in ds.series')
-            pass
+    # create an index series, 0 ==> not OK, 1 ==> OK
+    cidx = numpy.ones(nrecs, dtype=int)
+    for conditional in conditionals:
+        variable = pfp_utils.GetVariable(ds, conditional)
+        idx = numpy.where(numpy.ma.getmaskarray(variable["Data"]) == True)[0]
+        msg = "  IRGA check: " + conditional + " rejected " + str(numpy.size(idx)) + " points"
+        logger.info(msg)
+        cidx[idx] = int(0)
+    rejected = numpy.count_nonzero(cidx == 0)
+    percent = int(numpy.rint(100*rejected/nrecs))
+    msg = "  IRGA check: total number of points rejected was " + str(rejected)
+    msg += " (" + str(percent) + "%)"
+    logger.info(msg)
+    # use the conditional series to mask the dependents
+    for dependent in dependents:
+        variable = pfp_utils.GetVariable(ds, dependent)
+        variable["Data"] = numpy.ma.masked_where(cidx == int(0), variable["Data"])
+        idx = numpy.where(cidx == int(0))[0]
+        variable["Flag"][idx] = int(code)
+        variable["Attr"]["irga_check"] = ",".join(dependents)
+        pfp_utils.CreateVariable(ds, variable)
+    return
 
 def do_linear(cf,ds):
     for ThisOne in list(cf['Variables'].keys()):

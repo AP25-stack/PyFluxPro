@@ -1666,7 +1666,7 @@ def DoFunctions(ds, info):
         result = getattr(pfp_func_units, functions[label]["name"])(ds, label, *functions[label]["arguments"])
         new_units = ds.series[label]["Attr"]["units"]
         if result:
-            if len(functions[label]["arguments"]) == 1:
+            if new_units != old_units:
                 msg = " Units for " + label + " converted from " + old_units + " to " + new_units
                 logger.info(msg)
             else:
