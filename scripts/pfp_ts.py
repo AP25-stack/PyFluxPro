@@ -1700,33 +1700,43 @@ def CalculateStandardDeviations(ds):
     # get a dictionary of variances and the stadard deviations we want from them
     d = {"AH_IRGA_Vr": {"sd_label": "AH_IRGA_Sd",
                         "long_name": "Absolute humidity from IRGA, standard deviation",
+                        "statistic_type": "standard deviation",
                         "units": "g/m^3"},
          "H2O_IRGA_Vr": {"sd_label": "H2O_IRGA_Sd",
                          "long_name": "H2O concentration from IRGA, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "mmol/m^3"},
          "CO2_IRGA_Vr": {"sd_label": "CO2_IRGA_Sd",
                          "long_name": "CO2 concentration from IRGA, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "mg/m^3"},
          "Ux_SONIC_Vr": {"sd_label": "Ux_SONIC_Sd",
                          "long_name": "Longitudinal velocity component from SONIC, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "m/s"},
          "Uy_SONIC_Vr": {"sd_label": "Uy_SONIC_Sd",
                          "long_name": "Lateral velocity component from SONIC, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "m/s"},
          "Uz_SONIC_Vr": {"sd_label": "Uz_SONIC_Sd",
                          "long_name": "Vertical velocity component from SONIC, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "m/s"},
          "Tv_SONIC_Vr": {"sd_label": "Tv_SONIC_Sd",
                          "long_name": "Virtual temperature from SONIC, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "degC"},
          "U_SONIC_Vr": {"sd_label": "U_SONIC_Sd",
                          "long_name": "Along wind velocity component from SONIC, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "m/s"},
          "V_SONIC_Vr": {"sd_label": "V_SONIC_Sd",
                          "long_name": "Across wind velocity component from SONIC, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "m/s"},
          "W_SONIC_Vr": {"sd_label": "W_SONIC_Sd",
                          "long_name": "Vertical velocity component from SONIC, standard deviation",
+                         "statistic_type": "standard deviation",
                          "units": "m/s"}}
     # get a list of variables in the data structure
     labels = list(ds.series.keys())
@@ -1738,39 +1748,50 @@ def CalculateStandardDeviations(ds):
             sd["Label"] = d[vr_label]["sd_label"]
             sd["Data"] = numpy.ma.sqrt(vr["Data"])
             sd["Attr"]["long_name"] = d[vr_label]["long_name"]
+            sd["Attr"]["statistic_type"] = d[vr_label]["statistic_type"]
             sd["Attr"]["units"] = d[vr_label]["units"]
             pfp_utils.CreateVariable(ds, sd)
             sd_done.append(sd["Label"])
     # now do the same with the standard deviations
     d = {"AH_IRGA_Sd": {"vr_label": "AH_IRGA_Vr",
                         "long_name": "Absolute humidity from IRGA, variance",
+                        "statistic_type": "variance",
                         "units": "g^2/m^6"},
          "H2O_IRGA_Sd": {"vr_label": "H2O_IRGA_Vr",
                          "long_name": "H2O concentration from IRGA, variance",
+                         "statistic_type": "variance",
                          "units": "mmol^2/m^6"},
          "CO2_IRGA_Sd": {"vr_label": "CO2_IRGA_Vr",
                          "long_name": "CO2 concentration from IRGA, variance",
+                         "statistic_type": "variance",
                          "units": "mg^2/m^6"},
          "Ux_SONIC_Sd": {"vr_label": "Ux_SONIC_Vr",
                          "long_name": "Longitudinal velocity component from SONIC, variance",
+                         "statistic_type": "variance",
                          "units": "m^2/s^2"},
          "Uy_SONIC_Sd": {"vr_label": "Uy_SONIC_Vr",
                          "long_name": "Lateral velocity component from SONIC, variance",
+                         "statistic_type": "variance",
                          "units": "m^2/s^2"},
          "Uz_SONIC_Sd": {"vr_label": "Uz_SONIC_Vr",
                          "long_name": "Vertical velocity component from SONIC, variance",
+                         "statistic_type": "variance",
                          "units": "m^2/s^2"},
          "Tv_SONIC_Sd": {"vr_label": "Tv_SONIC_Vr",
                          "long_name": "Virtual temperature from SONIC, variance",
+                         "statistic_type": "variance",
                          "units": "degC^2"},
          "U_SONIC_Sd": {"vr_label": "U_SONIC_Vr",
                          "long_name": "Along wind velocity component from SONIC, variance",
+                         "statistic_type": "variance",
                          "units": "m^2/s^2"},
          "V_SONIC_Sd": {"vr_label": "V_SONIC_Vr",
                          "long_name": "Across wind velocity component from SONIC, variance",
+                         "statistic_type": "variance",
                          "units": "m^2/s^2"},
          "W_SONIC_Sd": {"vr_label": "W_SONIC_Vr",
                          "long_name": "Vertical velocity component from SONIC, variance",
+                         "statistic_type": "variance",
                          "units": "m^2/s^2"}}
     labels = list(ds.series.keys())
     # loop over the standard deviations and create the variances
@@ -1781,6 +1802,7 @@ def CalculateStandardDeviations(ds):
             vr["Label"] = d[sd_label]["vr_label"]
             vr["Data"] = sd["Data"]*sd["Data"]
             vr["Attr"]["long_name"] = d[sd_label]["long_name"]
+            vr["Attr"]["statistic_type"] = d[sd_label]["statistic_type"]
             vr["Attr"]["units"] = d[sd_label]["units"]
             pfp_utils.CreateVariable(ds, vr)
             vr_done.append(vr["Label"])
