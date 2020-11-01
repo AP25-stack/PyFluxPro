@@ -10,8 +10,8 @@ level = cpd_mchugh
     Output_plots   = True
     Plot_TClass    = False
 [Variables]
-    [[Fc]]
-        name = Fc
+    [[Fco2]]
+        name = Fco2
     [[Ta]]
         name = Ta
     [[ustar]]

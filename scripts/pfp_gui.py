@@ -227,9 +227,11 @@ class edit_cfg_batch(QtWidgets.QWidget):
     def edit_batch_gui(self):
         """ Edit batch control file GUI."""
         # get a QTreeView and a standard model
-        self.view = QtWidgets.QTreeView()
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
-        #self.tree = custom_treeview()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
@@ -239,15 +241,6 @@ class edit_cfg_batch(QtWidgets.QWidget):
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # set some features of the QTreeView
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        # set the QTreeView model
-        self.view.setModel(self.model)
-        # enable drag and drop
-        self.view.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
@@ -1681,25 +1674,20 @@ class edit_cfg_L2(QtWidgets.QWidget):
     def edit_L2_gui(self):
         """ Edit L2 control file GUI."""
         # get a QTreeView and a standard model
-        self.view = QtWidgets.QTreeView()
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        # set the QTreeView model
-        self.view.setModel(self.model)
-        # enable drag and drop
-        self.view.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
@@ -2277,6 +2265,22 @@ class edit_cfg_L3(QtWidgets.QWidget):
         self.sections["Variables"].appendRow(parent2)
         self.update_tab_text()
 
+    #def add_variable_above(self):
+        #""" Add a new variable above the selected variable."""
+        ## get the index of the selected item
+        #idx = self.view.selectedIndexes()[0]
+        ## get the selected item from the index
+        #selected_item = idx.model().itemFromIndex(idx)
+        ## get the parent of the selected item
+        #parent = selected_item.parent()
+        ## construct the new variable dictionary
+        #new_var = {"RangeCheck":{"lower":0, "upper": 1}}
+        #subsection = QtGui.QStandardItem("New variable")
+        #self.add_subsubsection(subsection, new_var)
+        #parent.insertRow(idx.row(), subsection)
+        ## add an asterisk to the tab text to indicate the tab contents have changed
+        #self.update_tab_text()
+
     def add_zms(self):
         """ Add zms to the [Options] section."""
         child0 = QtGui.QStandardItem("zms")
@@ -2602,7 +2606,11 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.actionAddAverageSeries.setText("Add AverageSeries")
                     self.context_menu.addAction(self.context_menu.actionAddAverageSeries)
                     self.context_menu.actionAddAverageSeries.triggered.connect(self.add_averageseries)
-                self.context_menu.addSeparator()
+                #self.context_menu.addSeparator()
+                #self.context_menu.actionAddVariableAbove = QtWidgets.QAction(self)
+                #self.context_menu.actionAddVariableAbove.setText("New variable")
+                #self.context_menu.addAction(self.context_menu.actionAddVariableAbove)
+                #self.context_menu.actionAddVariableAbove.triggered.connect(self.add_variable_above)
                 self.context_menu.actionRemoveVariable = QtWidgets.QAction(self)
                 self.context_menu.actionRemoveVariable.setText("Remove variable")
                 self.context_menu.addAction(self.context_menu.actionRemoveVariable)
@@ -2674,24 +2682,20 @@ class edit_cfg_L3(QtWidgets.QWidget):
     def edit_L3_gui(self):
         """ Edit L3 control file GUI."""
         # get a QTreeView and a standard model
-        self.view = QtWidgets.QTreeView()
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.view.setModel(self.model)
-        # enable drag and drop
-        self.view.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
@@ -3165,23 +3169,21 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
 
     def edit_concatenate_gui(self):
         """ Edit a concatenate control file GUI."""
-        # get a QTreeView
-        self.view = QtWidgets.QTreeView()
+        # get a QTreeView and a standard model
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.view.setModel(self.model)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
@@ -3581,7 +3583,7 @@ class edit_cfg_cpd_mchugh(QtWidgets.QWidget):
 
     def edit_cpd_mchugh_gui(self):
         """ Edit a CPD (McHugh) control file GUI."""
-        # get a QTreeView
+        # get a QTreeView and a standard model
         self.view = myTreeView()
         # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
@@ -3591,6 +3593,7 @@ class edit_cfg_cpd_mchugh(QtWidgets.QWidget):
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
@@ -3876,7 +3879,7 @@ class edit_cfg_cpd_barr(QtWidgets.QWidget):
 
     def edit_cpd_barr_gui(self):
         """ Edit a CPD (Barr) control file GUI."""
-        # get a QTreeView
+        # get a QTreeView and a standard model
         self.view = myTreeView()
         # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
@@ -3886,6 +3889,7 @@ class edit_cfg_cpd_barr(QtWidgets.QWidget):
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
@@ -4170,7 +4174,7 @@ class edit_cfg_mpt(QtWidgets.QWidget):
 
     def edit_mpt_gui(self):
         """ Edit an MPT control file GUI."""
-        # get a QTreeView
+        # get a QTreeView and a standard model
         self.view = myTreeView()
         # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
@@ -4180,6 +4184,7 @@ class edit_cfg_mpt(QtWidgets.QWidget):
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
@@ -4464,29 +4469,25 @@ class edit_cfg_L4(QtWidgets.QWidget):
 
     def edit_l4_gui(self):
         """ Edit an L4 control file GUI."""
-        # get a QTreeView
-        self.view = QtWidgets.QTreeView()
+        # get a QTreeView and a standard model
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.view.setModel(self.model)
-        # enable drag and drop
-        self.view.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
-        self.view.setColumnWidth(0, 210)
+        self.view.setColumnWidth(0, 200)
         # expand the top level of the sections
         for row in range(self.model.rowCount()):
             idx = self.model.index(row, 0)
@@ -4820,6 +4821,10 @@ class edit_cfg_L4(QtWidgets.QWidget):
                 if add_separator:
                     add_separator = False
                     self.context_menu.addSeparator()
+                #self.context_menu.actionAddVariableAbove = QtWidgets.QAction(self)
+                #self.context_menu.actionAddVariableAbove.setText("New variable")
+                #self.context_menu.addAction(self.context_menu.actionAddVariableAbove)
+                #self.context_menu.actionAddVariableAbove.triggered.connect(self.add_variable_above)
                 self.context_menu.actionRemoveOption = QtWidgets.QAction(self)
                 self.context_menu.actionRemoveOption.setText("Remove variable")
                 self.context_menu.addAction(self.context_menu.actionRemoveOption)
@@ -5179,6 +5184,22 @@ class edit_cfg_L4(QtWidgets.QWidget):
                 parent2.appendRow(parent3)
             self.sections["Drivers"].appendRow(parent2)
 
+    #def add_variable_above(self):
+        #""" Add a new variable above the selected variable."""
+        ## get the index of the selected item
+        #idx = self.view.selectedIndexes()[0]
+        ## get the selected item from the index
+        #selected_item = idx.model().itemFromIndex(idx)
+        ## get the parent of the selected item
+        #parent = selected_item.parent()
+        ## construct the new variable dictionary
+        #new_var = {"RangeCheck":{"lower":0, "upper": 1}}
+        #subsection = QtGui.QStandardItem("New variable")
+        #self.add_subsubsection(subsection, new_var)
+        #parent.insertRow(idx.row(), subsection)
+        ## add an asterisk to the tab text to indicate the tab contents have changed
+        #self.update_tab_text()
+
     def browse_alternate_file(self):
         """ Browse for the alternate data file path."""
         # get the index of the selected item
@@ -5501,7 +5522,7 @@ class edit_cfg_L5(QtWidgets.QWidget):
 
     def edit_l5_gui(self):
         """ Edit an L5 control file GUI."""
-        # get a QTreeView
+        # get a QTreeView and a standard model
         self.view = myTreeView()
         # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
@@ -5511,6 +5532,7 @@ class edit_cfg_L5(QtWidgets.QWidget):
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
@@ -6682,7 +6704,7 @@ class edit_cfg_L6(QtWidgets.QWidget):
 
     def edit_l6_gui(self):
         """ Edit an L6 control file GUI."""
-        # get a QTreeView
+        # get a QTreeView and a standard model
         self.view = myTreeView()
         # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
@@ -6692,6 +6714,7 @@ class edit_cfg_L6(QtWidgets.QWidget):
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
@@ -7184,28 +7207,25 @@ class edit_cfg_nc2csv_biomet(QtWidgets.QWidget):
 
     def edit_nc2csv_biomet_gui(self):
         """ Edit an nc2csv_biomet control file GUI."""
-        # get a QTreeView
-        self.view = QtWidgets.QTreeView()
+        # get a QTreeView and a standard model
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.view.setModel(self.model)
-        #self.tree.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
-        self.view.setColumnWidth(0, 210)
+        self.view.setColumnWidth(0, 200)
         # expand the top level of the sections
         for row in range(self.model.rowCount()):
             idx = self.model.index(row, 0)
@@ -7479,28 +7499,25 @@ class edit_cfg_nc2csv_ecostress(QtWidgets.QWidget):
 
     def edit_nc2csv_ecostress_gui(self):
         """ Edit an nc2csv_ecostress control file GUI."""
-        # get a QTreeView
-        self.view = QtWidgets.QTreeView()
+        # get a QTreeView and a standard model
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.view.setModel(self.model)
-        #self.tree.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
-        self.view.setColumnWidth(0, 210)
+        self.view.setColumnWidth(0, 200)
         # expand the top level of the sections
         for row in range(self.model.rowCount()):
             idx = self.model.index(row, 0)
@@ -7784,28 +7801,25 @@ class edit_cfg_nc2csv_fluxnet(QtWidgets.QWidget):
 
     def edit_nc2csv_fluxnet_gui(self):
         """ Edit an nc2csv_fluxnet control file GUI."""
-        # get a QTreeView
-        self.view = QtWidgets.QTreeView()
+        # get a QTreeView and a standard model
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.view.setModel(self.model)
-        #self.tree.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
-        self.view.setColumnWidth(0, 210)
+        self.view.setColumnWidth(0, 200)
         # expand the top level of the sections
         for row in range(self.model.rowCount()):
             idx = self.model.index(row, 0)
@@ -8089,28 +8103,25 @@ class edit_cfg_nc2csv_reddyproc(QtWidgets.QWidget):
 
     def edit_nc2csv_reddyproc_gui(self):
         """ Edit an nc2csv_reddyproc control file GUI."""
-        # get a QTreeView
-        self.view = QtWidgets.QTreeView()
+        # get a QTreeView and a standard model
+        self.view = myTreeView()
+        # get a QStandardItemModel
         self.model = QtGui.QStandardItemModel()
+        # add the model to the view
+        self.view.setModel(self.model)
         # set the context menu policy
         self.view.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         # connect the context menu requested signal to appropriate slot
         self.view.customContextMenuRequested.connect(self.context_menu)
+        # do the QTreeView layout
         vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(self.view)
         self.setLayout(vbox)
         self.setGeometry(300, 300, 600, 400)
-        # Tree view
-        self.view.setAlternatingRowColors(True)
-        #self.tree.setSortingEnabled(True)
-        self.view.setHeaderHidden(False)
-        self.view.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
-        self.view.setModel(self.model)
-        #self.tree.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
         # build the model
         self.get_model_from_data()
         # set the default width for the first column
-        self.view.setColumnWidth(0, 210)
+        self.view.setColumnWidth(0, 200)
         # expand the top level of the sections
         for row in range(self.model.rowCount()):
             idx = self.model.index(row, 0)
