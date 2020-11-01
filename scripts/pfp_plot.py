@@ -549,16 +549,18 @@ def plot_explore_percentiles(ds, labels):
             ax_ts = fig.add_subplot(gs[n, 0])
             if n == 0:
                 title_str = site_name + ": " + sdt.strftime("%Y-%m-%d") + " to "
-                title_str += edt.strftime("%Y-%m-%d")
+                title_str += edt.strftime("%Y-%m-%d") + "; " + label
                 ax_ts.set_title(title_str)
-            ax_ts.plot(var["DateTime"][d["idx"]], var["Data"][d["idx"]], 'b.')
+            legend = str(p[n]["lwr"]) + "," + str(p[n]["upr"])
+            ax_ts.plot(var["DateTime"][d["idx"]], var["Data"][d["idx"]], 'b.', label=legend)
+            ax_ts.legend()
             lwrs = str(pfp_utils.round2significant(d["lwr"], 4))
             uprs = str(pfp_utils.round2significant(d["upr"], 4))
             x = numpy.arange(len(d["hist"]))
             ax_hist = fig.add_subplot(gs[n, 1])
-            label = str(p[n]["lwr"]) + "," + str(p[n]["upr"])
+            hist_label = str(p[n]["lwr"]) + "," + str(p[n]["upr"])
             ax_hist.bar(x, d["hist"])
-            ax_hist.text(0.5, 0.85, label, transform=ax_hist.transAxes,
+            ax_hist.text(0.5, 0.85, hist_label, transform=ax_hist.transAxes,
                          horizontalalignment='center')
             ax_hist.set_xticks([x[1], x[-2]])
             ax_hist.set_xticklabels([lwrs, uprs])
