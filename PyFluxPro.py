@@ -583,7 +583,8 @@ class pfp_main_ui(QtWidgets.QWidget):
         # get the updated control file data
         cfg = self.tabs.tab_dict[tab_index_current].get_data_from_model()
         # put up a "Save as ..." dialog
-        cfgpath = QtWidgets.QFileDialog.getSaveFileName(self, "Save as ...")[0]
+        cfg_filename = self.tabs.cfg_dict[tab_index_current]["controlfile_name"]
+        cfgpath = QtWidgets.QFileDialog.getSaveFileName(self, "Save as ...", cfg_filename)[0]
         # return without doing anything if cancel used
         if len(str(cfgpath)) == 0:
             return

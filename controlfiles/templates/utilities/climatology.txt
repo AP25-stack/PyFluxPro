@@ -6,8 +6,8 @@ level = climatology
     [[Ta]]
         name = Ta
         format = 0.00
-    [[Ah]]
-        name = Ah
+    [[AH]]
+        name = AH
         format = 0.00
     [[RH]]
         name = RH
