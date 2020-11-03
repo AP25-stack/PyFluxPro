@@ -2,13 +2,13 @@
 
 Welcome to the repository for the integrated GUI version of PyFluxPro.
 
-PyFluxPro is a suite of Python3 scripts, now integrated into a single GUI, that is designed to simplify and standardise the quality control, post-processing, gap filling and partitioning of data from flux towers.  PyFluxPro has been developed by the OzFlux (http://ozflux.org.au) community in Australia and is used by the community as the operational tool for processing data from the OzFlux network of flux towers.  PyFluxPro is not limited to Australia and can be used for flux tower data collected anywhere in the world.  Using PyFluxPro does not require any knowledge of Python (though we would always recommend people learn Python anyway!), all aspects of the processing can be controlled via the integrated GUI.  PyFluxPro can read data from Excel workbooks and CSV files and uses netCDF files (http://www.unidata.ucar.edu/software/netcdf/) for storing intermediate and final output data.
+PyFluxPro is a suite of Python scripts, now integrated into a single GUI, that is designed to simplify and standardise the quality control, post-processing, gap filling and partitioning of data from flux towers.  PyFluxPro has been developed by the OzFlux (http://ozflux.org.au) community in Australia and is used by the community as the operational tool for processing data from the OzFlux network of flux towers.  PyFluxPro is not limited to Australia and can be used for flux tower data collected anywhere in the world.  Using PyFluxPro does not require any knowledge of Python (though we would always recommend people learn Python anyway!), all aspects of the processing can be controlled via the integrated GUI.  PyFluxPro can read data from Excel workbooks and CSV files and uses netCDF files (http://www.unidata.ucar.edu/software/netcdf/) for storing intermediate and final output data.
 
 The following documentation gives basic information on how to install and use PyFluxPro.  Details on the algorithms used in PyFluxPro and results for several sites in the Australian OzFlux network can be found in a recent publication in the OzFlux Special Issue of Biogeosciences (https://www.biogeosciences.net/14/2903/2017/).
 
 # Installation and Updating
 There are 4 steps to installing PyFluxPro on Windows:
-* 1. Install Python3.
+* 1. Install Python.
 * 2. Install the "git" version control software.
 * 3. Clone the PyFluxPro repository using the "git" version control software.
 * 4. Create a Python3 virtual environment for running PyFluxPro.
@@ -16,15 +16,15 @@ There are 4 steps to installing PyFluxPro on Windows:
 A fifth step is required when installing PyFluxPro on Linux or Mac OSX.  The extra step is to build the executable files for the SOLO neural network, the MPT u* threshold detection scheme and the MDS gap filling routine, see below for details.
 
 ## Installing Python
-PyFluxPro is written for Python V3.7 and uses a number of standard and 3rd party Python3 modules.
+PyFluxPro is written for Python V3+ and uses a number of standard and 3rd party Python modules.
 
-OzFlux uses and recommends the Miniconda3 (https://conda.io/miniconda.html) Python V3 distribution.  This is a minimilist installation of Python3 which installs into your home directory and can then be automatically configured to provide all of the Python3 modules used by PyFluxPro.
+OzFlux uses and recommends the Miniconda3 (https://conda.io/miniconda.html) Python V3+ distribution.  This is a minimilist installation of Python which installs into your home directory and can then be automatically configured to provide all of the Python modules used by PyFluxPro.
 
 **NOTE:** The GUI version of PyFluxPro uses PyQt5 to provide the GUI elements.  We have not found a way of installing PyQt5 using "pip" so a "requirements.txt" file for automatically configuring the Miniconda2 installation using "pip" is not supplied at present.  The currently recommended way to configure the Miniconda2 installation is to create a virtual environment using "conda env create ..." using the YAML file ("environment.yml") supplied.
 
 To install Miniconda3, follow these steps:
-* 1. Download the Miniconda3 Python V3 installer for your operating system from https://conda.io/miniconda.html.
-* 2. Follow the instructions on the Conda web page (https://conda.io/docs/user-guide/install/index.html) to install the Miniconda3 Python V3 distribution.
+* 1. Download the Miniconda3 Python V3+ installer for your operating system from https://conda.io/miniconda.html.
+* 2. Follow the instructions on the Conda web page (https://conda.io/docs/user-guide/install/index.html) to install the Miniconda3 Python V3+ distribution.
 * 3. Accept all the defaults during the installation, including having Conda append the path of this Python3 installation to your system PATH environment variable.
 
 At the end of this process, you should have a functioning, although minimal, installation of the Python language interpeter.
