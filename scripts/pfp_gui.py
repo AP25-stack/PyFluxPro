@@ -2069,12 +2069,18 @@ class edit_cfg_L3(QtWidgets.QWidget):
 
     def add_fileentry(self):
         """ Add a new entry to the [Files] section."""
+        # get the index of the selected item
         idx = self.view.selectedIndexes()[0]
+        # get the selected item from the index
+        section = idx.model().itemFromIndex(idx)
+        # get the sender
         s = self.context_menu.sender().text()
         file_entry = s.rsplit(" ", 1)[-1]
         dict_to_add = {file_entry: "Right click to browse"}
         # add the subsection
-        self.add_subsection(dict_to_add)
+        self.add_subsection(section, dict_to_add)
+        # update the tab text
+        self.update_tab_text()
 
     def add_file_path(self):
         """ Add file_path to the 'Files' section."""
@@ -2219,18 +2225,20 @@ class edit_cfg_L3(QtWidgets.QWidget):
         self.sections["Plots"].appendRow(parent)
         self.update_tab_text()
 
-    def add_subsection(self, dict_to_add):
+    def add_subsection(self, section, dict_to_add):
         """ Add a subsection to the model."""
-        # get the index of the selected item
-        idx = self.view.selectedIndexes()[0]
-        # get the selected item from the index
-        section = idx.model().itemFromIndex(idx)
         for key in dict_to_add:
             val = str(dict_to_add[key])
             child0 = QtGui.QStandardItem(key)
             child1 = QtGui.QStandardItem(val)
             section.appendRow([child0, child1])
-        self.update_tab_text()
+
+    def add_subsubsection(self, subsection, dict_to_add):
+        """ Add a subsubsection to the model."""
+        for key in dict_to_add:
+            subsubsection = QtGui.QStandardItem(key)
+            self.add_subsection(subsubsection, dict_to_add[key])
+            subsection.appendRow(subsubsection)
 
     def add_timeseries(self):
         """ Add a new time series to the 'Plots' section."""
@@ -2265,21 +2273,21 @@ class edit_cfg_L3(QtWidgets.QWidget):
         self.sections["Variables"].appendRow(parent2)
         self.update_tab_text()
 
-    #def add_variable_above(self):
-        #""" Add a new variable above the selected variable."""
-        ## get the index of the selected item
-        #idx = self.view.selectedIndexes()[0]
-        ## get the selected item from the index
-        #selected_item = idx.model().itemFromIndex(idx)
-        ## get the parent of the selected item
-        #parent = selected_item.parent()
-        ## construct the new variable dictionary
-        #new_var = {"RangeCheck":{"lower":0, "upper": 1}}
-        #subsection = QtGui.QStandardItem("New variable")
-        #self.add_subsubsection(subsection, new_var)
-        #parent.insertRow(idx.row(), subsection)
-        ## add an asterisk to the tab text to indicate the tab contents have changed
-        #self.update_tab_text()
+    def add_variable_above(self):
+        """ Add a new variable above the selected variable."""
+        # get the index of the selected item
+        idx = self.view.selectedIndexes()[0]
+        # get the selected item from the index
+        selected_item = idx.model().itemFromIndex(idx)
+        # get the parent of the selected item
+        parent = selected_item.parent()
+        # construct the new variable dictionary
+        new_var = {"RangeCheck":{"lower":0, "upper": 1}}
+        subsection = QtGui.QStandardItem("New variable")
+        self.add_subsubsection(subsection, new_var)
+        parent.insertRow(idx.row(), subsection)
+        # add an asterisk to the tab text to indicate the tab contents have changed
+        self.update_tab_text()
 
     def add_zms(self):
         """ Add zms to the [Options] section."""
@@ -2628,11 +2636,11 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.actionAddAverageSeries.setText("Add AverageSeries")
                     self.context_menu.addAction(self.context_menu.actionAddAverageSeries)
                     self.context_menu.actionAddAverageSeries.triggered.connect(self.add_averageseries)
-                #self.context_menu.addSeparator()
-                #self.context_menu.actionAddVariableAbove = QtWidgets.QAction(self)
-                #self.context_menu.actionAddVariableAbove.setText("New variable")
-                #self.context_menu.addAction(self.context_menu.actionAddVariableAbove)
-                #self.context_menu.actionAddVariableAbove.triggered.connect(self.add_variable_above)
+                self.context_menu.addSeparator()
+                self.context_menu.actionAddVariableAbove = QtWidgets.QAction(self)
+                self.context_menu.actionAddVariableAbove.setText("New variable")
+                self.context_menu.addAction(self.context_menu.actionAddVariableAbove)
+                self.context_menu.actionAddVariableAbove.triggered.connect(self.add_variable_above)
                 self.context_menu.actionRemoveVariable = QtWidgets.QAction(self)
                 self.context_menu.actionRemoveVariable.setText("Remove variable")
                 self.context_menu.addAction(self.context_menu.actionRemoveVariable)
