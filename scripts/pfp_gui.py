@@ -2549,7 +2549,7 @@ class edit_cfg_L3(QtWidgets.QWidget):
                     self.context_menu.actionRemoveOption.setText("Remove option")
                     self.context_menu.addAction(self.context_menu.actionRemoveOption)
                     self.context_menu.actionRemoveOption.triggered.connect(self.remove_item)
-                elif (selected_item.column() == 1) and (key in ["ApplyFcStorage", "UseL2Fluxes",
+                elif (selected_item.column() == 1) and (key in ["ApplyFco2Storage", "UseL2Fluxes",
                                                                 "2DCoordRotation", "MassmanCorrection",
                                                                 "CorrectIndividualFg", "CorrectFgForStorage",
                                                                 "KeepIntermediateSeries"]):
@@ -2563,6 +2563,28 @@ class edit_cfg_L3(QtWidgets.QWidget):
                         self.context_menu.actionChangeOption.setText("No")
                         self.context_menu.addAction(self.context_menu.actionChangeOption)
                         self.context_menu.actionChangeOption.triggered.connect(lambda:self.change_selected_text("No"))
+                elif (selected_item.column() == 1) and (key in ["CO2Units"]):
+                    if selected_text != "umol/mol":
+                        self.context_menu.actionChangeOption = QtWidgets.QAction(self)
+                        self.context_menu.actionChangeOption.setText("umol/mol")
+                        self.context_menu.addAction(self.context_menu.actionChangeOption)
+                        self.context_menu.actionChangeOption.triggered.connect(lambda:self.change_selected_text("umol/mol"))
+                    if selected_text != "mg/m^3":
+                        self.context_menu.actionChangeOption = QtWidgets.QAction(self)
+                        self.context_menu.actionChangeOption.setText("mg/m^3")
+                        self.context_menu.addAction(self.context_menu.actionChangeOption)
+                        self.context_menu.actionChangeOption.triggered.connect(lambda:self.change_selected_text("mg/m^3"))
+                elif (selected_item.column() == 1) and (key in ["Fco2Units"]):
+                    if selected_text != "umol/m^2/s":
+                        self.context_menu.actionChangeOption = QtWidgets.QAction(self)
+                        self.context_menu.actionChangeOption.setText("umol/m^2/s")
+                        self.context_menu.addAction(self.context_menu.actionChangeOption)
+                        self.context_menu.actionChangeOption.triggered.connect(lambda:self.change_selected_text("umol/m^2/s"))
+                    if selected_text != "mg/m^2/s":
+                        self.context_menu.actionChangeOption = QtWidgets.QAction(self)
+                        self.context_menu.actionChangeOption.setText("mg/m^2/s")
+                        self.context_menu.addAction(self.context_menu.actionChangeOption)
+                        self.context_menu.actionChangeOption.triggered.connect(lambda:self.change_selected_text("mg/m^2/s"))
             elif str(parent.text()) == "Variables":
                 selected_text = str(idx.data())
                 # get a list of existing entries
