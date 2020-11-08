@@ -1033,7 +1033,7 @@ def ExcelToDataStructures(xl_data, l1_info):
             # put the variable into the data structure
             pfp_utils.CreateVariable(ds[xl_sheet], var)
         # round the Python datetime to the nearest second
-        pfp_utils.round_datetime(ds[xl_sheet], mode="nearest_second")
+        pfp_utils.round_datetime(ds[xl_sheet], mode="nearest_timestep")
     return ds
 
 def write_csv_fluxnet(cf):
