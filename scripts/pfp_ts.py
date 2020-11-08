@@ -2627,7 +2627,7 @@ def MergeDataStructures(ds_dict, l1_info):
         # check that all datetimes in ds_dict[item] were found in ds
         if len(idxa) != len(dtn_sorted):
             no_match = 100*(len(dtn_sorted) - len(idxa))//len(dtn_sorted)
-            msg = no_match + "% of time stamps for " + item + " do not match"
+            msg = str(no_match) + "% of time stamps for " + item + " do not match"
             logger.warning(msg)
         labels = list(ds_dict[item].series.keys())
         if "DateTime" in labels:
