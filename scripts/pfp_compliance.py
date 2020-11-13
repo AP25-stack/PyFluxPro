@@ -1092,7 +1092,7 @@ def check_l1_controlfile(cfg):
     units = {"co2": ["mg/m^3", "mmol/m^3", "umol/mol", "mg^2/m^6", "mmol^2/m^6",
                      "mg/m^2/s", "umol/m^2/s", "umol^2/mol^2"],
              "h2o": ["g/m^3", "kg/m^3", "mmol/m^3", "mmol/mol", "percent", "fraction",
-                      "kg/kg", "g^2/m^6", "mmol^2/m^6", "mmol^2/mol^2"],
+                     "kg/kg", "g^2/m^6", "mmol^2/m^6", "mmol^2/mol^2"],
              "temperature": ["degC", "K", "degC^2", "K^2"],
              "pressure": ["Pa", "hPa", "kPa"],
              "soil": ["m^3/m^3", "dS/m"],
@@ -1102,7 +1102,7 @@ def check_l1_controlfile(cfg):
              "precipitation": ["m", "mm"],
              "wind": ["m/s", "degrees", "m^2/s^2"],
              "heat": ["J/kg", "J/kg/K", "J/m^3/K"],
-             "misc": ["V", "none"]}
+             "misc": ["V", "none", "ohms"]}
     ok_units = []
     for key in list(units.keys()):
         ok_units += units[key]
