@@ -1096,7 +1096,7 @@ def check_l1_controlfile(cfg):
              "temperature": ["degC", "K", "degC^2", "K^2"],
              "pressure": ["Pa", "hPa", "kPa"],
              "soil": ["m^3/m^3", "dS/m"],
-             "radiation": ["W/m^2", "umol/m^2/s"],
+             "radiation": ["W/m^2", "umol/m^2/s", "mmol/m^2/s"],
              "covariance": ["g/m^2/s", "mg/m^2/s", "m.degC/s", "m.K/s", "m^2/s^2"],
              "flux": ["kg/m/s^2"],
              "precipitation": ["m", "mm"],
