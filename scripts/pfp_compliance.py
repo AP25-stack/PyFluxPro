@@ -548,7 +548,7 @@ def ParseConcatenateControlFile(cf):
     inc["MaxGapInterpolate"] = int(opt)
     opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "FixTimeStepMethod", default="round")
     inc["FixTimeStepMethod"] = str(opt)
-    opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "Truncate", default="Yes")
+    opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "Truncate", default="No")
     inc["Truncate"] = str(opt)
     opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "TruncateThreshold", default=50)
     inc["TruncateThreshold"] = float(opt)

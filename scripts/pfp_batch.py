@@ -141,7 +141,7 @@ def do_reddyproc_batch(cf_level):
     return
 def do_concatenate_batch(cf_level):
     #logger = pfp_log.change_logger_filename("pfp_log", "concatenate")
-    for i in list(cf_level.keys()):
+    for i in sorted(list(cf_level.keys())):
         if not os.path.isfile(cf_level[i]):
             msg = " Control file " + cf_level[i] + " not found"
             logger.error(msg)
@@ -160,7 +160,7 @@ def do_concatenate_batch(cf_level):
             msg = "Finished concatenation with " + cf_file_name[1]
             logger.info(msg)
             # now plot the fingerprints for the concatenated files
-            opt = pfp_utils.get_keyvaluefromcf(cf_cc, ["Options"], "DoFingerprints", default="yes")
+            opt = pfp_utils.get_keyvaluefromcf(cf_cc, ["Options"], "DoFingerprints", default="no")
             if opt.lower() == "no":
                 continue
             cf_fp = pfp_io.get_controlfilecontents("controlfiles/standard/fingerprint.txt")

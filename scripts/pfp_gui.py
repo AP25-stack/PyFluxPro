@@ -3288,6 +3288,12 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
         # add an asterisk to the tab text to indicate the tab contents have changed
         self.update_tab_text()
 
+    def change_selected_text(self, new_text):
+        """ Change the selected text."""
+        idx = self.view.selectedIndexes()[0]
+        selected_item = idx.model().itemFromIndex(idx)
+        selected_item.setText(new_text)
+
     def context_menu(self, position):
         """ Right click context menu."""
         # get a menu
@@ -3334,13 +3340,30 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
                     self.context_menu.actionAddSeriesToCheck.setText("SeriesToCheck")
                     self.context_menu.addAction(self.context_menu.actionAddSeriesToCheck)
                     self.context_menu.actionAddSeriesToCheck.triggered.connect(self.add_seriestocheck)
+                if "DoFingerprints" not in existing_entries:
+                    self.context_menu.actionAddDoFingerprints = QtWidgets.QAction(self)
+                    self.context_menu.actionAddDoFingerprints.setText("DoFingerprints")
+                    self.context_menu.addAction(self.context_menu.actionAddDoFingerprints)
+                    self.context_menu.actionAddDoFingerprints.triggered.connect(self.add_dofingerprints)
         elif level == 1:
             parent = selected_item.parent()
+            key = str(parent.child(selected_item.row(),0).text())
             if (str(parent.text()) == "Options") and (selected_item.column() == 0):
                 self.context_menu.actionRemoveOption = QtWidgets.QAction(self)
                 self.context_menu.actionRemoveOption.setText("Remove option")
                 self.context_menu.addAction(self.context_menu.actionRemoveOption)
                 self.context_menu.actionRemoveOption.triggered.connect(self.remove_item)
+            elif (selected_item.column() == 1) and (key in ["Truncate", "DoFingerprints"]):
+                if selected_text != "Yes":
+                    self.context_menu.actionChangeOption = QtWidgets.QAction(self)
+                    self.context_menu.actionChangeOption.setText("Yes")
+                    self.context_menu.addAction(self.context_menu.actionChangeOption)
+                    self.context_menu.actionChangeOption.triggered.connect(lambda:self.change_selected_text("Yes"))
+                if selected_text != "No":
+                    self.context_menu.actionChangeOption = QtWidgets.QAction(self)
+                    self.context_menu.actionChangeOption.setText("No")
+                    self.context_menu.addAction(self.context_menu.actionChangeOption)
+                    self.context_menu.actionChangeOption.triggered.connect(lambda:self.change_selected_text("No"))
             elif str(parent.text()) == "Files":
                 if selected_text == "In":
                     self.context_menu.actionAddInputFile = QtWidgets.QAction(self)
@@ -3446,6 +3469,13 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
         if "*" not in tab_text:
             self.tabs.setTabText(self.tabs.tab_index_current, tab_text+"*")
 
+    def add_dofingerprints(self):
+        """ Add the DoFingerprints option to the context menu."""
+        # add the option to the [Options] section
+        dict_to_add = {"DoFingerprints": "No"}
+        # add the subsubsection
+        self.add_subsection(dict_to_add)
+
     def add_inputfile(self):
         """ Add an entry for a new input file."""
         # get the index of the selected item
@@ -3492,7 +3522,7 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
     def add_truncate(self):
         """ Add the Truncate option to the context menu."""
         # add the option to the [Options] section
-        dict_to_add = {"Truncate": "Yes"}
+        dict_to_add = {"Truncate": "No"}
         # add the subsubsection (GapFillFromAlternate)
         self.add_subsection(dict_to_add)
 

@@ -1368,13 +1368,6 @@ def NetCDFConcatenate(info):
     # get the maximum gap length (in hours) from the control file
     pfp_ts.InterpolateOverMissing(ds_out, inc["labels"], max_length_hours=inc["MaxGapInterpolate"],
                                   int_type="Akima")
-    # make sure we have all of the humidities
-    pfp_ts.CalculateHumidities(ds_out)
-    # and make sure we have all of the meteorological variables
-    pfp_ts.CalculateMeteorologicalVariables(ds_out, info)
-    # check units of Fc and convert if necessary
-    Fco2_list = ["Fco2", "Fco2_single", "Fco2_profile", "Fco2_storage"]
-    pfp_utils.CheckUnits(ds_out, Fco2_list, "umol/m^2/s", convert_units=True)
     # check missing data and QC flags are consistent
     pfp_utils.CheckQCFlags(ds_out)
     # update the coverage statistics

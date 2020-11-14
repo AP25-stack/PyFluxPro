@@ -583,6 +583,7 @@ def plot_explore_timeseries(ds, labels):
         edt = var["DateTime"][-1]
         axs[n].plot(var["DateTime"], var["Data"], "b.", label=label)
         axs[n].legend()
+        axs[n].set_xlim([sdt, edt])
         if n == 0:
             title_str = site_name + ": " + sdt.strftime("%Y-%m-%d") + " to "
             title_str += edt.strftime("%Y-%m-%d")
@@ -617,11 +618,12 @@ def plottimeseries(cf, nFig, dsa, dsb):
         # get the figure
         figa = plt.figure(i)
         # get the figure title
-        fig_title = figa.texts[0].get_text()
-        # strip out the site name
-        idx = fig_title.index(":")
-        # and append to the figure title list
-        fig_titles.append(fig_title[idx+2:])
+        if len(figa.texts) > 0:
+            fig_title = figa.texts[0].get_text()
+            # strip out the site name
+            idx = fig_title.index(":")
+            # and append to the figure title list
+            fig_titles.append(fig_title[idx+2:])
     # check to see if a figure with the same title already exists
     if p['PlotDescription'] in fig_titles:
         # if it does, get the figure number (figure numbers start from 1)
