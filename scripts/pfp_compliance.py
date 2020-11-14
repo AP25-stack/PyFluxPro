@@ -400,7 +400,9 @@ def concatenate_update_controlfile(cfg):
             elif key1 in ["Options"]:
                 for key2 in cfg[key1]:
                     cfg2 = cfg[key1][key2]
-                    if key2 in ["MaxGapInterpolate"]:
+                    if key2 in ["DoFingerprints", "FixTimeStepMethod", "MaxGapInterpolate",
+                                "NumberOfDimensions", "SeriesToCheck", "Truncate",
+                                "TruncateThreshold"]:
                         cfg2 = parse_cfg_values(key2, cfg2, strip_list)
                     else:
                         del cfg[key1][key2]
@@ -552,9 +554,9 @@ def ParseConcatenateControlFile(cf):
     inc["Truncate"] = str(opt)
     opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "TruncateThreshold", default=50)
     inc["TruncateThreshold"] = float(opt)
-    s = "AH,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,ps,Sws,Ta,Ts,Ws,Wd,Precip"
+    s = "AH,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,H2O,ps,RH,Sws,Ta,Ts,Ws,Wd,Precip"
     opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "SeriesToCheck", default=s)
-    inc["SeriesToCheck"] = pfp_utils.csv_string_to_list(s)
+    inc["SeriesToCheck"] = pfp_utils.csv_string_to_list(opt)
     # now add the bits and pieces
     inc["start_date"] = []
     inc["end_date"] = []

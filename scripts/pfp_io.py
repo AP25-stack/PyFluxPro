@@ -1530,8 +1530,11 @@ def netcdf_concatenate_truncate(ds_in, info):
     ldt = pfp_utils.GetVariable(ds_out, "DateTime")
     nrecs = int(ds_out.globalattributes["nc_nrecs"])
     cidx = numpy.zeros(nrecs)
-    for item in inc["SeriesToCheck"]:
+    if inc["SeriesToCheck"][0].lower() == "all":
+        inc["SeriesToCheck"] = sorted(list(ds_out.series.keys()))
+    for item in list(inc["SeriesToCheck"]):
         if item not in list(ds_out.series.keys()):
+            inc["SeriesToCheck"].remove(item)
             continue
         var = pfp_utils.GetVariable(ds_out, item)
         idx = numpy.where(numpy.ma.getmaskarray(var["Data"]) == False)[0]

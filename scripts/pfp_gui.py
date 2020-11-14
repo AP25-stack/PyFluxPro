@@ -3536,7 +3536,7 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
     def add_seriestocheck(self):
         """ Add the SeriesToCheck option to the context menu."""
         # add the option to the [Options] section
-        series = "AH,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,ps,Sws,Ta,Ts,Ws,Wd,Precip"
+        series = "AH,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,H2O,ps,RH,Sws,Ta,Ts,Ws,Wd,Precip"
         dict_to_add = {"SeriesToCheck": series}
         # add the subsubsection (GapFillFromAlternate)
         self.add_subsection(dict_to_add)
