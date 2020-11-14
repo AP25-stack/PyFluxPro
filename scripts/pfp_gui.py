@@ -3525,6 +3525,9 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
         dict_to_add = {"Truncate": "No"}
         # add the subsubsection (GapFillFromAlternate)
         self.add_subsection(dict_to_add)
+        # automatically add the threshold and series to check
+        self.add_truncatethreshold()
+        self.add_seriestocheck()
 
     def add_truncatethreshold(self):
         """ Add the TruncateThreshold option to the context menu."""
