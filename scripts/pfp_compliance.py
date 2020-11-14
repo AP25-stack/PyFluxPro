@@ -554,8 +554,7 @@ def ParseConcatenateControlFile(cf):
     inc["Truncate"] = str(opt)
     opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "TruncateThreshold", default=50)
     inc["TruncateThreshold"] = float(opt)
-    s = "AH,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,H2O,ps,RH,Sws,Ta,Ts,Ws,Wd,Precip"
-    opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "SeriesToCheck", default=s)
+    opt = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "SeriesToCheck", default="all")
     inc["SeriesToCheck"] = pfp_utils.csv_string_to_list(opt)
     # now add the bits and pieces
     inc["start_date"] = []

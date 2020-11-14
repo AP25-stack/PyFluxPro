@@ -3330,16 +3330,16 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
                     self.context_menu.actionAddTruncate.setText("Truncate")
                     self.context_menu.addAction(self.context_menu.actionAddTruncate)
                     self.context_menu.actionAddTruncate.triggered.connect(self.add_truncate)
-                if "TruncateThreshold" not in existing_entries:
-                    self.context_menu.actionAddTruncateThreshold = QtWidgets.QAction(self)
-                    self.context_menu.actionAddTruncateThreshold.setText("TruncateThreshold")
-                    self.context_menu.addAction(self.context_menu.actionAddTruncateThreshold)
-                    self.context_menu.actionAddTruncateThreshold.triggered.connect(self.add_truncatethreshold)
-                if "SeriesToCheck" not in existing_entries:
-                    self.context_menu.actionAddSeriesToCheck = QtWidgets.QAction(self)
-                    self.context_menu.actionAddSeriesToCheck.setText("SeriesToCheck")
-                    self.context_menu.addAction(self.context_menu.actionAddSeriesToCheck)
-                    self.context_menu.actionAddSeriesToCheck.triggered.connect(self.add_seriestocheck)
+                #if "TruncateThreshold" not in existing_entries:
+                    #self.context_menu.actionAddTruncateThreshold = QtWidgets.QAction(self)
+                    #self.context_menu.actionAddTruncateThreshold.setText("TruncateThreshold")
+                    #self.context_menu.addAction(self.context_menu.actionAddTruncateThreshold)
+                    #self.context_menu.actionAddTruncateThreshold.triggered.connect(self.add_truncatethreshold)
+                #if "SeriesToCheck" not in existing_entries:
+                    #self.context_menu.actionAddSeriesToCheck = QtWidgets.QAction(self)
+                    #self.context_menu.actionAddSeriesToCheck.setText("SeriesToCheck")
+                    #self.context_menu.addAction(self.context_menu.actionAddSeriesToCheck)
+                    #self.context_menu.actionAddSeriesToCheck.triggered.connect(self.add_seriestocheck)
                 if "DoFingerprints" not in existing_entries:
                     self.context_menu.actionAddDoFingerprints = QtWidgets.QAction(self)
                     self.context_menu.actionAddDoFingerprints.setText("DoFingerprints")
@@ -3522,7 +3522,7 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
     def add_truncate(self):
         """ Add the Truncate option to the context menu."""
         # add the option to the [Options] section
-        dict_to_add = {"Truncate": "No"}
+        dict_to_add = {"Truncate": "Yes"}
         # add the subsubsection (GapFillFromAlternate)
         self.add_subsection(dict_to_add)
         # automatically add the threshold and series to check
@@ -3539,7 +3539,7 @@ class edit_cfg_concatenate(QtWidgets.QWidget):
     def add_seriestocheck(self):
         """ Add the SeriesToCheck option to the context menu."""
         # add the option to the [Options] section
-        series = "AH,CO2,Fa,Fg,Fld,Flu,Fn,Fsd,Fsu,H2O,ps,RH,Sws,Ta,Ts,Ws,Wd,Precip"
+        series = "all"
         dict_to_add = {"SeriesToCheck": series}
         # add the subsubsection (GapFillFromAlternate)
         self.add_subsection(dict_to_add)
