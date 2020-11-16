@@ -1152,13 +1152,10 @@ def l1_update_controlfile(cfg):
         msg = " An error occurred updating the L1 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
-        # kludge to detect if running as a PyInstaller application
-        if getattr(sys, 'frozen', False):
-            stdname = os.path.join(sys._MEIPASS, "cfg_update.txt")
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
-        #print(stdname, os.path.isfile(stdname))
-        #std = ConfigObj(stdname, indent_type="    ", list_values=False)
     except Exception:
         ok = False
         msg = " Unable to load standard control file " + stdname
@@ -1417,7 +1414,9 @@ def l2_update_controlfile(cfg):
         msg = " An error occurred while updating the L2 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -1631,7 +1630,9 @@ def l3_update_controlfile(cfg):
         msg = " An error occurred while updating the L3 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -1861,7 +1862,9 @@ def l4_update_controlfile(cfg):
         msg = " An error occurred while updating the L4 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -2068,7 +2071,9 @@ def l5_update_controlfile(cfg):
         msg = " An error occurred while updating the L5 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -2344,7 +2349,9 @@ def l6_update_controlfile(cfg):
         msg = " An error occurred while updating the L6 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False

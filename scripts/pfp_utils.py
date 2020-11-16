@@ -2059,6 +2059,22 @@ def GetUnitsFromds(ds, ThisOne):
     units = ds.series[ThisOne]['Attr']['units']
     return units
 
+def get_base_path():
+    """
+    Purpose:
+     Return the base path dependng on whether we are running as a script
+     or a Pyinstaller app;ication.
+    Author: https://stackoverflow.com/questions/7674790/bundling-data-files-with-pyinstaller-onefile
+    """
+    # check if we running as a PyInstaller application
+    if getattr(sys, 'frozen', False):
+        # running as a PyInstaller application
+        base_path = sys._MEIPASS
+    else:
+        # running as a script
+        base_path = os.path.abspath(".")
+    return base_path
+
 def get_cfsection(cf, label, mode='quiet'):
     '''
     Find the section in the control file that contains an entry for the series "series".

@@ -145,10 +145,9 @@ def run_mpt_code(cf, ds, nc_file_name):
         out_full_path = in_full_path.replace("input", "output").replace(".csv", "_ut.txt")
         data = make_data_array(cf, ds, year)
         numpy.savetxt(in_full_path, data, header=header, delimiter=",", comments="", fmt=fmt)
-        ustar_mp_exe = os.path.join("mpt", "bin", "ustar_mp")
-        # kludge to detect if running as a PyInstaller application
-        if getattr(sys, 'frozen', False):
-            ustar_mp_exe = "ustar_mp"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        ustar_mp_exe = os.path.join(base_path, "mpt", "bin", "ustar_mp")
         if ts == 30:
             cmd = [ustar_mp_exe, "-input_path="+in_full_path, "-output_path="+out_base_path]
         elif ts == 60:

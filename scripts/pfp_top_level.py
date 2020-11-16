@@ -75,7 +75,9 @@ def do_file_convert_nc2biomet(cfg, mode="standard"):
         # check to see if the user chose a standard or a custom run
         if cfg is None and mode == "standard":
             # standard run so we use the control file in PyFluxPro/controlfiles/standard
-            stdname = "controlfiles/standard/nc2csv_biomet.txt"
+            # get the base path of script or Pyinstaller application
+            base_path = pfp_utils.get_base_path()
+            stdname = os.path.join(base_path, "controlfiles", "standard", "nc2csv_biomet.txt")
             # check to see if the standard control file exists
             if os.path.exists(stdname):
                 # standard control file exists so read it
@@ -154,7 +156,9 @@ def do_file_convert_nc2reddyproc(cfg, mode="standard"):
         # check to see if the user chose a standard or a custom run
         if cfg is None and mode == "standard":
             # standard run so we use the control file in PyFluxPro/controlfiles/standard
-            stdname = "controlfiles/standard/nc2tsv_reddyproc.txt"
+            # get the base path of script or Pyinstaller application
+            base_path = pfp_utils.get_base_path()
+            stdname = os.path.join(base_path, "controlfiles", "standard", "nc2tsv_reddyproc.txt")
             # check to see if the standard control file exists
             if os.path.exists(stdname):
                 # standard control file exists so read it
@@ -312,46 +316,6 @@ def do_file_convert_nc2fluxnet(cfg):
         error_message = traceback.format_exc()
         logger.error(error_message)
     return
-def do_file_convert_ncupdate():
-    """
-    Purpose:
-     Convert from OFQC netCDF files to PFP V1 (October 2018).
-    Usage:
-    Author: PRI
-    Date: October 2018
-    """
-    logger.info(" Starting conversion of netCDF")
-    try:
-        # get a list of netCDF files to update
-        file_names = QtWidgets.QFileDialog.getOpenFileNames(caption="Choose netCDF files", filter="*.nc")[0]
-        if len(file_names) == 0: return
-        # get the control file
-        stdname = os.path.join("controlfiles", "standard", "nc_cleanup.txt")
-        cfg = pfp_io.get_controlfilecontents(stdname)
-        if len(cfg) == 0: return
-        # loop over the selected files
-        for file_name in file_names:
-            # make the [Files] section
-            cfg["Files"] = {"file_path": os.path.join(os.path.split(file_name)[0], ""),
-                            "in_filename": os.path.split(file_name)[1]}
-            # make the [Options] section
-            cfg["Options"] = {"call_mode": "interactive", "show_plots": "Yes"}
-
-            result = pfp_compliance.nc_update(cfg)
-
-            if result == 0:
-                logger.info(" Finished converting netCDF file")
-                logger.info("")
-            else:
-                logger.error("")
-                logger.error(" An error occured, check the log messages")
-                logger.error("")
-    except Exception:
-        msg = " Error running netCDF update, see below for details ..."
-        logger.error(msg)
-        error_message = traceback.format_exc()
-        logger.error(error_message)
-    return
 def do_file_split():
     Dialog = QtWidgets.QDialog()
     ui = split_dialog.Ui_Dialog()
@@ -415,19 +379,6 @@ def do_run_batch(cfg):
     try:
         logger.info("Starting batch processing")
         pfp_batch.do_levels_batch(cfg)
-
-        #ds1 = pfp_levels.l1qc(cfg)
-        #if ds1.returncodes["value"] == 0:
-            #outfilename = pfp_io.get_outfilenamefromcf(cfg)
-            #nc_file = pfp_io.nc_open_write(outfilename)
-            #if nc_file is None: return
-            #pfp_io.nc_write_series(nc_file, ds1)
-            #logger.info("Finished L1 processing")
-        #else:
-            #msg = "An error occurred during L1 processing"
-            #logger.error(msg)
-        #logger.info("")
-
     except Exception:
         msg = " Error running batch processing, see below for details ..."
         logger.error(msg)
@@ -760,10 +711,9 @@ def do_plot_fingerprints():
     """
     logger.info("Starting fingerprint plot")
     try:
-        stdname = "controlfiles/standard/fingerprint.txt"
-        # kludge to detect if running as a PyInstaller application
-        if getattr(sys, 'frozen', False):
-            stdname = os.path.join(sys._MEIPASS, "fingerprint.txt")
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "fingerprint.txt")
         if os.path.exists(stdname):
             cf = pfp_io.get_controlfilecontents(stdname)
             filename = pfp_io.get_filename_dialog(file_path="../Sites",title="Choose a netCDF file")
@@ -807,7 +757,9 @@ def do_plot_quickcheck():
     """
     try:
         logger.info("Starting summary plots")
-        stdname = "controlfiles/standard/quickcheck.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "quickcheck.txt")
         if os.path.exists(stdname):
             cf = pfp_io.get_controlfilecontents(stdname)
             filename = pfp_io.get_filename_dialog(file_path="../Sites",title="Choose a netCDF file")
@@ -851,7 +803,9 @@ def do_plot_timeseries():
     """
     try:
         logger.info("Starting timeseries plot")
-        stdname = "controlfiles/standard/fluxnet.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "fluxnet.txt")
         if os.path.exists(stdname):
             cf = pfp_io.get_controlfilecontents(stdname)
             filename = pfp_io.get_filename_dialog(file_path="../Sites",title="Choose a netCDF file")
@@ -891,7 +845,9 @@ def do_utilities_climatology(cfg=None, mode="standard"):
     try:
         logger.info(" Starting climatology")
         if mode == "standard":
-            stdname = "controlfiles/standard/climatology.txt"
+            # get the base path of script or Pyinstaller application
+            base_path = pfp_utils.get_base_path()
+            stdname = os.path.join(base_path, "controlfiles", "standard", "climatology.txt")
             if os.path.exists(stdname):
                 cfg = pfp_io.get_controlfilecontents(stdname)
                 filename = pfp_io.get_filename_dialog(file_path="../Sites", title='Choose a netCDF file')
@@ -937,7 +893,9 @@ def do_utilities_ustar_cpd_mchugh(cfg=None, mode="standard"):
     try:
         logger.info(" Starting CPD u* threshold detection (McHugh)")
         if mode == "standard":
-            stdname = "controlfiles/standard/cpd1.txt"
+            # get the base path of script or Pyinstaller application
+            base_path = pfp_utils.get_base_path()
+            stdname = os.path.join(base_path, "controlfiles", "standard", "cpd1.txt")
             if os.path.exists(stdname):
                 cfg = pfp_io.get_controlfilecontents(stdname)
                 filename = pfp_io.get_filename_dialog(file_path="../Sites", title="Choose a netCDF file")
@@ -984,7 +942,9 @@ def do_utilities_ustar_cpd_barr(cfg=None, mode="standard"):
     try:
         logger.info(" Starting CPD u* threshold detection (Barr)")
         if mode == "standard":
-            stdname = "controlfiles/standard/cpd2.txt"
+            # get the base path of script or Pyinstaller application
+            base_path = pfp_utils.get_base_path()
+            stdname = os.path.join(base_path, "controlfiles", "standard", "cpd2.txt")
             if os.path.exists(stdname):
                 cfg = pfp_io.get_controlfilecontents(stdname)
                 filename = pfp_io.get_filename_dialog(file_path="../Sites", title="Choose a netCDF file")
@@ -1032,10 +992,9 @@ def do_utilities_ustar_mpt(cfg=None, mode="standard"):
     try:
         logger.info(" Starting u* threshold detection (MPT)")
         if mode == "standard":
-            stdname = "controlfiles/standard/mpt.txt"
-            # kludge to detect if running as a PyInstaller application
-            if getattr(sys, 'frozen', False):
-                stdname = os.path.join(sys._MEIPASS, "mpt.txt")
+            # get the base path of script or Pyinstaller application
+            base_path = pfp_utils.get_base_path()
+            stdname = os.path.join(base_path, "controlfiles", "standard", "mpt.txt")
             if os.path.exists(stdname):
                 cfg = pfp_io.get_controlfilecontents(stdname)
                 filename = pfp_io.get_filename_dialog(file_path='../Sites', title="Choose a netCDF file")
