@@ -9,16 +9,16 @@ import traceback
 from configobj import ConfigObj
 # PFP modules
 #sys.path.append("scripts")
-import pfp_cfg
-import pfp_clim
-import pfp_compliance
-import pfp_cpd1
-import pfp_cpd2
-import pfp_io
-import pfp_levels
-import pfp_mpt
-import pfp_plot
-import pfp_utils
+from scripts import pfp_cfg
+from scripts import pfp_clim
+from scripts import pfp_compliance
+from scripts import pfp_cpd1
+from scripts import pfp_cpd2
+from scripts import pfp_io
+from scripts import pfp_levels
+from scripts import pfp_mpt
+from scripts import pfp_plot
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

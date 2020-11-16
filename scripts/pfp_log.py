@@ -3,7 +3,7 @@ import datetime
 import logging
 import os
 # 3rd party modules
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 
 class QPlainTextEditLogger(logging.Handler):
     def __init__(self, parent):

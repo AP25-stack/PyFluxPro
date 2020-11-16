@@ -1,22 +1,19 @@
 # standard modules
-import copy
 import datetime
 import os
 import logging
 import sys
-import traceback
 # 3rd party modules
 import dateutil
 import numpy
-import matplotlib.dates as mdt
 import xlrd
 # PFP modules
-import constants as c
-import pfp_cfg
-import pfp_gui
-import pfp_io
-import pfp_ts
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_cfg
+from scripts import pfp_gui
+from scripts import pfp_io
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

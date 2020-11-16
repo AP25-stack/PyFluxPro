@@ -4,7 +4,6 @@
 import copy
 import datetime
 import logging
-import math
 import numbers
 import os
 import sys
@@ -17,9 +16,9 @@ import numpy
 import pytz
 import xlrd
 # PFP modules
-import constants as c
-import meteorologicalfunctions as pfp_mf
-import pfp_func_units
+from scripts import constants as c
+from scripts import meteorologicalfunctions as pfp_mf
+from scripts import pfp_func_units
 
 logger = logging.getLogger("pfp_log")
 

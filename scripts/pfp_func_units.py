@@ -3,8 +3,8 @@ import logging
 # 3rd party
 import numpy
 # PFP modules
-import meteorologicalfunctions as pfp_mf
-import pfp_utils
+from scripts import meteorologicalfunctions as pfp_mf
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

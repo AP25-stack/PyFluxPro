@@ -1,6 +1,5 @@
 # standard modules
 import datetime
-import logging
 import os
 import platform
 import sys
@@ -25,38 +24,38 @@ else:
 from PyQt5 import QtWidgets
 # PFP modules
 sys.path.append('scripts')
-import cfg
-import pfp_compliance
-import pfp_gui
-import pfp_log
-import pfp_top_level
+from scripts import cfg
+from scripts import pfp_compliance
+from scripts import pfp_gui
+from scripts import pfp_log
+from scripts import pfp_top_level
 
 warnings.filterwarnings("ignore", category=Warning)
 
 # now check the logfiles and plots directories are present
-dir_list = ["./logfiles/", "./plots/"]
+dir_list = ["logfiles/", "plots/"]
 for item in dir_list:
     if not os.path.exists(item):
         os.makedirs(item)
 # now check the solo/inf, solo/input, solo/log and solo/output directories are present
-dir_list = ["./solo/inf", "./solo/input", "./solo/log", "./solo/output"]
+dir_list = ["solo/inf/", "solo/input/", "solo/log/", "solo/output/"]
 for item in dir_list:
     if not os.path.exists(item):
         os.makedirs(item)
 # next we make sure the MPT directories are present ...
-dir_list = ["./mpt/input", "./mpt/log", "./mpt/output"]
+dir_list = ["mpt/input/", "mpt/log/", "mpt/output/"]
 for item in dir_list:
     if not os.path.exists(item):
         os.makedirs(item)
 # ... and make sure the MDS directories are present
-dir_list = ["./mds/input", "./mds/log", "./mds/output"]
+dir_list = ["mds/input/", "mds/log/", "mds/output/"]
 for item in dir_list:
     if not os.path.exists(item):
         os.makedirs(item)
 
 now = datetime.datetime.now()
 log_file_name = "pfp_" + now.strftime("%Y%m%d%H%M") + ".log"
-log_file_name = os.path.join("./logfiles", log_file_name)
+log_file_name = os.path.join("logfiles", log_file_name)
 logger = pfp_log.init_logger("pfp_log", log_file_name, to_file=True, to_screen=False)
 
 class pfp_main_ui(QtWidgets.QWidget):
@@ -703,6 +702,6 @@ if (__name__ == '__main__'):
     app = QtWidgets.QApplication(["PyFluxPro"])
     ui = pfp_main_ui(pfp_version)
     ui.show()
-    pfp_compliance.check_executables()
+    #pfp_compliance.check_executables()
     app.exec_()
     del ui

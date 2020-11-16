@@ -13,19 +13,16 @@ from configobj import ConfigObj
 import dateutil
 import netCDF4
 import numpy
-import scipy.stats
 import xlrd
 import xlwt
 import xlsxwriter
 from PyQt5 import QtWidgets
 # PFP modules
-import cfg
-import constants as c
-import meteorologicalfunctions as pfp_mf
-import pfp_cfg
-import pfp_ck
-import pfp_ts
-import pfp_utils
+from scripts import cfg
+from scripts import constants as c
+from scripts import meteorologicalfunctions as pfp_mf
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

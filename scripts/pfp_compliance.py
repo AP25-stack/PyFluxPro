@@ -6,23 +6,25 @@ import logging
 import ntpath
 import os
 import platform
+import sys
 import time
 import traceback
 # 3rd party modules
+from configobj import ConfigObj
 import numpy
 from PyQt5 import QtWidgets
 import scipy.stats
 import timezonefinder
 import xlrd
 # PFP modules
-import constants as c
-import pfp_cfg
-import pfp_func_units
-import pfp_func_stats
-import pfp_gui
-import pfp_io
-import pfp_ts
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_cfg
+from scripts import pfp_func_units
+from scripts import pfp_func_stats
+from scripts import pfp_gui
+from scripts import pfp_io
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 
@@ -1151,7 +1153,12 @@ def l1_update_controlfile(cfg):
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
         stdname = "controlfiles/standard/cfg_update.txt"
+        # kludge to detect if running as a PyInstaller application
+        if getattr(sys, 'frozen', False):
+            stdname = os.path.join(sys._MEIPASS, "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
+        #print(stdname, os.path.isfile(stdname))
+        #std = ConfigObj(stdname, indent_type="    ", list_values=False)
     except Exception:
         ok = False
         msg = " Unable to load standard control file " + stdname
@@ -1422,7 +1429,7 @@ def l2_update_controlfile(cfg):
         cfg = l2_update_cfg_variable_attributes(cfg, std)
     except Exception:
         ok = False
-        msg = " An error occurred updating the L1 control file contents"
+        msg = " An error occurred updating the L2 control file contents"
     if ok:
         # check to see if the control file object has been changed
         if cfg != cfg_original:

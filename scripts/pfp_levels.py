@@ -1,18 +1,17 @@
 # standard modules
 import copy
 import logging
-import os
 # PFP modules
-import pfp_ck
-import pfp_compliance
-import pfp_gf
-import pfp_gfALT
-import pfp_gfMDS
-import pfp_gfSOLO
-import pfp_io
-import pfp_rp
-import pfp_ts
-import pfp_utils
+from scripts import pfp_ck
+from scripts import pfp_compliance
+from scripts import pfp_gf
+from scripts import pfp_gfALT
+from scripts import pfp_gfMDS
+from scripts import pfp_gfSOLO
+from scripts import pfp_io
+from scripts import pfp_rp
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

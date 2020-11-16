@@ -8,16 +8,14 @@ import subprocess
 # 3rd party modules
 import dateutil
 import numpy
-import matplotlib
 import matplotlib.dates as mdt
 import matplotlib.pyplot as plt
 import pylab
 # PFP modules
-import constants as c
-import pfp_ck
-import pfp_gf
-import pfp_io
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_ck
+from scripts import pfp_io
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

@@ -1,23 +1,24 @@
 # standard modules
 import logging
 import os
+import sys
 import traceback
 # 3rd party modules
 import netCDF4
 import matplotlib
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtWidgets
 # PFP modules
-import pfp_batch
-import pfp_clim
-import pfp_compliance
-import pfp_cpd1
-import pfp_cpd2
-import pfp_mpt
-import pfp_io
-import pfp_levels
-import pfp_plot
-import pfp_utils
-import split_dialog
+from scripts import pfp_batch
+from scripts import pfp_clim
+from scripts import pfp_compliance
+from scripts import pfp_cpd1
+from scripts import pfp_cpd2
+from scripts import pfp_mpt
+from scripts import pfp_io
+from scripts import pfp_levels
+from scripts import pfp_plot
+from scripts import pfp_utils
+from scripts import split_dialog
 
 logger = logging.getLogger("pfp_log")
 # top level routines for the File menu
@@ -760,6 +761,9 @@ def do_plot_fingerprints():
     logger.info("Starting fingerprint plot")
     try:
         stdname = "controlfiles/standard/fingerprint.txt"
+        # kludge to detect if running as a PyInstaller application
+        if getattr(sys, 'frozen', False):
+            stdname = os.path.join(sys._MEIPASS, "fingerprint.txt")
         if os.path.exists(stdname):
             cf = pfp_io.get_controlfilecontents(stdname)
             filename = pfp_io.get_filename_dialog(file_path="../Sites",title="Choose a netCDF file")
@@ -1029,6 +1033,9 @@ def do_utilities_ustar_mpt(cfg=None, mode="standard"):
         logger.info(" Starting u* threshold detection (MPT)")
         if mode == "standard":
             stdname = "controlfiles/standard/mpt.txt"
+            # kludge to detect if running as a PyInstaller application
+            if getattr(sys, 'frozen', False):
+                stdname = os.path.join(sys._MEIPASS, "mpt.txt")
             if os.path.exists(stdname):
                 cfg = pfp_io.get_controlfilecontents(stdname)
                 filename = pfp_io.get_filename_dialog(file_path='../Sites', title="Choose a netCDF file")

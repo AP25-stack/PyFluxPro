@@ -4,16 +4,14 @@ import calendar
 import datetime
 import logging
 import os
-import sys
 # 3rd party modules
 import numpy
-import matplotlib
 import matplotlib.pyplot as plt
 import scipy
 # PFP modules
-import constants as c
-import pfp_cfg
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_cfg
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

@@ -6,23 +6,20 @@ import logging
 import os
 # 3rd party modules
 import dateutil
-import matplotlib
 import matplotlib.pyplot as plt
 import netCDF4
 import numpy
 import pylab
 import xlrd
 # PFP modules
-import constants as c
-import pfp_cfg
-import pfp_gf
-import pfp_gfSOLO
-import pfp_gui
-import pfp_io
-import pfp_rpLL
-import pfp_rpLT
-import pfp_ts
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_gf
+from scripts import pfp_gfSOLO
+from scripts import pfp_io
+from scripts import pfp_rpLL
+from scripts import pfp_rpLT
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

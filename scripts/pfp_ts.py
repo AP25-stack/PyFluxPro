@@ -8,14 +8,14 @@ import numpy
 from matplotlib.dates import date2num
 from scipy import interpolate
 # PFP
-import constants as c
-import meteorologicalfunctions as pfp_mf
-import pfp_cfg
-import pfp_func_units
-import pfp_func_stats
-import pfp_io
-import pfp_utils
-import pysolar
+from scripts import constants as c
+from scripts import meteorologicalfunctions as pfp_mf
+from scripts import pfp_cfg
+from scripts import pfp_func_units
+from scripts import pfp_func_stats
+from scripts import pfp_io
+from scripts import pfp_utils
+from scripts import pysolar
 
 logger = logging.getLogger("pfp_log")
 
