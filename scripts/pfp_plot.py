@@ -3,7 +3,6 @@ import logging
 import math
 import os
 # 3rd party
-import matplotlib
 import matplotlib.dates as mdt
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
@@ -12,12 +11,11 @@ import numpy
 from scipy import stats
 import statsmodels.api as sm
 # PFP modules
-import constants as c
-import meteorologicalfunctions as pfp_mf
-import pfp_cfg
-import pfp_ck
-import pfp_io
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_cfg
+from scripts import pfp_ck
+from scripts import pfp_io
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

@@ -4,7 +4,6 @@
 import copy
 import datetime
 import logging
-import math
 import numbers
 import os
 import sys
@@ -17,9 +16,9 @@ import numpy
 import pytz
 import xlrd
 # PFP modules
-import constants as c
-import meteorologicalfunctions as pfp_mf
-import pfp_func_units
+from scripts import constants as c
+from scripts import meteorologicalfunctions as pfp_mf
+from scripts import pfp_func_units
 
 logger = logging.getLogger("pfp_log")
 
@@ -2059,6 +2058,22 @@ def GetVariable(ds, label, start=0, end=-1, mode="truncate", out_type="ma"):
 def GetUnitsFromds(ds, ThisOne):
     units = ds.series[ThisOne]['Attr']['units']
     return units
+
+def get_base_path():
+    """
+    Purpose:
+     Return the base path dependng on whether we are running as a script
+     or a Pyinstaller app;ication.
+    Author: https://stackoverflow.com/questions/7674790/bundling-data-files-with-pyinstaller-onefile
+    """
+    # check if we running as a PyInstaller application
+    if getattr(sys, 'frozen', False):
+        # running as a PyInstaller application
+        base_path = sys._MEIPASS
+    else:
+        # running as a script
+        base_path = os.path.abspath(".")
+    return base_path
 
 def get_cfsection(cf, label, mode='quiet'):
     '''

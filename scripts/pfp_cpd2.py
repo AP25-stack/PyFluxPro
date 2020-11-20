@@ -10,9 +10,9 @@ import scipy.stats
 import statsmodels.api as sm
 import xlwt
 # PFP modules
-import pfp_io
-import pfp_ts
-import pfp_utils
+from scripts import pfp_io
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 # get the logger
 logger = logging.getLogger("pfp_log")

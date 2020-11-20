@@ -1,17 +1,16 @@
 # standard modules
 import copy
-import constants as c
 import datetime
 import logging
-import time
 # 3rd party
 import numpy
 import dateutil.parser
 # pfp modules
-import pfp_cfg
-import pfp_rp
-import pfp_ts
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_cfg
+from scripts import pfp_rp
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

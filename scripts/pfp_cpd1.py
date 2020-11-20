@@ -5,7 +5,6 @@ import datetime
 import logging
 import os
 # 3rd party modules
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -14,9 +13,9 @@ register_matplotlib_converters()
 from scipy import stats
 import statsmodels.formula.api as sm
 # PFP modules
-import constants as c
-import pfp_io
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_io
+from scripts import pfp_utils
 
 # get the logger
 logger = logging.getLogger("pfp_log")

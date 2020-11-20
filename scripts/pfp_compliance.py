@@ -6,23 +6,25 @@ import logging
 import ntpath
 import os
 import platform
+import sys
 import time
 import traceback
 # 3rd party modules
+from configobj import ConfigObj
 import numpy
 from PyQt5 import QtWidgets
 import scipy.stats
-import timezonefinder
+#import timezonefinder
 import xlrd
 # PFP modules
-import constants as c
-import pfp_cfg
-import pfp_func_units
-import pfp_func_stats
-import pfp_gui
-import pfp_io
-import pfp_ts
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_cfg
+from scripts import pfp_func_units
+from scripts import pfp_func_stats
+from scripts import pfp_gui
+from scripts import pfp_io
+from scripts import pfp_ts
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 
@@ -825,24 +827,24 @@ def change_global_attributes(cfg, ds):
         ds.globalattributes["longitude"] = str(lon)
     # check to see if there there is a time_zone global attribute
     gattr_list = list(ds.globalattributes.keys())
-    if not "time_zone" in gattr_list:
-        # get the site name
-        site_name = ds.globalattributes["site_name"]
-        sn = site_name.replace(" ","").replace(",","").lower()
-        # first, see if the site is in constants.tz_dict
-        if sn in list(c.tz_dict.keys()):
-            ds.globalattributes["time_zone"] = c.tz_dict[sn]
-        else:
-            if "latitude" in gattr_list and "longitude" in gattr_list:
-                lat = float(ds.globalattributes["latitude"])
-                lon = float(ds.globalattributes["longitude"])
-                if lat != -9999 and lon != -9999:
-                    tf = timezonefinder.TimezoneFinder()
-                    tz = tf.timezone_at(lng=lon, lat=lat)
-                    ds.globalattributes["time_zone"] = tz
-                else:
-                    logger.warning("Global attributes: unable to define time zone")
-                    ds.globalattributes["time_zone"] = ""
+    #if not "time_zone" in gattr_list:
+        ## get the site name
+        #site_name = ds.globalattributes["site_name"]
+        #sn = site_name.replace(" ","").replace(",","").lower()
+        ## first, see if the site is in constants.tz_dict
+        #if sn in list(c.tz_dict.keys()):
+            #ds.globalattributes["time_zone"] = c.tz_dict[sn]
+        #else:
+            #if "latitude" in gattr_list and "longitude" in gattr_list:
+                #lat = float(ds.globalattributes["latitude"])
+                #lon = float(ds.globalattributes["longitude"])
+                #if lat != -9999 and lon != -9999:
+                    #tf = timezonefinder.TimezoneFinder()
+                    #tz = tf.timezone_at(lng=lon, lat=lat)
+                    #ds.globalattributes["time_zone"] = tz
+                #else:
+                    #logger.warning("Global attributes: unable to define time zone")
+                    #ds.globalattributes["time_zone"] = ""
     # add or change global attributes as required
     gattr_list = sorted(list(cfg["Global"].keys()))
     for gattr in gattr_list:
@@ -1150,7 +1152,9 @@ def l1_update_controlfile(cfg):
         msg = " An error occurred updating the L1 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -1410,7 +1414,9 @@ def l2_update_controlfile(cfg):
         msg = " An error occurred while updating the L2 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -1422,7 +1428,7 @@ def l2_update_controlfile(cfg):
         cfg = l2_update_cfg_variable_attributes(cfg, std)
     except Exception:
         ok = False
-        msg = " An error occurred updating the L1 control file contents"
+        msg = " An error occurred updating the L2 control file contents"
     if ok:
         # check to see if the control file object has been changed
         if cfg != cfg_original:
@@ -1624,7 +1630,9 @@ def l3_update_controlfile(cfg):
         msg = " An error occurred while updating the L3 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -1854,7 +1862,9 @@ def l4_update_controlfile(cfg):
         msg = " An error occurred while updating the L4 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -2061,7 +2071,9 @@ def l5_update_controlfile(cfg):
         msg = " An error occurred while updating the L5 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False
@@ -2337,7 +2349,9 @@ def l6_update_controlfile(cfg):
         msg = " An error occurred while updating the L6 control file syntax"
     # check to see if we can load the nc_cleanup.txt standard control file
     try:
-        stdname = "controlfiles/standard/cfg_update.txt"
+        # get the base path of script or Pyinstaller application
+        base_path = pfp_utils.get_base_path()
+        stdname = os.path.join(base_path, "controlfiles", "standard", "cfg_update.txt")
         std = pfp_io.get_controlfilecontents(stdname)
     except Exception:
         ok = False

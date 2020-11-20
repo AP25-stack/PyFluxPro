@@ -5,15 +5,14 @@ import logging
 import os
 import warnings
 # 3rd party modules
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 from scipy.optimize import curve_fit, OptimizeWarning
 # PFP modules
-import constants as c
-import pfp_cfg
-import pfp_gui
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_cfg
+from scripts import pfp_gui
+from scripts import pfp_utils
 
 warnings.simplefilter("ignore", OptimizeWarning)
 logger = logging.getLogger("pfp_log")

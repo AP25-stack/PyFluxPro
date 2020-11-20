@@ -8,16 +8,14 @@ import subprocess
 # 3rd party modules
 import dateutil
 import numpy
-import matplotlib
 import matplotlib.dates as mdt
 import matplotlib.pyplot as plt
 import pylab
 # PFP modules
-import constants as c
-import pfp_ck
-import pfp_gf
-import pfp_io
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_ck
+from scripts import pfp_io
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 
@@ -847,10 +845,17 @@ def gfSOLO_runseqsolo(dsb, drivers, targetlabel, outputlabel, nRecs,
         os.remove('solo/output/seqOut2.out')
     # now run SEQSOLO
     seqsolologfile = open('solo/log/seqsolo.log', 'w')
-    if platform.system() == "Windows":
-        subprocess.call(['./solo/bin/seqsolo.exe', 'solo/inf/seqsolo.inf'], stdout=seqsolologfile)
-    else:
-        subprocess.call(['./solo/bin/seqsolo', 'solo/inf/seqsolo.inf'], stdout=seqsolologfile)
+
+    #if platform.system() == "Windows":
+        #subprocess.call(['./solo/bin/seqsolo.exe', 'solo/inf/seqsolo.inf'], stdout=seqsolologfile)
+    #else:
+        #subprocess.call(['./solo/bin/seqsolo', 'solo/inf/seqsolo.inf'], stdout=seqsolologfile)
+
+    # get the base path of script or Pyinstaller application
+    base_path = pfp_utils.get_base_path()
+    seqsolo_exe = os.path.join(base_path, "solo", "bin", "seqsolo")
+    subprocess.call([seqsolo_exe, 'solo/inf/seqsolo.inf'], stdout=seqsolologfile)
+
     seqsolologfile.close()
     # check to see if the solo output file exists, this is used to indicate that solo ran correctly
     if os.path.exists('solo/output/seqOut2.out'):
@@ -917,10 +922,17 @@ def gfSOLO_runsofm(dsb, drivers, targetlabel, nRecs, si=0, ei=-1):
         os.remove('solo/output/sofm_4.out')
     # now run SOFM
     sofmlogfile = open('solo/log/sofm.log', 'w')
-    if platform.system() == "Windows":
-        subprocess.call(['./solo/bin/sofm.exe', 'solo/inf/sofm.inf'], stdout=sofmlogfile)
-    else:
-        subprocess.call(['./solo/bin/sofm', 'solo/inf/sofm.inf'], stdout=sofmlogfile)
+
+    #if platform.system() == "Windows":
+        #subprocess.call(['./solo/bin/sofm.exe', 'solo/inf/sofm.inf'], stdout=sofmlogfile)
+    #else:
+        #subprocess.call(['./solo/bin/sofm', 'solo/inf/sofm.inf'], stdout=sofmlogfile)
+
+    # get the base path of script or Pyinstaller application
+    base_path = pfp_utils.get_base_path()
+    sofm_exe = os.path.join(base_path, "solo", "bin", "sofm")
+    subprocess.call([sofm_exe, 'solo/inf/sofm.inf'], stdout=sofmlogfile)
+
     sofmlogfile.close()
     # check to see if the sofm output file exists, this is used to indicate that sofm ran correctly
     if os.path.exists('solo/output/sofm_4.out'):
@@ -969,10 +981,17 @@ def gfSOLO_runsolo(dsb, drivers, targetlabel, nRecs, si=0, ei=-1):
         os.remove('solo/output/eigenValue.out')
     # now run SOLO
     solologfile = open('solo/log/solo.log', 'w')
-    if platform.system() == "Windows":
-        subprocess.call(['./solo/bin/solo.exe', 'solo/inf/solo.inf'], stdout=solologfile)
-    else:
-        subprocess.call(['./solo/bin/solo', 'solo/inf/solo.inf'], stdout=solologfile)
+
+    #if platform.system() == "Windows":
+        #subprocess.call(['./solo/bin/solo.exe', 'solo/inf/solo.inf'], stdout=solologfile)
+    #else:
+        #subprocess.call(['./solo/bin/solo', 'solo/inf/solo.inf'], stdout=solologfile)
+
+    # get the base path of script or Pyinstaller application
+    base_path = pfp_utils.get_base_path()
+    solo_exe = os.path.join(base_path, "solo", "bin", "solo")
+    subprocess.call([solo_exe, 'solo/inf/solo.inf'], stdout=solologfile)
+
     solologfile.close()
     # check to see if the solo output file exists, this is used to indicate that solo ran correctly
     if os.path.exists('solo/output/eigenValue.out'):

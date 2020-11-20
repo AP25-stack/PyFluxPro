@@ -4,18 +4,17 @@ import copy
 import inspect
 import logging
 import os
-import pdb
 # 3rd party modules
 from configobj import ConfigObj
 from PyQt5 import QtCore, QtGui, QtWidgets
 # PFP modules
-import pfp_func_units
-import pfp_func_stats
-import pfp_gfALT
-import pfp_gfSOLO
-import pfp_io
-import pfp_plot
-import pfp_utils
+from scripts import pfp_func_units
+from scripts import pfp_func_stats
+from scripts import pfp_gfALT
+from scripts import pfp_gfSOLO
+from scripts import pfp_io
+from scripts import pfp_plot
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 

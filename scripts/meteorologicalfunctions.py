@@ -1,6 +1,9 @@
-import constants as c
+# standard modules
+# 3rd party modules
 import numpy
-import pfp_utils
+# PFP modules
+from scripts import constants as c
+from scripts import pfp_utils
 
 def absolutehumidityfromrelativehumidity(Ta,RH):
     # convert to masked arrays

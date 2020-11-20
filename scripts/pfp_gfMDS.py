@@ -5,15 +5,13 @@ import glob
 import logging
 import os
 import subprocess
-import time
 # 3rd party modules
 import dateutil
 import numpy
-import matplotlib
 import matplotlib.pyplot as plt
 # PFP modules
-import constants as c
-import pfp_utils
+from scripts import constants as c
+from scripts import pfp_utils
 
 logger = logging.getLogger("pfp_log")
 
@@ -182,8 +180,11 @@ def gfMDS_make_cmd_string(info):
         in_files = in_files + "+" + in_file
     # get the output base path
     out_base_path = info["out_base_path"]
+    # get the base path of script or Pyinstaller application
+    base_path = pfp_utils.get_base_path()
+    gf_mds_exe = os.path.join(base_path, "mds", "bin", "gf_mds")
     # start creating the command list of MDS options
-    cmd = ['./mds/bin/gf_mds', '-input='+in_files, '-output='+out_base_path,
+    cmd = [gf_mds_exe, '-input='+in_files, '-output='+out_base_path,
            '-date=TIMESTAMP', '-rows_min=0']
     # create the target label string
     tofill = info["target_mds"]
