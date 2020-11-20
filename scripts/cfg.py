@@ -1,7 +1,12 @@
 version_name = "PyFluxPro"
-version_number = "V3.0.3"
+version_number = "V3.0.4"
 
-# V3.0.3 - 25th October 2020 port of change sin PFP2.7 "another_fine_mess" branch
+# V3.0.4 - 20th November 2020
+#        - PyInstaller version
+#        - corrected syntax for importing PFP modules
+#        - added pfp_utils.get_base_path() to return correct appilcation
+#          path whether running native Python version or PyInstaller version
+# V3.0.3 - 25th October 2020 port of changes in PFP2.7 "another_fine_mess" branch
 #        - major changes (to be documented later)
 #        - 6th August 2020 (long overdue version change)
 #        - check GitHub for what has been done since 5th August 2019
