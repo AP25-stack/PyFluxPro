@@ -912,9 +912,12 @@ def gfSOLO_createdict_gui(cf, ds, l5_info, called_by):
     opt = pfp_utils.get_keyvaluefromcf(cf, sl, "overwrite", default="no")
     if opt.lower() == "yes": l5s["gui"]["overwrite"] = True
     # show plots option
-    l5s["gui"]["show_plots"] = True
-    opt = pfp_utils.get_keyvaluefromcf(cf, sl, "show_plots", default="yes")
-    if opt.lower() == "no": l5s["gui"]["show_plots"] = False
+    if cf["Options"]["call_mode"].lower() == "interactive":
+        l5s["gui"]["show_plots"] = True
+    else:
+        opt = pfp_utils.get_keyvaluefromcf(cf, sl, "show_plots", default="yes")
+        if opt.lower() == "no":
+            l5s["gui"]["show_plots"] = False
     # show all plots option
     l5s["gui"]["show_all"] = False
     opt = pfp_utils.get_keyvaluefromcf(cf, sl, "show_all", default="no")
