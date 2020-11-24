@@ -1721,6 +1721,12 @@ def l3_update_cfg_syntax(cfg):
                     cfg[key1][key2] = cfg2
                 else:
                     del cfg[key1][key2]
+        elif key1 in ["Imports"]:
+            for key2 in cfg[key1]:
+                for key3 in cfg[key1][key2]:
+                    cfg3 = cfg[key1][key2][key3]
+                    cfg3 = parse_cfg_values(key3, cfg3, strip_list)
+                    cfg[key1][key2][key3] = cfg3
         elif key1 in ["Plots"]:
             for key2 in cfg[key1]:
                 title = parse_cfg_plots_title(cfg, key1, key2)
@@ -1920,12 +1926,11 @@ def l4_update_cfg_syntax(cfg):
                 else:
                     del cfg[key1][key2]
         elif key1 in ["Imports"]:
-            if key1 in ["Imports"]:
-                for key2 in cfg[key1]:
-                    for key3 in cfg[key1][key2]:
-                        cfg3 = cfg[key1][key2][key3]
-                        cfg3 = parse_cfg_values(key3, cfg3, strip_list)
-                        cfg[key1][key2][key3] = cfg3
+            for key2 in cfg[key1]:
+                for key3 in cfg[key1][key2]:
+                    cfg3 = cfg[key1][key2][key3]
+                    cfg3 = parse_cfg_values(key3, cfg3, strip_list)
+                    cfg[key1][key2][key3] = cfg3
         elif key1 in ["Drivers"]:
             for key2 in cfg[key1]:
                 for key3 in cfg[key1][key2]:
