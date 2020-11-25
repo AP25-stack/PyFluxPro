@@ -52,6 +52,10 @@ def do_L2_batch(cf_level):
         logger.info(msg)
         try:
             cf = pfp_io.get_controlfilecontents(cf_level[i])
+            if "Options" not in cf:
+                cf["Options"] = {}
+            cf["Options"]["call_mode"] = "batch"
+            cf["Options"]["show_plots"] = "No"
             infilename = pfp_io.get_infilenamefromcf(cf)
             ds1 = pfp_io.nc_read_series(infilename)
             if ds1.returncodes["value"] != 0: return
@@ -62,6 +66,18 @@ def do_L2_batch(cf_level):
             pfp_io.nc_write_series(nc_file, ds2)
             msg = "Finished L2 processing with " + cf_file_name[1]
             logger.info(msg)
+            if "Plots" in list(cf.keys()):
+                logger.info("Plotting L1 and L2 data")
+                for nFig in list(cf['Plots'].keys()):
+                    plt_cf = cf['Plots'][str(nFig)]
+                    if 'type' in plt_cf.keys():
+                        if str(plt_cf['type']).lower() == 'xy':
+                            pfp_plot.plotxy(cf, nFig, plt_cf, ds1, ds2)
+                        else:
+                            pfp_plot.plottimeseries(cf, nFig, ds1, ds2)
+                    else:
+                        pfp_plot.plottimeseries(cf, nFig, ds1, ds2)
+                logger.info("Finished plotting L1 and L2 data")
             logger.info("")
         except Exception:
             msg = "Error occurred during L2 processing " + cf_file_name[1]
@@ -78,6 +94,10 @@ def do_L3_batch(cf_level):
         logger.info(msg)
         try:
             cf = pfp_io.get_controlfilecontents(cf_level[i])
+            if "Options" not in cf:
+                cf["Options"] = {}
+            cf["Options"]["call_mode"] = "batch"
+            cf["Options"]["show_plots"] = "No"
             infilename = pfp_io.get_infilenamefromcf(cf)
             ds2 = pfp_io.nc_read_series(infilename)
             if ds2.returncodes["value"] != 0: return
@@ -88,6 +108,18 @@ def do_L3_batch(cf_level):
             pfp_io.nc_write_series(nc_file, ds3)
             msg = "Finished L3 processing with " + cf_file_name[1]
             logger.info(msg)
+            if "Plots" in list(cf.keys()):
+                logger.info("Plotting L3 data")
+                for nFig in list(cf['Plots'].keys()):
+                    plt_cf = cf['Plots'][str(nFig)]
+                    if 'type' in plt_cf.keys():
+                        if str(plt_cf['type']).lower() == 'xy':
+                            pfp_plot.plotxy(cf, nFig, plt_cf, ds2, ds3)
+                        else:
+                            pfp_plot.plottimeseries(cf, nFig, ds2, ds3)
+                    else:
+                        pfp_plot.plottimeseries(cf, nFig, ds2, ds3)
+                logger.info("Finished plotting L3 data")
             logger.info("")
         except Exception:
             msg = "Error occurred during L3 processing " + cf_file_name[1]
