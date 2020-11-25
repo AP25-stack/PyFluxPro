@@ -208,7 +208,8 @@ def ParseL4ControlFile(cf, ds):
     # check to make sure at least 1 output is defined
     outputs = []
     for method in ["GapFillFromAlternate", "GapFillFromClimatology"]:
-        outputs = outputs + list(l4_info[method]["outputs"].keys())
+        if method in list(l4_info.keys()):
+            outputs = outputs + list(l4_info[method]["outputs"].keys())
     if len(outputs) == 0:
         msg = " No output variables defined, quitting L4 ..."
         logger.error(msg)
