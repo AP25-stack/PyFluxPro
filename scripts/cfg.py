@@ -1,6 +1,7 @@
 version_name = "PyFluxPro"
-version_number = "V3.0.4"
-
+version_number = "V3.0.5"
+# V3.0.5 - 25th November 2020
+#        - implement plotting at L2 and L3 in batch mode
 # V3.0.4 - 20th November 2020
 #        - PyInstaller version
 #        - corrected syntax for importing PFP modules

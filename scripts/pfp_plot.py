@@ -609,6 +609,12 @@ def plottimeseries(cf, nFig, dsa, dsb):
     p['XAxMax'] = max(L2XArray)
     p['loc'],p['fmt'] = get_ticks(p['XAxMin'],p['XAxMax'])
     plt.ion()
+    # turn on interactive plotting
+    show_plots = pfp_utils.get_keyvaluefromcf(cf, ["Options"], "show_plots", default="yes")
+    if show_plots.lower() == "yes":
+        plt.ion()
+    else:
+        plt.ioff()
     # check to see if a figure with the same title already exists
     fig_titles = []
     # get a list of figure titles
@@ -701,16 +707,23 @@ def plottimeseries(cf, nFig, dsa, dsb):
             #if n > 0: plt.setp(bar_ax.get_xticklabels(), visible=False)
         else:
             logger.error('  plttimeseries: series '+ThisOne+' not in data structure')
-    plt.draw()
-    pfp_utils.mypause(0.5)
-    if "plot_path" in cf["Files"]:
-        plot_path = os.path.join(cf["Files"]["plot_path"],Level)
+        # get the plot path and save a hard copy of the plot
+        if "plot_path" in cf["Files"]:
+            plot_path = os.path.join(cf["Files"]["plot_path"],Level)
+        else:
+            plot_path = "plots/"
+        if not os.path.exists(plot_path):
+            os.makedirs(plot_path)
+        fname = os.path.join(plot_path, SiteName.replace(' ','')+'_'+Level+'_'+p['PlotDescription'].replace(' ','')+'.png')
+        fig.savefig(fname,format='png')
+    # draw the plot on the screen
+    if show_plots.lower() == "yes":
+        plt.draw()
+        pfp_utils.mypause(0.5)
+        plt.ioff()
     else:
-        plot_path = "plots/"
-    if not os.path.exists(plot_path):
-        os.makedirs(plot_path)
-    fname = os.path.join(plot_path, SiteName.replace(' ','')+'_'+Level+'_'+p['PlotDescription'].replace(' ','')+'.png')
-    fig.savefig(fname,format='png')
+        plt.ion()
+    return
 
 def plot_quickcheck_seb(nFig, plot_title, figure_name, data, daily):
     logger.info(" Doing surface energy balance plots")
