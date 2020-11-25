@@ -230,8 +230,6 @@ def l4qc(main_gui, cf, ds3):
     if ds4.returncodes["value"] != 0:
         return ds4
     # *** start of the section that does the gap filling of the drivers ***
-    # read the alternate data files
-    ds_alt = pfp_gf.ReadAlternateFiles(ds4, l4_info)
     # fill short gaps using interpolation
     pfp_gf.GapFillUsingInterpolation(cf, ds4)
     # gap fill using climatology
@@ -239,6 +237,8 @@ def l4qc(main_gui, cf, ds3):
         pfp_gf.GapFillFromClimatology(ds4, l4_info, "GapFillFromClimatology")
     # do the gap filling using the ACCESS output
     if "GapFillFromAlternate" in l4_info:
+        # read the alternate data files
+        ds_alt = pfp_gf.ReadAlternateFiles(ds4, l4_info)
         pfp_gfALT.GapFillFromAlternate(main_gui, ds4, ds_alt, l4_info, "GapFillFromAlternate")
         if ds4.returncodes["value"] != 0:
             return ds4
