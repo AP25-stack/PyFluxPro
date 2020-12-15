@@ -5,6 +5,7 @@ import glob
 import os
 import sys
 import time
+import shutil
 # 3rd party
 from configobj import ConfigObj
 import netCDF4
@@ -15,12 +16,14 @@ import scipy
 from scipy.interpolate import InterpolatedUnivariateSpline
 import xlrd
 # check the scripts directory is present
-if not os.path.exists("../scripts/"):
-    # CME: if not os.path.exists("../../../PyFluxPro/scripts/"):
-    print("era52nc: the scripts directory is missing")
-    sys.exit()
+scripts_path = os.path.join("..", "scripts", "")
+#if not os.path.exists(scripts_path):
+#    print("era52nc: the scripts directory is missing")
+#    sys.exit()
 # since the scripts directory is there, try importing the modules
-sys.path.append('../scripts')
+#sys.path.append(scripts_path)
+sys.path.append('scripts')
+
 # PFP
 import constants as c
 import meteorologicalfunctions as mf
@@ -36,7 +39,8 @@ Akima univariante spline interpolation insures the spline is going through the d
 """
 now = datetime.datetime.now()
 log_file_name = 'process_era52nc_' + now.strftime("%Y%m%d%H%M") + ".log"
-log_file_name = os.path.join("./logfiles", log_file_name)
+log_file_name = os.path.join("logfiles", log_file_name)
+#log_file_name = os.path.join("../logfiles", log_file_name)
 logger = pfp_log.init_logger("pfp_log", log_file_name, to_file=True, to_screen=True)
 
 def read_site_master(xl_file_path, sheet_name):
@@ -1005,17 +1009,21 @@ for n, era5_name in enumerate(era5_files):
 # now we need to loop over the contents of the concatenate control file dictionary
 for site_name in site_list:
     cf_concat = cf_dict[site_name]
-    #print('CE: cf_concat = ', cf_concat)
     cf_concat.filename = os.path.join(concat_control_path,site_name+"_concatenate.txt")
     cf_concat.write()
     msg = "Concatenating monthly files for "+site_name
     logger.info(msg)
-    #print("filename",cf_concat)
-    #nc_concatenate(cf_concat)
-    #info = cf_concat
-    #info["NetCDFConcatenate"] = {"OK": True}
-    info = pfp_compliance.ParseConcatenateControlFile(cf_concat)
-    pfp_io.NetCDFConcatenate(info)
+    if len(list(cf_concat["Files"]["In"].keys())) < 2:
+        msg = " Less than 2 input files specified, hence rename IN-file to OUT-file"
+        logger.error(msg)
+        src = cf_concat["Files"]["In"]["0"]
+        dst = cf_concat["Files"]["Out"]["ncFileName"]
+        print(src)
+        print(dst)
+        shutil.copy2(src,dst)
+    else:
+        info = pfp_compliance.ParseConcatenateControlFile(cf_concat)
+        pfp_io.NetCDFConcatenate(info)
     msg = "Finish concatenating monthly files for "+site_name
     logger.info(msg)
     

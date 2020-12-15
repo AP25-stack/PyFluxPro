@@ -1,10 +1,12 @@
+#!/usr/bin/env python3
 """
  Purpose:
   Download requested ISD files from the NOAA FTP site.
  Usage:
-  python get_isd_from_noaa.py
+  python3 get_isd_from_noaa.py <controlfile>
  Author: PRI
  Date: June 2017
+ modified December 2020 CEwenz
 """
 # standard
 from collections import OrderedDict
@@ -18,19 +20,22 @@ import time
 from configobj import ConfigObj
 import xlrd
 # check the scripts directory is present
-if not os.path.exists("../scripts/"):
+#if not os.path.exists("../scripts/"):
+if not os.path.exists("scripts"):
     print("erai2nc: the scripts directory is missing")
     sys.exit()
 # since the scripts directory is there, try importing the modules
-sys.path.append('../scripts')
+#sys.path.append('../scripts')
+sys.path.append('scripts')
 # PFP
-import qcio
-import qclog
+import pfp_io
+import pfp_log
 
-t = time.localtime()
-rundatetime = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5]).strftime("%Y%m%d%H%M")
-log_filename = 'get_isd_from_noaa_'+rundatetime+'.log'
-logger = qclog.init_logger(logger_name="pfp_log", file_handler=log_filename)
+now = datetime.datetime.now()
+log_file_name = 'get_isd_from_noaa_' + now.strftime("%Y%m%d%H%M") + ".log"
+log_file_name = os.path.join("logfiles", log_file_name)
+#log_file_name = os.path.join("../logfiles", log_file_name)
+logger = pfp_log.init_logger("pfp_log", log_file_name, to_file=True, to_screen=True)
 
 def read_site_master(xl_file_path, sheet_name):
     """
@@ -59,8 +64,25 @@ def read_site_master(xl_file_path, sheet_name):
     return site_info
 
 # read the control file file
-cf = qcio.load_controlfile(path='../controlfiles')
-xl_file_path = cf["Files"]["xl_file_path"]
+if (__name__ == '__main__'):
+    # get the control file name
+    if len(sys.argv) == 1:
+        # not on the command line, so ask the user
+        cfg_file_path = input("Enter the control file name: ")
+        # exit if nothing selected
+        if len(cfg_file_path) == 0:
+            sys.exit()
+    else:
+        # control file name on the command line
+        if not os.path.exists(sys.argv[1]):
+            # control file doesn't exist
+            logger.error("Control file %s does not exist", sys.argv[1])
+            sys.exit()
+        else:
+            cfg_file_path = sys.argv[1]
+
+cf = pfp_io.get_controlfilecontents(cfg_file_path, mode="verbose")
+xl_file_path  = cf["Files"]["xl_file_path"]
 xl_sheet_name = cf["Files"]["xl_sheet_name"]
 isd_base_path = cf["Files"]["isd_base_path"]
 # get the site information from the site master spreadsheet

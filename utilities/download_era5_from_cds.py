@@ -55,7 +55,7 @@ else:
     sys.exit
 
 # === Which area, see index for country given
-list_country = ["australia", "indonesia", "brazil", "nz","mara"]
+list_country = ["australia", "indonesia", "brazil", "nz", "mara"]
 list_area    = ["-10/110/-45/155", "-2/114/-3/115", "-5/-45/-15/-35", "-30/165/-50/180", "-39.5/176.5/-39.75/176.75"]
 
 era5_info["country"] = sys.argv[1]          #"australia"
