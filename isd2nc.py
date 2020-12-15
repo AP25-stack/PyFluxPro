@@ -1,4 +1,4 @@
-#%run basics
+#!/usr/bin/env python3
 # Python modules
 import calendar
 from collections import OrderedDict
@@ -21,21 +21,24 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 import xlrd
 import xlwt
 # pfp modules
-if not os.path.exists("../scripts/"):
+#if not os.path.exists("../scripts/"):
+if not os.path.exists("scripts"):
     print("PyFluxPro: the scripts directory is missing")
     sys.exit()
 # since the scripts directory is there, try importing the modules
-sys.path.append('../scripts')
+sys.path.append('scripts')
 import constants as c
 import meteorologicalfunctions as mf
-import qcio
-import qclog
-import qcutils
+import pfp_io
+import pfp_log
+import pfp_utils
+import pfp_compliance
 
-t = time.localtime()
-rundatetime = datetime.datetime(t[0],t[1],t[2],t[3],t[4],t[5]).strftime("%Y%m%d%H%M")
-log_filename = 'isd2nc_'+rundatetime+'.log'
-logger = qclog.init_logger(logger_name="pfp_log", file_handler=log_filename)
+now = datetime.datetime.now()
+log_file_name = 'isd2nc_' + now.strftime("%Y%m%d%H%M") + ".log"
+log_file_name = os.path.join("logfiles", log_file_name)
+#log_file_name = os.path.join("../logfiles", log_file_name)
+logger = pfp_log.init_logger("pfp_log", log_file_name, to_file=True, to_screen=True)
 
 def read_isd_file(isd_file_path):
     """
@@ -53,17 +56,17 @@ def read_isd_file(isd_file_path):
     isd_site_id = isd_site_id[0]+"-"+isd_site_id[1]
     # read the file
     if os.path.splitext(isd_file_path)[1] == ".gz":
-        with gzip.open(isd_file_path, 'rb') as fp:
+        with gzip.open(isd_file_path, 'r') as fp:
             content = fp.readlines()
     else:
         with open(isd_file_path) as fp:
             content = fp.readlines()
     # get a data structure
-    ds = qcio.DataStructure()
+    ds = pfp_io.DataStructure()
     # get the site latitude, longitude and altitude
-    ds.globalattributes["altitude"] = float(content[0][46:51])
-    ds.globalattributes["latitude"] = float(content[0][28:34])/float(1000)
-    ds.globalattributes["longitude"] = float(content[0][34:41])/float(1000)
+    ds.globalattributes["altitude"] = float(content[0][46:51].decode('utf-8'))
+    ds.globalattributes["latitude"] = float(content[0][28:34].decode('utf-8'))/float(1000)
+    ds.globalattributes["longitude"] = float(content[0][34:41].decode('utf-8'))/float(1000)
     ds.globalattributes["isd_site_id"] = isd_site_id
     # initialise the data structure
     ds.series["DateTime"] = {"Data":[],"Flag":[],"Attr":{"long_name":"Datetime","units":"none"}}
@@ -79,47 +82,48 @@ def read_isd_file(isd_file_path):
     for i in range(len(content)-1):
     #for i in range(10):
         # filter out anything other than hourly data
-        if content[i][41:46] not in OK_obs_code: continue
-        YY = int(content[i][15:19])
-        MM = int(content[i][19:21])
-        DD = int(content[i][21:23])
-        HH = int(content[i][23:25])
-        mm = int(content[i][25:27])
+        if content[i][41:46].decode('utf-8') not in OK_obs_code: continue
+        YY = int(content[i][15:19].decode('utf-8'))
+        MM = int(content[i][19:21].decode('utf-8'))
+        DD = int(content[i][21:23].decode('utf-8'))
+        HH = int(content[i][23:25].decode('utf-8'))
+        mm = int(content[i][25:27].decode('utf-8'))
         dt = datetime.datetime(YY,MM,DD,HH,mm,0)
         ds.series["DateTime"]["Data"].append(pytz.utc.localize(dt))
         # wind direction, degT
         try:
-            ds.series["Wd"]["Data"].append(float(content[i][60:63]))
+            ds.series["Wd"]["Data"].append(float(content[i][60:63].decode('utf-8')))
         except:
             ds.series["Wd"]["Data"].append(float(999))
         # wind speed, m/s
         try:
-            ds.series["Ws"]["Data"].append(float(content[i][65:69])/float(10))
+            ds.series["Ws"]["Data"].append(float(content[i][65:69].decode('utf-8'))/float(10))
         except:
             ds.series["Ws"]["Data"].append(float(999.9))
         # air temperature, C
         try:
-            ds.series["Ta"]["Data"].append(float(content[i][87:92])/float(10))
+            ds.series["Ta"]["Data"].append(float(content[i][87:92].decode('utf-8'))/float(10))
         except:
             ds.series["Ta"]["Data"].append(float(999.9))
         # dew point temperature, C
         try:
-            ds.series["Td"]["Data"].append(float(content[i][93:98])/float(10))
+            ds.series["Td"]["Data"].append(float(content[i][93:98].decode('utf-8'))/float(10))
         except:
             ds.series["Td"]["Data"].append(float(999.9))
         # sea level pressure, hPa
         try:
-            ds.series["ps"]["Data"].append(float(content[i][99:104])/float(10))
+            ds.series["ps"]["Data"].append(float(content[i][99:104].decode('utf-8'))/float(10))
         except:
             ds.series["ps"]["Data"].append(float(9999.9))
         # precipitation, mm
-        if content[i][108:111] == "AA1":
+        if content[i][108:111].decode('utf-8') == "AA1":
             try:
-                ds.series["Precip"]["Data"].append(float(content[i][113:117])/float(10))
+                ds.series["Precip"]["Data"].append(float(content[i][113:117].decode('utf-8'))/float(10))
             except:
                 ds.series["Precip"]["Data"].append(float(999.9))
         else:
             ds.series["Precip"]["Data"].append(float(999.9))
+
     # add the time zone to the DateTime ataributes
     ds.series["DateTime"]["Attr"]["time_zone"] = "UTC"
     # convert from lists to masked arrays
@@ -128,11 +132,10 @@ def read_isd_file(isd_file_path):
     ds.series["DateTime"]["Data"] = numpy.array(ds.series["DateTime"]["Data"])
     ds.series["DateTime"]["Flag"] = f0
     ds.globalattributes["nc_nrecs"] = len(f0)
-
-    dt_delta = qcutils.get_timestep(ds)
+    dt_delta = pfp_utils.get_timestep(ds)
     ts = scipy.stats.mode(dt_delta)[0]/60
     ds.globalattributes["time_step"] = ts[0]
-
+    
     ds.series["Wd"]["Data"] = numpy.ma.masked_equal(ds.series["Wd"]["Data"],999)
     ds.series["Wd"]["Flag"] = numpy.where(numpy.ma.getmaskarray(ds.series["Wd"]["Data"])==True,f1,f0)
     ds.series["Ws"]["Data"] = numpy.ma.masked_equal(ds.series["Ws"]["Data"],999.9)
@@ -154,21 +157,23 @@ def read_isd_file(isd_file_path):
     ds.series["Precip"]["Data"] = numpy.ma.masked_where(condition,ds.series["Precip"]["Data"])
     ds.series["Precip"]["Flag"] = numpy.where(numpy.ma.getmaskarray(ds.series["Precip"]["Data"])==True,f1,f0)
     # get the humidities from Td
-    Ta, flag, attr = qcutils.GetSeriesasMA(ds, "Ta")
-    Td, flag, attr = qcutils.GetSeriesasMA(ds, "Td")
-    ps, flag, attr = qcutils.GetSeriesasMA(ds, "ps")
-    RH = mf.RHfromdewpoint(Td, Ta)
+    Ta, flag, attr = pfp_utils.GetSeriesasMA(ds, "Ta")
+    Td, flag, attr = pfp_utils.GetSeriesasMA(ds, "Td")
+    ps, flag, attr = pfp_utils.GetSeriesasMA(ds, "ps")
+
+    RH = mf.relativehumidityfromdewpoint(Td, Ta)
     flag = numpy.where(numpy.ma.getmaskarray(RH)==True, f1, f0)
     attr = {"long_name":"Relative humidity", "units":"%"}
-    qcutils.CreateSeries(ds, "RH", RH, Flag=flag, Attr=attr)
-    Ah = mf.absolutehumidityfromRH(Ta, RH)
-    flag = numpy.where(numpy.ma.getmaskarray(Ah)==True, f1, f0)
+    pfp_utils.CreateSeries(ds, "RH", RH, Flag=flag, Attr=attr)
+    AH = mf.absolutehumidityfromrelativehumidity(Ta, RH)
+    flag = numpy.where(numpy.ma.getmaskarray(AH)==True, f1, f0)
     attr = {"long_name":"Absolute humidity", "units":"g/m3"}
-    qcutils.CreateSeries(ds, "Ah", Ah, Flag=flag, Attr=attr)
-    q = mf.specifichumidityfromRH(RH, Ta, ps)
-    flag = numpy.where(numpy.ma.getmaskarray(q)==True, f1, f0)
+    pfp_utils.CreateSeries(ds, "AH", AH, Flag=flag, Attr=attr)
+    SH = mf.specifichumidityfromrelativehumidity(RH, Ta, ps)
+    flag = numpy.where(numpy.ma.getmaskarray(SH)==True, f1, f0)
     attr = {"long_name":"Specific humidity", "units":"kg/kg"}
-    qcutils.CreateSeries(ds, "q", q, Flag=flag, Attr=attr)
+    pfp_utils.CreateSeries(ds, "SH", SH, Flag=flag, Attr=attr)
+    
     # return the data
     return ds
 
@@ -182,7 +187,7 @@ def interpolate_ds(ds_in, ts, k=3):
     Date: June 2017
     """
     # instance the output data structure
-    ds_out = qcio.DataStructure()
+    ds_out = pfp_io.DataStructure()
     # copy the global attributes
     for key in list(ds_in.globalattributes.keys()):
         ds_out.globalattributes[key] = ds_in.globalattributes[key]
@@ -208,7 +213,7 @@ def interpolate_ds(ds_in, ts, k=3):
         series_list.remove("DateTime")
     for label in series_list:
         #print label
-        data_in, flag_in, attr_in = qcutils.GetSeriesasMA(ds_in, label)
+        data_in, flag_in, attr_in = pfp_utils.GetSeriesasMA(ds_in, label)
         # check if we are dealing with precipitation
         if "Precip" in label:
             # precipitation shouldn't be interpolated, just assign any precipitation
@@ -221,7 +226,7 @@ def interpolate_ds(ds_in, ts, k=3):
             data_out = interpolate_1d(x1, data_in, x2)
         flag_out = numpy.zeros(len(idt))
         attr_out = attr_in
-        qcutils.CreateSeries(ds_out, label, data_out, Flag=flag_out, Attr=attr_out)
+        pfp_utils.CreateSeries(ds_out, label, data_out, Flag=flag_out, Attr=attr_out)
 
     return ds_out
 
@@ -346,7 +351,7 @@ def xl_write_ISD_timesteps(xl_file_path, data):
       data[site][year]["stdev"]
       data[site][year]["mode"]
     Usage:
-     qcio.xl_write_ISD_timesteps(xl_file_path, data)
+     pfp_io.xl_write_ISD_timesteps(xl_file_path, data)
       where xl_file_path is an Excel workbook file name
             data         is a dictionary as defined above
     Side effects:
@@ -383,7 +388,24 @@ def xl_write_ISD_timesteps(xl_file_path, data):
     return
 
 # read the control file file
-cf = qcio.load_controlfile(path='../controlfiles')
+if (__name__ == '__main__'):
+    # get the control file name
+    if len(sys.argv) == 1:
+        # not on the command line, so ask the user
+        cfg_file_path = input("Enter the control file name: ")
+        # exit if nothing selected
+        if len(cfg_file_path) == 0:
+            sys.exit()
+    else:
+        # control file name on the command line
+        if not os.path.exists(sys.argv[1]):
+            # control file doesn't exist
+            logger.error("Control file %s does not exist", sys.argv[1])
+            sys.exit()
+        else:
+            cfg_file_path = sys.argv[1]
+
+cf = pfp_io.get_controlfilecontents(cfg_file_path, mode="verbose")
 xl_file_path = cf["Files"]["xl_file_path"]
 xl_sheet_name = cf["Files"]["xl_sheet_name"]
 isd_base_path = cf["Files"]["isd_base_path"]
@@ -451,7 +473,7 @@ for site in site_list:
                 logger.warning(msg)
                 continue
             # get an array of time steps in seconds
-            dt = qcutils.get_timestep(ds_in)
+            dt = pfp_utils.get_timestep(ds_in)
             # and get dt in minutes
             dt = dt/float(60)
             isd_time_steps[isd_site][year]["mean"] = numpy.mean(dt)
@@ -470,11 +492,11 @@ for site in site_list:
             #if not os.path.exists(nc_dir_path):
                 #os.makedirs(nc_dir_path)
             #nc_file_path = os.path.join(nc_dir_path,nc_file_name)
-            #nc_file = qcio.nc_open_write(nc_file_path)
-            #qcio.nc_write_series(nc_file, ds_out[site_index[isd_site]], ndims=1)
+            #nc_file = pfp_io.nc_open_write(nc_file_path)
+            #pfp_io.nc_write_series(nc_file, ds_out[site_index[isd_site]], ndims=1)
         # now we merge the data structures for each ISD station into a single data structure
         # first, instance a data structure
-        ds_all = qcio.DataStructure()
+        ds_all = pfp_io.DataStructure()
         ds_all.globalattributes["latitude"] = site_info[site]["Latitude"]
         ds_all.globalattributes["longitude"] = site_info[site]["Longitude"]
         ds_all.globalattributes["altitude"] = site_info[site]["Altitude"]
@@ -485,7 +507,6 @@ for site in site_list:
         for i in list(ds_out.keys()):
             start_datetime.append(ds_out[i].series["DateTime"]["Data"][0])
             end_datetime.append(ds_out[i].series["DateTime"]["Data"][-1])
-        print(site, year)
         start = min(start_datetime)
         end = max(end_datetime)
         # now make a datetime series at the required time step from the earliest start
@@ -530,11 +551,11 @@ for site in site_list:
                 # append a number, unique to each ISD station, to the variable label
                 all_label = label+"_"+str(i)
                 # create empty data and flag arrays
-                variable = qcutils.create_empty_variable(all_label, nrecs)
-                qcutils.CreateSeries(ds_all, all_label, variable["Data"], Flag = variable["Flag"],
+                variable = pfp_utils.CreateEmptyVariable(all_label, nrecs)
+                pfp_utils.CreateSeries(ds_all, all_label, variable["Data"], Flag = variable["Flag"],
                                     Attr = variable["Attr"])
                 # read the data out of the ISD site data structure
-                data, flag, attr = qcutils.GetSeriesasMA(ds_out[i], label)
+                data, flag, attr = pfp_utils.GetSeriesasMA(ds_out[i], label)
                 # add the ISD site ID
                 attr["isd_site_id"] = isd_site_id
                 # put the data, flag and attributes into the all-in-one data structure
@@ -551,13 +572,14 @@ for site in site_list:
         if not os.path.exists(nc_dir_path):
             os.makedirs(nc_dir_path)
         nc_file_path = os.path.join(nc_dir_path,nc_file_name)
-        nc_file = qcio.nc_open_write(nc_file_path)
-        qcio.nc_write_series(nc_file, ds_all, ndims=1)
+        nc_file = pfp_io.nc_open_write(nc_file_path)
+        pfp_io.nc_write_series(nc_file, ds_all, ndims=1)
         cf_concat["Files"]["In"][str(n)] = nc_file_path
     # concatenate the yearly files for this site
     #cf_concat.filename = "../controlfiles/ISD/concat.txt"
     #cf_concat.write()
-    qcio.nc_concatenate(cf_concat)    
+    info = pfp_compliance.ParseConcatenateControlFile(cf_concat)
+    pfp_io.NetCDFConcatenate(info)    
 
 # write the time steps out to an Excel file
 xl_file_path = os.path.join(isd_base_path, "ISD_site_timesteps.xls")
