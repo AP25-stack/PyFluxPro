@@ -122,12 +122,12 @@ def gfalternate_autocomplete(ds_tower, ds_alt, l4_info, called_by, mode="verbose
                     min_points = max([int(((gap[1]-gap[0])+1)*l4a["gui"]["min_percent"]/100),3*l4a["gui"]["nperhr"]])
                     if numpy.ma.count(data_alt[gap[0]: gap[1]]) >= min_points:
                         if mode.lower() != "quiet":
-                            msg = " autocomplete: " + label_tower + ldt_tower[gap[0]] + ldt_tower[gap[1]] + " got data to fill gap"
+                            msg = " autocomplete: " + label_tower + str(ldt_tower[gap[0]]) + str(ldt_tower[gap[1]]) + " got data to fill gap"
                             logger.info(msg)
                         gotdataforgap[n] = True
                     if numpy.ma.count_masked(data_tower[gap[0]: gap[1]]) == 0:
                         if mode.lower() != "quiet":
-                            msg = " autocomplete: "+label_tower + ldt_tower[gap[0]] + ldt_tower[gap[1]] + " no gap to fill"
+                            msg = " autocomplete: "+label_tower + str(ldt_tower[gap[0]]) + str(ldt_tower[gap[1]]) + " no gap to fill"
                             logger.info(msg)
                         gotdataforgap[n] = False
         # finished checking all alternate data sources for data to fill remaining gaps
