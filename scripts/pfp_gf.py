@@ -475,7 +475,7 @@ def gfalternate_createdict_gui(cf, ds, l4_info, called_by):
     if cf["Options"]["call_mode"].lower() == "interactive":
         l4a["gui"]["show_plots"] = True
     else:
-        opt = pfp_utils.get_keyvaluefromcf(cf, sl, "show_plots", default="yes")
+        opt = pfp_utils.get_keyvaluefromcf(cf, sl, "show_plots", default="no")
         if opt.lower() == "no":
             l4a["gui"]["show_plots"] = False
     # show all plots option
@@ -916,7 +916,7 @@ def gfSOLO_createdict_gui(cf, ds, l5_info, called_by):
     if cf["Options"]["call_mode"].lower() == "interactive":
         l5s["gui"]["show_plots"] = True
     else:
-        opt = pfp_utils.get_keyvaluefromcf(cf, sl, "show_plots", default="yes")
+        opt = pfp_utils.get_keyvaluefromcf(cf, sl, "show_plots", default="no")
         if opt.lower() == "no":
             l5s["gui"]["show_plots"] = False
     # show all plots option
